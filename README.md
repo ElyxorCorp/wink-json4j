@@ -10,3 +10,5 @@ This product includes software developed at:
 
 Source Code: [GitHub (https://github.com/ElyxorCorp/wink-json4j)](https://github.com/ElyxorCorp/wink-json4j) 
 
+The original project was (http://wink.apache.org) of which **wink-json4j** was a subproject.  The parent project was sunset on 
+2017/04/25.
