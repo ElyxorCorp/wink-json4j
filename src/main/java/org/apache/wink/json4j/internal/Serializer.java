@@ -145,9 +145,10 @@ public class Serializer {
     /**
      * Method to write a String out to the writer, encoding special characters and unicode characters properly.
      * @param value The string to write out.
+     * @param encodingEnabled boolean flag to make encoding enabled - escaping special chars
      * @throws IOException Thrown if an error occurs during write.
      */
-    public Serializer writeString(String value) throws IOException {
+    public Serializer writeString(String value, boolean encodingEnabled) throws IOException {
         if (null == value) return writeNull();
 
         writer.write('"');
@@ -156,23 +157,50 @@ public class Serializer {
 
         for (int i=0; i<chars.length; i++) {
             char c = chars[i];
-            switch (c) {
-                case  '"': writer.write("\\\""); break;
-                case '\\': writer.write("\\\\"); break;
-                case    0: writer.write("\\0"); break;
-                case '\b': writer.write("\\b"); break;
-                case '\t': writer.write("\\t"); break;
-                case '\n': writer.write("\\n"); break;
-                case '\f': writer.write("\\f"); break;
-                case '\r': writer.write("\\r"); break;
-                case '/': writer.write("\\/"); break;
-                default:
-                    if ((c >= 32) && (c <= 126)) {
-                        writer.write(c);
-                    } else {
-                        writer.write("\\u");
-                        writer.write(rightAlignedZero(Integer.toHexString(c),4));
-                    }
+            if (encodingEnabled) {
+                switch (c) {
+                    case '"':
+                        writer.write("\\\"");
+                        break;
+                    case '\\':
+                        writer.write("\\\\");
+                        break;
+                    case 0:
+                        writer.write("\\0");
+                        break;
+                    case '\b':
+                        writer.write("\\b");
+                        break;
+                    case '\t':
+                        writer.write("\\t");
+                        break;
+                    case '\n':
+                        writer.write("\\n");
+                        break;
+                    case '\f':
+                        writer.write("\\f");
+                        break;
+                    case '\r':
+                        writer.write("\\r");
+                        break;
+                    case '/':
+                        writer.write("\\/");
+                        break;
+                    default:
+                        if ((c >= 32) && (c <= 126)) {
+                            writer.write(c);
+                        } else {
+                            writer.write("\\u");
+                            writer.write(rightAlignedZero(Integer.toHexString(c), 4));
+                        }
+                }
+            } else {
+                if ((c >= 32) && (c <= 126)) {
+                    writer.write(c);
+                } else {
+                    writer.write("\\u");
+                    writer.write(rightAlignedZero(Integer.toHexString(c), 4));
+                }
             }
         }
 
@@ -182,21 +210,35 @@ public class Serializer {
     }
 
     /**
+     * Method to write a String out to the writer, encoding special characters and unicode characters properly.
+     * @param value The string to write out.
+     * @throws IOException Thrown if an error occurs during write.
+     */
+    public Serializer writeString(String value) throws IOException {
+        return writeString(value, true);
+    }
+
+    private Serializer write(Object object) throws IOException {
+        return write(object, true);
+    }
+
+    /**
      * Method to write out a generic JSON type.
      * @param object The JSON compatible object to serialize.
+     * @param encodingEnabled boolean flag to make encoding enabled - escaping special chars
      * @throws IOException Thrown if an error occurs during write, or if a nonJSON compatible Java object is passed..
      */
-    private Serializer write(Object object) throws IOException {
+    private Serializer write(Object object, boolean encodingEnabled) throws IOException {
         if (null == object) return writeNull();
         
         // Serialize the various types!
         Class clazz = object.getClass();
         if (Number.class.isAssignableFrom(clazz)) return writeNumber((Number) object);
         if (Boolean.class.isAssignableFrom(clazz)) return writeBoolean((Boolean) object);
-        if (JSONObject.class.isAssignableFrom(clazz)) return writeObject((JSONObject) object);
+        if (JSONObject.class.isAssignableFrom(clazz)) return writeObject((JSONObject) object, encodingEnabled);
         if (JSONArray.class.isAssignableFrom(clazz)) return writeArray((JSONArray) object);
         if (JSONString.class.isAssignableFrom(clazz)) return writeRawString(((JSONString) object).toJSONString());
-        if (String.class.isAssignableFrom(clazz)) return writeString((String) object);
+        if (String.class.isAssignableFrom(clazz)) return writeString((String) object, encodingEnabled);
 
         throw new IOException("Attempting to serialize unserializable object: '" + object + "'");
     }
@@ -207,6 +249,16 @@ public class Serializer {
      * @throws IOException Thrown if an error occurs during write.
      */
     public Serializer writeObject(JSONObject object) throws IOException {
+        return writeObject(object, true);
+    }
+
+    /**
+     * Method to write a complete JSON object to the stream.
+     * @param object The JSON object to write out.
+     * @param encodingEnabled boolean flag to make encoding enabled - escaping special chars
+     * @throws IOException Thrown if an error occurs during write.
+     */
+    public Serializer writeObject(JSONObject object, boolean encodingEnabled) throws IOException {
         if (null == object) return writeNull();
 
         // write header
@@ -230,10 +282,10 @@ public class Serializer {
 
             newLine();
             indent();
-            writeString((String)key);
+            writeString((String)key, encodingEnabled);
             writeRawString(":");
             space();
-            write(value);
+            write(value, encodingEnabled);
 
             if (iter.hasNext()) writeRawString(",");
         }
@@ -253,6 +305,16 @@ public class Serializer {
      * @throws IOException Thrown if an error occurs during write.
      */
     public Serializer writeArray(JSONArray value) throws IOException {
+        return writeArray(value, true);
+    }
+
+    /**
+     * Method to write a JSON array out to the stream.
+     * @param value The JSON array to write out.
+     * @param encodingEnabled boolean flag to make encoding enabled - escaping special chars
+     * @throws IOException Thrown if an error occurs during write.
+     */
+    public Serializer writeArray(JSONArray value, boolean encodingEnabled) throws IOException {
         if (null == value) return writeNull();
 
         // write header
@@ -265,7 +327,7 @@ public class Serializer {
 
             newLine();
             indent();
-            write(element);
+            write(element, encodingEnabled);
 
             if (iter.hasNext()) writeRawString(",");
         }

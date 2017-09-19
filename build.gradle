@@ -1,0 +1,43 @@
+// Apply the java plugin to add support for Java
+apply plugin: 'java'
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    jcenter()
+}
+
+dependencies {
+
+    // JUnit
+    testCompile "junit:junit:4.12"
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.1'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main']
+        }
+    }
+}
+
+jar {
+    baseName = 'wink-json4j-0.0.1'
+    manifest {
+        attributes(
+                "Manifest-Version": "0.0.1",
+                "Application-Name": "WINK-JSON4J"
+        )
+    }
+
+    from "build"
+    destinationDir = file('bin')
+}
+
+clean {
+    delete 'build/'
+    delete 'bin'
+}

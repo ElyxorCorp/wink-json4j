@@ -337,7 +337,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
     /**
      * Write this object to the stream as JSON text in UTF-8 encoding, specifying how many spaces should be used for each indent.
-     * @param indentDepth How many spaces to use for each indent level.  Should be one to eight.  
+     * @param indentDepth How many spaces to use for each indent level.  Should be one to eight.
      * Less than one means no intending, greater than 8 and it will just use tab.
      *
      * @throws JSONException Thrown on IO errors during serialization.
@@ -478,6 +478,19 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * @throws JSONException Thrown on errors during serialization.
      */
     public String write(int indentDepth) throws JSONException {
+        return write(indentDepth, true);
+    }
+
+    /**
+     * Convert this object into a String of JSON text, specifying how many spaces should be used for each indent.
+     * This is an alternate indent style to using tabs.
+     * @param indentDepth How many spaces to use for each indent.  The value should be between one to eight.
+     * @param encodingEnabled flag to determine enabling or disabling the JSON encoding and character escaping
+     * Less than one means no indenting, greater than 8 and it will just use tab.
+     *
+     * @throws JSONException Thrown on errors during serialization.
+     */
+    public String write(int indentDepth, boolean encodingEnabled) throws JSONException {
         Serializer serializer;
         StringWriter writer = new StringWriter();
 
@@ -493,7 +506,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
             serializer = new Serializer(writer);
         }
         try {
-            serializer.writeObject(this).flush();
+            serializer.writeObject(this, encodingEnabled).flush();
         } catch (IOException iox) {
             JSONException jex = new JSONException("Error occurred during write.");
             jex.initCause(iox);
@@ -501,6 +514,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         }
         return writer.toString();
     }
+
 
     /**
      * Convert this object into a String of JSON text, specifying whether to use verbose (tab-indented) output or not.
@@ -1483,6 +1497,15 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * @return A string of JSON text, if possible.
      */
     public String toString(int indentDepth) throws JSONException {
-        return write(indentDepth);
+        return toString(indentDepth, true);
+    }
+
+    /**
+     * Function to return a string of JSON text with specified indention.  Returns the same value as write(indentDepth).
+     * If an error occurs in the serialization, a JSONException is thrown.
+     * @return A string of JSON text, if possible.
+     */
+    public String toString(int indentDepth, boolean encodingEnabled) throws JSONException {
+        return write(indentDepth, encodingEnabled);
     }
 }
