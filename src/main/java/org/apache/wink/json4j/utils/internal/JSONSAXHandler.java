@@ -172,6 +172,7 @@ public class JSONSAXHandler extends DefaultHandler {
 
     /**
      * Method to flush out anything remaining in the buffers.
+     * @throws IOException Thrown if there is an error while flushing buffer
      */
     public void flushBuffer() throws IOException {
         if (logger.isLoggable(Level.FINER)) logger.entering(className, "flushBuffer()");
@@ -186,7 +187,7 @@ public class JSONSAXHandler extends DefaultHandler {
     /**
      * Internal method to start JSON generation.
      */
-    private void startJSON() throws SAXException {
+    private void startJSON() {
         if (logger.isLoggable(Level.FINER)) logger.entering(className, "startJSON()");
 
         this.head    = new JSONObject("",null);

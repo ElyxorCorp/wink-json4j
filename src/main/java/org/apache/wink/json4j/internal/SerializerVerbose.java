@@ -50,8 +50,8 @@ public class SerializerVerbose extends Serializer {
 
     /**
      * Constructor.
-     * @param Writer The writer to serialize JSON to.
-     * @param indentSpaces: How many spaces to indent by (0 to 8).  
+     * @param writer The writer to serialize JSON to.
+     * @param indentSpaces How many spaces to indent by (0 to 8).
      * The default indent is the TAB character. 
      */
     public SerializerVerbose(Writer writer, int indentSpaces) {
@@ -90,7 +90,6 @@ public class SerializerVerbose extends Serializer {
 
     /**
      * Method to increase the indent depth of the output writer.
-     * @throws IOException Thrown if an error occurs during write.
      */
     public void indentPush() {
         indent++;
@@ -98,6 +97,7 @@ public class SerializerVerbose extends Serializer {
 
     /**
      * Method to reduce the indent depth of the output writer.
+     * @throws IllegalStateException if the ident tries to pop below 0
      */
     public void indentPop() {
         indent--;
@@ -105,7 +105,8 @@ public class SerializerVerbose extends Serializer {
     }
 
     /**
-     * Method to get a list of all the property names stored in a map.
+     * Method to get a sorted list of all the property names stored in a map.
+     * @param map
      */
     public List getPropertyNames(Map map) {
         List propertyNames = super.getPropertyNames(map);

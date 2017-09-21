@@ -115,10 +115,12 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     /**
      * Create a new instance of this class based off the contents of the passed
      * in collection
+     * This will throw a <code>NullPointerException</code> if <code>col</code>
+     * is null
      * @param col The Collection of objects to add into this array.
      * @param includeSuperclass For JavaBeans, include all superclass info.
      * @throws JSONException Thrown when objects in the collection are not JSONable.
-     * &throws NullPointerException Thrown if col is null.
+     * @throws NullPointerException Thrown if col is null.
      */
     public JSONArray(Collection col, boolean includeSuperclass) throws JSONException {
         super(col.size());
@@ -1105,7 +1107,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Over-ridden toString() method.  Returns the same value as write(), which is a compact JSON String.
-     * If an error occurs in the serialization, the return will be of format: JSON Generation Error: [<some error>]
+     * If an error occurs in the serialization, the return will be of format: <pre>JSON Generation Error: [THE ERROR]</pre>
      */
     public String toString() {
         String str = null;
@@ -1119,7 +1121,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Function to return a string of JSON text with specified indention.  Returns the same value as write(indentDepth).
-     * If an error occurs in the serialization, the return will be of format: JSON Generation Error: [<some error>]
+     * If an error occurs in the serialization, the return will be of format: <pre>JSON Generation Error: [THE ERROR]</pre>
      * @throws JSONException Thrown if an error occurs during JSON generation.
      */
     public String toString(int indentDepth) throws JSONException {

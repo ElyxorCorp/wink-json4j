@@ -103,6 +103,7 @@ public class JSONObject {
 
     /**
      * Method to get any freeform text on the object.
+     * @return the freeform text
      */
     public String getTagText() {
         return this.tagText;

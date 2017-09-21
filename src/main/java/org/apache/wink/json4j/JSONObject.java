@@ -567,9 +567,9 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * @param key The key to put in the JSONObject
      * @param value The value to put in the JSONObject
      * @param includeSuperclass Boolean indicating that if the object is a JavaBean, include superclass getter properties.
-     * @throws JSONException.  Thrown if key is null, not a string, or the value could not be converted.
+     * @throws JSONException Thrown if key is null, not a string, or the value could not be converted.
      */
-    public Object put(Object key, Object value, boolean includeSuperclass) throws JSONException{
+    public Object put(Object key, Object value, boolean includeSuperclass) throws JSONException {
         if (null == key) throw new JSONException("key must not be null");
         if (!(key instanceof String)) throw new JSONException("key must be a String");
         if (!isValidObject(value)) {
@@ -608,7 +608,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Similar to default HashMap put, except it returns JSONObject instead of Object.
      * @see java.util.HashMap#put(java.lang.Object, java.lang.Object)
      * @return A reference to this object instance.
-     * @throws JSONException.  Thrown if key is null, not a string, or the value could not be converted to JSON.
+     * @throws JSONException Thrown if key is null, not a string, or the value could not be converted to JSON.
      */
     public JSONObject put(String key, Object value) throws JSONException{
         this.put((Object)key, value);
@@ -619,7 +619,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Method to add an atomic boolean to the JSONObject.
      * param key The key/attribute name to set the boolean at.
      * @param value The boolean value.
-     * @throws JSONException.  Thrown if key is null or not a string.
+     * @throws JSONException Thrown if key is null or not a string.
      * @return A reference to this object instance.
      */
     public JSONObject put(String key, boolean value) throws JSONException{
@@ -631,7 +631,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Method to add an atomic double to the JSONObject.
      * param key The key/attribute name to set the double at.
      * @param value The double value.
-     * @throws JSONException.  Thrown if key is null or not a string.
+     * @throws JSONException Thrown if key is null or not a string.
      * @return A reference to this object instance.
      */
     public JSONObject put(String key, double value) throws JSONException{
@@ -643,7 +643,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Method to add an atomic integer to the JSONObject.
      * param key The key/attribute name to set the integer at.
      * @param value The integer value.
-     * @throws JSONException.  Thrown if key is null or not a string.
+     * @throws JSONException Thrown if key is null or not a string.
      * @return A reference to this object instance.
      */
     public JSONObject put(String key, int value) throws JSONException{
@@ -655,7 +655,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Method to add an atomic short to the JSONObject.
      * param key The key/attribute name to set the integer at.
      * @param value The integer value.
-     * @throws JSONException.  Thrown if key is null or not a string.
+     * @throws JSONException Thrown if key is null or not a string.
      * @return A reference to this object instance.
      */
     public JSONObject put(String key, short value) throws JSONException{
@@ -667,7 +667,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Method to add an atomic long to the JSONObject.
      * @param key The key/attribute name to set the long to.
      * @param value The long value.
-     * @throws JSONException.  Thrown if key is null or not a string.
+     * @throws JSONException Thrown if key is null or not a string.
      * @return A reference to this object instance.
      */
     public JSONObject put(String key, long value) throws JSONException{

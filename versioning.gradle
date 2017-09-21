@@ -1,0 +1,29 @@
+ext {
+  major = project.property('artifactMajorVersion')
+  minor = project.property('artifactMinorVersion')
+  patch = 'DEV'
+
+  getVersionCode = {
+    if (rootProject.hasProperty('teamcity')) {
+      teamcity['build.major'] = major
+      teamcity['build.minor'] = minor
+  
+      if (teamcity['build.number'].contains('.')) {
+        patch = teamcity['build.number'].split('\\.')[2]
+      } else {
+        patch = teamcity['build.number']
+      }
+
+      print '##teamcity[buildNumber \'' + major + '.' + minor + '.' + patch + '\']'
+    } else {
+      ext.env = System.getenv()
+      ext.buildNumber = env.BUILD_NUMBER?.toInteger()
+      if (env.hasProperty('BUILD_NUMBER')) {
+        patch = env.BUILD_NUMBER?.toInteger()
+        print '##jenkins[buildNumber \'' + major + '.' + minor + '.' + patch + '\']'
+      }
+    }
+
+    return major + '.' + minor + '.' + patch
+  }
+}
