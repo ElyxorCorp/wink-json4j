@@ -88,7 +88,8 @@ public class Serializer {
 
     /**
      * Method to write a number to the current writer.
-     * @param value The number to write to the JSON output string.
+     * @param value The Boolean object to write out as a JSON boolean.
+     * @return Serializer
      * @throws IOException Thrown if an error occurs during write.
      */
     public Serializer writeNumber(Number value) throws IOException {
@@ -306,7 +307,6 @@ public class Serializer {
 
     /**
      * Method to increase the indent depth of the output writer.
-     * @throws IOException Thrown if an error occurs during write.
      */
     public void indentPush() {
     }
@@ -319,6 +319,7 @@ public class Serializer {
 
     /**
      * Method to get a list of all the property names stored in a map.
+     * @param map source map
      */
     public List getPropertyNames(Map map) {
         return new ArrayList(map.keySet());

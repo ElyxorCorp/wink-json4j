@@ -74,6 +74,7 @@ public interface JSONArtifact
      * Writer this object to the writer as JSON text, specifying whether to use verbose (tab-indented) output or not.
      * be used for each indent.  This is an alternate indent style to using tabs.
      * @param writer The writer which to write the JSON text to.
+     * @param verbose pass <strong>true</strong> for verbose mode
      * @return The passed in writer.
      *
      * @throws JSONException Thrown on errors during serialization.
