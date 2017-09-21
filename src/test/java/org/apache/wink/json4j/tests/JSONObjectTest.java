@@ -1576,4 +1576,58 @@ public class JSONObjectTest extends TestCase {
         assertTrue(ex == null);
     }
 
+    /**
+     * Test that encoding is enabled and adding escape charaters before the special chars
+     */
+    public void testEnabledEncodingChars() {
+        Exception ex = null;
+        try {
+            JSONObject jObj = new JSONObject();
+
+            String test = "{\"test\":\"value with forward slash /\"}";
+            JSONObject valueJSON = new JSONObject(test);
+            jObj.put("someObj",valueJSON);
+
+            String encodingEnabledJSON = jObj.write(2);
+            String actualWithEncoding = "{\n" +
+            "  \"someObj\": {\n" +
+            "    \"test\": \"value with forward slash \\/\"\n" +
+            "  }\n" +
+            "}";
+            assertEquals(encodingEnabledJSON, actualWithEncoding);
+
+        } catch (Exception ex1) {
+            ex = ex1;
+            ex.printStackTrace();
+        }
+        assertTrue(ex == null);
+    }
+
+    /**
+     * Test that encoding is disabled and NOT adding escape charaters before the special chars
+     */
+    public void testDisabledEncodingOnChars() {
+        Exception ex = null;
+        try {
+
+            JSONObject jObj = new JSONObject();
+
+            String test = "{\"test\":\"value with forward slash /\"}";
+            JSONObject valueJSON = new JSONObject(test);
+            jObj.put("someObj",valueJSON);
+
+            String encodingDisabledJSON = jObj.write(2, false);
+            String actualWithNoEncoding = "{\n" +
+                    "  \"someObj\": {\n" +
+                    "    \"test\": \"value with forward slash /\"\n" +
+                    "  }\n" +
+                    "}";
+            assertEquals(encodingDisabledJSON, actualWithNoEncoding);
+        } catch (Exception ex1) {
+            ex = ex1;
+            ex.printStackTrace();
+        }
+        assertTrue(ex == null);
+    }
+
 }
