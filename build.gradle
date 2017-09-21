@@ -79,7 +79,7 @@ ext {
 }
 
 jar {
-  baseName = project.name + '-' + project.version
+  baseName = project.name
   manifest {
     attributes(
       "Manifest-Version": "1.0",
