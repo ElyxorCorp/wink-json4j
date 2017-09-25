@@ -19,199 +19,157 @@
 
 package org.apache.wink.json4j.tests;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-
+import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.JSONObject;
 import org.apache.wink.json4j.OrderedJSONObject;
+import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.Iterator;
+import java.util.Objects;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for the basic Java OrderedJSONObject model
  */
-public class OrderedJSONObjectTest extends JSONObjectTest {
-    public void test_OrderedJson() {
-        String JSON = "{\"attribute\":\"foo\",\"number\":100.959,\"boolean\":true}";
-        try {
-            OrderedJSONObject obj = new OrderedJSONObject(JSON);
-            String jsonStr = obj.write(false);
-            assertTrue(jsonStr.equals(JSON));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+public class OrderedJSONObjectTest {
+
+    @Test
+    public void test_OrderedJson() throws Exception {
+        final String expectedJSON = "{\"attribute\":\"foo\",\"number\":100.959,\"boolean\":true}";
+
+        OrderedJSONObject obj = new OrderedJSONObject(expectedJSON);
+        assertEquals(expectedJSON, obj.write(false));
     }
 
     /**
      * Rest of removing the first and then adding it back in to see if it shifts to the end.
      */
-    public void test_OrderedJsonMove() {
-        String JSON = "{\"attribute\":\"foo\", \"number\":100.959, \"boolean\":true}";
-        try {
-            OrderedJSONObject obj = new OrderedJSONObject(JSON);
-            String attribute = (String)obj.remove("attribute");
-            obj.put("attribute",attribute);
+    @Test
+    public void test_OrderedJsonMove() throws Exception {
+        final String expectedJSON = "{\"attribute\":\"foo\",\"number\":100.959,\"boolean\":true}";
+        final String expectedReorderedJSON = "{\"number\":100.959,\"boolean\":true,\"attribute\":\"foo\"}";
 
-            String jsonStr = obj.write(false);
-            Iterator order = obj.getOrder();
+        OrderedJSONObject obj = new OrderedJSONObject(expectedJSON);
+        String attribute = (String) obj.remove("attribute");
+        obj.put("attribute", attribute);
 
-            String[] expectedOrder = new String[] { "number", "boolean", "attribute" };
-            int i = 0;
-            while (order.hasNext()) {
-                assertTrue(expectedOrder[i].equals((String)order.next()));
-                i++;
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
+        Iterator order = obj.getOrder();
+
+        String[] expectedOrder = new String[]{"number", "boolean", "attribute"};
+        for (int i = 0; i < expectedOrder.length; i++) {
+            assertTrue(order.hasNext());
+            assertEquals(expectedOrder[i], order.next());
         }
+        assertEquals(expectedReorderedJSON, obj.write(false));
     }
 
     /**
      * Test of removing two entries and ensuring the order is as expected in output
      */
-    public void test_OrderedJsonRemove() {
-        String JSON = "{\"attribute\":\"foo\", \"number\":100.959, \"boolean\":true, \"banana\":\"sherbert\"}";
-        try {
-            OrderedJSONObject obj = new OrderedJSONObject(JSON);
-            obj.remove("attribute");
-            obj.remove("boolean");
-            assertTrue(obj.toString().equals("{\"number\":100.959,\"banana\":\"sherbert\"}"));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+    @Test
+    public void test_OrderedJsonRemove() throws Exception {
+        final String JSON = "{\"attribute\":\"foo\", \"number\":100.959, \"boolean\":true, \"banana\":\"sherbert\"}";
+        final String expectedJSON = "{\"number\":100.959,\"banana\":\"sherbert\"}";
+
+        OrderedJSONObject obj = new OrderedJSONObject(JSON);
+        obj.remove("attribute");
+        obj.remove("boolean");
+        assertEquals(expectedJSON, obj.write(false));
     }
 
     /**
      * Test of removing two entries and ensuring the order is as expected in output
      */
-    public void test_OrderedJsonRemoveMove() {
-        String JSON = "{\"attribute\":\"foo\", \"number\":100.959, \"boolean\":true, \"banana\":\"sherbert\"}";
-        try {
-            OrderedJSONObject obj = new OrderedJSONObject(JSON);
-            obj.remove("attribute");
-            Boolean b = (Boolean)obj.remove("boolean");
-            obj.put("boolean", b);
-
-            System.out.println("Ordering: " + obj.toString());
-
-            assertTrue(obj.toString().equals("{\"number\":100.959,\"banana\":\"sherbert\",\"boolean\":true}"));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+    @Test
+    public void test_OrderedJsonRemoveMove() throws Exception {
+        final String JSON = "{\"attribute\":\"foo\", \"number\":100.959, \"boolean\":true, \"banana\":\"sherbert\"}";
+        final String expectedJSON = "{\"number\":100.959,\"banana\":\"sherbert\",\"boolean\":true}";
+        OrderedJSONObject obj = new OrderedJSONObject(JSON);
+        obj.remove("attribute");
+        Boolean b = (Boolean) obj.remove("boolean");
+        obj.put("boolean", b);
+        assertEquals(expectedJSON, obj.write(false));
     }
 
     /**
      * Test of multiple puts not affecting ordering.
      */
-    public void test_OrderedJsonMultiPut() {
-        try {
-            OrderedJSONObject obj = new OrderedJSONObject();
+    @Test
+    public void test_OrderedJsonMultiPut() throws Exception {
 
-            obj.put("Entry1", "Value1");
-            obj.put("Entry2", "Value2");
-            obj.put("Entry3", "Value3");
-            obj.put("Entry2", "ReplacedValue2");
-            String jsonStr = obj.write(true);
-            System.out.println(jsonStr);
+        OrderedJSONObject obj = new OrderedJSONObject();
 
-            Iterator order = obj.getOrder();
-            ArrayList orderList = new ArrayList();
-            StringBuffer buf = new StringBuffer("");
-            while (order.hasNext()) {
-                String next = (String)order.next();
-                buf.append(next);
-                orderList.add(next);
-                if (order.hasNext()) {
-                    buf.append(" ");
-                }
-            }
-            assertTrue(orderList.get(0).equals("Entry1"));
-            assertTrue(orderList.get(1).equals("Entry2"));
-            assertTrue(orderList.get(2).equals("Entry3"));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+        obj.put("Entry1", "Value1");
+        obj.put("Entry2", "Value2");
+        obj.put("Entry3", "Value3");
+        obj.put("Entry2", "ReplacedValue2");
+
+        Iterator order = obj.getOrder();
+        String key = order.next().toString();
+        assertEquals("Entry1", key);
+        assertEquals("Value1", obj.getString(key));
+        key = order.next().toString();
+        assertEquals("Entry2", key);
+        assertEquals("ReplacedValue2", obj.getString(key));
+        key = order.next().toString();
+        assertEquals("Entry3", key);
+        assertEquals("Value3", obj.getString(key));
     }
 
     /**
      * Test of clone
      */
-    public void test_OrderedClone() {
-        try {
-            OrderedJSONObject obj = new OrderedJSONObject();
+    @Test
+    public void test_OrderedClone() throws Exception {
 
-            obj.put("Entry1", "Value1");
-            obj.put("Entry2", "Value2");
-            obj.put("Entry3", "Value3");
-            obj.put("Entry2", "ReplacedValue2");
+        OrderedJSONObject obj = new OrderedJSONObject();
 
-            OrderedJSONObject clone = (OrderedJSONObject)obj.clone();
+        obj.put("Entry1", "Value1");
+        obj.put("Entry2", "Value2");
+        obj.put("Entry3", "Value3");
+        obj.put("Entry2", "ReplacedValue2");
 
-            String jsonStr = clone.write(true);
-            Iterator order = clone.getOrder();
-            ArrayList orderList = new ArrayList();
-            StringBuffer buf = new StringBuffer("");
-            while (order.hasNext()) {
-                String next = (String)order.next();
-                buf.append(next);
-                orderList.add(next);
-                if (order.hasNext()) {
-                    buf.append(" ");
-                }
-            }
-            assertTrue(orderList.get(0).equals("Entry1"));
-            assertTrue(orderList.get(1).equals("Entry2"));
-            assertTrue(orderList.get(2).equals("Entry3"));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+        OrderedJSONObject clone = (OrderedJSONObject) obj.clone();
+        obj = null;
+
+        Iterator order = clone.getOrder();
+        verifyNextAttribute(order, clone, "Entry1", "Value1");
+        verifyNextAttribute(order, clone, "Entry2", "ReplacedValue2");
+        verifyNextAttribute(order, clone, "Entry3", "Value3");
     }
 
     /**
      * Test of ensuring an object loaded via an Ordered parse remains in the proper order.
      */
-    public void test_OrderedJsonRead() {
-        try {
-            InputStream is = this.getClass().getClassLoader().getResourceAsStream("utf8_ordered.json");
-            ArrayList orderList = new ArrayList();
+    @Test
+    public void test_OrderedJsonRead() throws Exception {
 
-            OrderedJSONObject obj = new OrderedJSONObject(is);
-            is.close();
+        try (InputStream is  = this.getClass().getClassLoader().getResourceAsStream("utf8_ordered.json")) {
 
-            String jsonStr = obj.write(true);
+            final OrderedJSONObject obj = new OrderedJSONObject(is);
+
             Iterator order = obj.getOrder();
-            while (order.hasNext()) {
-                String next = (String) order.next();
-                orderList.add(next);
-            }
-            assertTrue(orderList.get(0).equals("First_Entry"));
-            assertTrue(orderList.get(1).equals("Second_Entry"));
-            assertTrue(orderList.get(2).equals("Third_Entry"));
+            assertEquals(3, obj.length());
 
-            //Validate the nested JSONObject was also contructed in an ordered manner.
-            OrderedJSONObject jObject = (OrderedJSONObject)obj.get("Second_Entry");
-            order = jObject.getOrder();
-            orderList.clear();
-            StringBuffer buf = new StringBuffer("");
-            while (order.hasNext()) {
-                String next = (String) order.next();
-                orderList.add(next);
-                buf.append(next);
-                if (order.hasNext()) {
-                    buf.append(" ");
-                }
-            }
-            assertTrue(orderList.get(0).equals("name"));
-            assertTrue(orderList.get(1).equals("demos"));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
+            verifyNextAttribute(order, obj, "First_Entry", "Entry One");
+            Object entryValue2 = obj.get("Second_Entry");
+            verifyNextAttribute(order, obj, "Second_Entry", entryValue2);
+            verifyNextAttribute(order, obj, "Third_Entry", 3);
+
+            //Validate the nested JSONObject was also constructed in an ordered manner.
+            final OrderedJSONObject subObj = (OrderedJSONObject) entryValue2;
+            order = subObj.getOrder();
+            verifyNextAttribute(order, subObj, "name", "Demo Object");
+            Object demosArray = subObj.get("demos");
+            verifyNextAttribute(order, subObj, "demos", demosArray);
+
+        } finally {
+            /* */
         }
+
     }
 
     public void test_toString() {
@@ -226,5 +184,12 @@ public class OrderedJSONObjectTest extends JSONObjectTest {
             ex.printStackTrace();
             assertTrue(false);
         }
+    }
+
+    private void verifyNextAttribute(Iterator iter, JSONObject obj, String expectedKey, Object expectedValue) throws JSONException {
+        Objects.requireNonNull(iter);
+        final String key = iter.next().toString();
+        assertEquals(expectedKey, key);
+        assertEquals(expectedValue, obj.get(key));
     }
 }

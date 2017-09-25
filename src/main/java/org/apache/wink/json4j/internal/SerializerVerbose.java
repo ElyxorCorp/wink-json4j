@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Internaql class for handling the serialization of JSON objects in a verbose
+ * Internal class for handling the serialization of JSON objects in a verbose
  * format, meaning newlines and indention.
  */
 public class SerializerVerbose extends Serializer {
@@ -40,6 +40,12 @@ public class SerializerVerbose extends Serializer {
      * The indent string to use when serializing.
      */
     private String indentStr = "\t";
+
+    static final private String eol;
+
+    static {
+        eol = System.lineSeparator();
+    }
 
     /**
      * Constructor.
@@ -77,7 +83,7 @@ public class SerializerVerbose extends Serializer {
      * @throws IOException Thrown if an error occurs during write.
      */
     public void newLine() throws IOException {
-        writeRawString("\n");
+        writeRawString(eol);
     }
 
     /**

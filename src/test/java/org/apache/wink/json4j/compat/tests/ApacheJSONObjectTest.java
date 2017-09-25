@@ -37,7 +37,7 @@ import org.apache.wink.json4j.compat.JSONObject;
 public class ApacheJSONObjectTest extends TestCase {
 
     /**
-     * Test the noargs contructor.
+     * Test the noargs constructor.
      */
     public void test_new() {
         System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
@@ -48,7 +48,7 @@ public class ApacheJSONObjectTest extends TestCase {
     }
 
     /**
-     * Test the String empty object contructor.
+     * Test the String empty object constructor.
      */
     public void test_newFromEmptyObjectString() {
         JSONObject jObject = null;
@@ -68,7 +68,7 @@ public class ApacheJSONObjectTest extends TestCase {
     }
 
     /**
-     * Test the String non-empty object contructor.
+     * Test the String non-empty object constructor.
      */
     public void test_newFromString() {
         JSONObject jObject = null;

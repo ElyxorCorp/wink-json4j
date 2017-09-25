@@ -34,7 +34,7 @@ import org.apache.wink.json4j.compat.JSONWriter;
 public class ApacheJSONWriterTest extends TestCase {
 
     /**
-     * Test the contructor.
+     * Test the constructor.
      */
     public void test_new() {
         StringWriter w = new StringWriter();
@@ -44,7 +44,7 @@ public class ApacheJSONWriterTest extends TestCase {
     }
 
     /**
-     * Test the String empty object contructor.
+     * Test the String empty object constructor.
      */
     public void test_WriteEmptyObject() {
         Exception ex = null;
@@ -67,7 +67,7 @@ public class ApacheJSONWriterTest extends TestCase {
     }
 
     /**
-     * Test the String empty object contructor.
+     * Test the String empty object constructor.
      */
     public void test_WriteEmptyObjectClose() {
         Exception ex = null;
@@ -90,7 +90,7 @@ public class ApacheJSONWriterTest extends TestCase {
     }
 
     /**
-     * Test the String empty object contructor.
+     * Test the String empty object constructor.
      */
     public void test_WriteEmptyArray() {
         Exception ex = null;
@@ -113,7 +113,7 @@ public class ApacheJSONWriterTest extends TestCase {
     }
 
     /**
-     * Test the String empty object contructor.
+     * Test the String empty object constructor.
      */
     public void test_WriteEmptyArrayClose() {
         Exception ex = null;

@@ -35,7 +35,7 @@ import org.apache.wink.json4j.compat.JSONStringer;
 public class ApacheJSONStringerTest extends TestCase {
 
     /**
-     * Test the contructor.
+     * Test the constructor.
      */
     public void test_new() {
         System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
@@ -44,7 +44,7 @@ public class ApacheJSONStringerTest extends TestCase {
     }
 
     /**
-     * Test the String empty object contructor.
+     * Test the String empty object constructor.
      */
     public void test_WriteEmptyObject() {
         Exception ex = null;
@@ -66,7 +66,7 @@ public class ApacheJSONStringerTest extends TestCase {
     }
 
     /**
-     * Test the String empty object contructor.
+     * Test the String empty object constructor.
      */
     public void test_WriteEmptyObjectClose() {
         Exception ex = null;
@@ -89,7 +89,7 @@ public class ApacheJSONStringerTest extends TestCase {
     }
 
     /**
-     * Test the String empty object contructor.
+     * Test the String empty object constructor.
      */
     public void test_WriteEmptyArray() {
         Exception ex = null;

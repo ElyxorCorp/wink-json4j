@@ -1297,7 +1297,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Method to append the 'value' object to the element at entry 'key'.
      * If JSONObject.has(key) returns false, a new array is created and the value is appended to it.
-     * If the object as position key is not an array, then a new JSONArray is created
+     * If the object at position key is not an array, then a new JSONArray is created
      * and both current and new values are appended to it, then the value of the attribute is set to the new 
      * array.  If the current value is already an array, then 'value' is added to it.
      *

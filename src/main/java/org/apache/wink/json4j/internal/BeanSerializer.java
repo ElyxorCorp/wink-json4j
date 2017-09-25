@@ -168,7 +168,7 @@ public class BeanSerializer {
      * @param jo The JSONObject to try to convert back to a class.
      * @throws NullPointerException Thrown if jo is null.
      * @throws JSONException Thrown if the JSON cannot be converted to a java class.
-     * @return An instance of a Java Object that corrisponds to the type in _classname
+     * @return An instance of a Java Object that corresponds to the type in _classname
      */
     public static Object fromJson(JSONObject jo) throws NullPointerException, JSONException {
         Object obj = null;
