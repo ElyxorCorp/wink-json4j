@@ -22,6 +22,7 @@ package org.apache.wink.json4j.tests;
 import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.JSONObject;
+import org.apache.wink.json4j.tests.utils.CauseCauseMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -45,7 +46,7 @@ public class JSONArrayTest {
      */
     @Test
     public void test_new() {
-        JSONArray jObject = new JSONArray();
+        final JSONArray jObject = new JSONArray();
         assertNotNull(jObject);
         assertEquals(0, jObject.length());
     }
@@ -55,9 +56,9 @@ public class JSONArrayTest {
      */
     @Test
     public void test_newFromStringArray() throws Exception {
-        String[] strArray = new String[]{"hello", "world", null, "after null"};
+        final String[] strArray = new String[]{"hello", "world", null, "after null"};
 
-        JSONArray jArray = new JSONArray(strArray);
+        final JSONArray jArray = new JSONArray(strArray);
         assertEquals(4, jArray.length());
         assertEquals("hello", jArray.getString(0));
         assertNull(jArray.optString(2));
@@ -69,7 +70,7 @@ public class JSONArrayTest {
      */
     @Test
     public void test_newFromEmptyObjectString() throws Exception {
-        JSONArray jObject = new JSONArray("[]");
+        final JSONArray jObject = new JSONArray("[]");
         assertNotNull(jObject);
         assertEquals(0, jObject.length());
     }
@@ -79,7 +80,7 @@ public class JSONArrayTest {
      */
     @Test
     public void test_newFromString() throws Exception {
-        JSONArray jObject = new JSONArray("[\"foo\", \"bar\", \"bool\", true]");
+        final JSONArray jObject = new JSONArray("[\"foo\", \"bar\", \"bool\", true]");
         assertNotNull(jObject);
         assertEquals(4, jObject.length());
         assertEquals("foo", jObject.get(0));
@@ -91,6 +92,7 @@ public class JSONArrayTest {
     /**
      * Test the construction from a reader.
      */
+    @SuppressWarnings("EmptyFinallyBlock")
     @Test
     public void test_newFromReader() throws Exception {
 
@@ -105,6 +107,7 @@ public class JSONArrayTest {
     /**
      * Test the construction from a stream.
      */
+    @SuppressWarnings("EmptyFinallyBlock")
     @Test
     public void test_newFromStream() throws Exception {
         try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("utf8_basic_array.json")) {
@@ -129,9 +132,9 @@ public class JSONArrayTest {
      */
     @Test
     public void test_putLong() throws JSONException {
-        JSONArray jArray = new JSONArray();
+        final JSONArray jArray = new JSONArray();
         jArray.put(5L);
-        Object l = jArray.get(0);
+        final Object l = jArray.get(0);
         assertNotNull(l);
         assertTrue(l instanceof java.lang.Long);
         assertEquals(5L, jArray.getLong(0));
@@ -142,9 +145,9 @@ public class JSONArrayTest {
      */
     @Test
     public void test_putInt() throws JSONException {
-        JSONArray jArray = new JSONArray();
+        final JSONArray jArray = new JSONArray();
         jArray.put(311);
-        Object i = jArray.get(0);
+        final Object i = jArray.get(0);
         assertNotNull(i);
         assertTrue(i instanceof java.lang.Integer);
         assertEquals(311, jArray.getInt(0));
@@ -155,9 +158,9 @@ public class JSONArrayTest {
      */
     @Test
     public void test_putShort() throws JSONException {
-        JSONArray jArray = new JSONArray();
+        final JSONArray jArray = new JSONArray();
         jArray.put((short) 2);
-        Object s = jArray.get(0);
+        final Object s = jArray.get(0);
         assertNotNull(s);
         assertTrue(s instanceof java.lang.Short);
         assertEquals((short) 2, jArray.getShort(0));
@@ -168,9 +171,9 @@ public class JSONArrayTest {
      */
     @Test
     public void test_putDouble() throws JSONException {
-        JSONArray jArray = new JSONArray();
+        final JSONArray jArray = new JSONArray();
         jArray.put(3.11);
-        Object d = jArray.get(0);
+        final Object d = jArray.get(0);
         assertNotNull(d);
         assertTrue(d instanceof java.lang.Double);
         assertEquals(3.11, jArray.getDouble(0), Double.POSITIVE_INFINITY);
@@ -181,9 +184,9 @@ public class JSONArrayTest {
      */
     @Test
     public void test_putBoolean() throws JSONException {
-        JSONArray jArray = new JSONArray();
-        jArray.put(new Boolean(false));
-        Object b = jArray.get(0);
+        final JSONArray jArray = new JSONArray();
+        jArray.put(Boolean.valueOf(false));
+        final Object b = jArray.get(0);
         assertNotNull(b);
         assertTrue(b instanceof java.lang.Boolean);
         assertEquals(false, jArray.getBoolean(0));
@@ -194,9 +197,9 @@ public class JSONArrayTest {
      */
     @Test
     public void test_put_boolean() throws JSONException {
-        JSONArray jArray = new JSONArray();
+        final JSONArray jArray = new JSONArray();
         jArray.put(true);
-        Object b = jArray.get(0);
+        final Object b = jArray.get(0);
         assertNotNull(b);
         assertTrue(b instanceof java.lang.Boolean);
         assertEquals(true, jArray.getBoolean(0));
@@ -207,13 +210,33 @@ public class JSONArrayTest {
      */
     @Test
     public void test_putString() throws Exception {
-        JSONArray jArray = new JSONArray();
+        final JSONArray jArray = new JSONArray();
         final String str = "1.21 Gigawatts of electricity; a bolt of lightning!";
         jArray.put(str);
-        Object s = jArray.get(0);
+        final Object s = jArray.get(0);
         assertNotNull(s);
         assertTrue(s instanceof java.lang.String);
         assertEquals(str, jArray.getString(0));
+    }
+
+    /**
+     * Test parsing a value which ia a number bigger than <code>Long.MAX_VALUE</code>
+     */
+    @Test
+    public void test_parseNumberGreaterThanMaxLong_throwsException() throws JSONException {
+        final String strGreaterThanMaxLong = Long.MAX_VALUE + "0";
+        thrown.expectCause(new CauseCauseMatcher(NumberFormatException.class, String.format("For input string: \"%s\"", strGreaterThanMaxLong)));
+        new JSONArray("[" + strGreaterThanMaxLong + "]");
+    }
+
+    /**
+     * Test parsing a value which ia a number smaller than <code>Long.MIN_VALUE</code>
+     */
+    @Test
+    public void test_parseNumberLessThanMinLong_throwsException() throws JSONException {
+        final String strLessThanMinLong = Long.MIN_VALUE + "0";
+        thrown.expectCause(new CauseCauseMatcher(NumberFormatException.class, String.format("For input string: \"%s\"", strLessThanMinLong)));
+        new JSONArray("[" + strLessThanMinLong + "]");
     }
 
     /**
@@ -221,7 +244,7 @@ public class JSONArrayTest {
      */
     @Test
     public void test_putNull() throws JSONException {
-        JSONArray jArray = new JSONArray();
+        final JSONArray jArray = new JSONArray();
         final Object nullObj = null;
         jArray.put(nullObj);
         assertNull(jArray.get(0));
@@ -232,10 +255,10 @@ public class JSONArrayTest {
      */
     @Test
     public void test_putJSONObject() throws JSONException {
-        JSONArray jArray = new JSONArray();
+        final JSONArray jArray = new JSONArray();
         final String jsonStr = "{\"foo\":\"bar\"}";
         jArray.put(new JSONObject(jsonStr));
-        JSONObject obj = (JSONObject) jArray.get(0);
+        final Object obj = jArray.get(0);
         assertNotNull(obj);
         assertTrue(obj instanceof JSONObject);
         assertEquals(jsonStr, jArray.get(0).toString());
@@ -246,17 +269,17 @@ public class JSONArrayTest {
      */
     @Test
     public void test_putJSONArray() throws JSONException {
-        JSONArray jArray = new JSONArray();
+        final JSONArray jArray = new JSONArray();
         final String jsonStr = "[\"foo\",\"bar\"]";
         jArray.put(new JSONArray(jsonStr));
-        JSONArray obj = (JSONArray) jArray.get(0);
+        final Object obj = jArray.get(0);
         assertNotNull(obj);
         assertTrue(obj instanceof JSONArray);
         assertEquals(jsonStr, jArray.get(0).toString());
     }
 
     /**
-     * Test <code>getLong</code> with Long.MAX_VALUE
+     * Test <code>getLong</code> with <code>Long.MAX_VALUE</code>
      */
     @Test
     public void test_getMaxLongPositive() throws JSONException {
@@ -264,7 +287,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getLong</code> with Long.MIN_VALUE
+     * Test <code>getLong</code> with <code>Long.MIN_VALUE</code>
      */
     @Test
     public void test_getMaxLongNegative() throws JSONException {
@@ -272,18 +295,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getLong</code> with double bigger than max long
-     */
-    @Test
-    public void test_getLongMaxLongOverflow() throws JSONException {
-        double doubleBiggerThanLongMaxValue = Long.MAX_VALUE + 311.0;
-        JSONArray jArray = new JSONArray("[" + doubleBiggerThanLongMaxValue + "]");
-        assertEquals(Long.MAX_VALUE, jArray.getLong(0));
-        assertEquals(doubleBiggerThanLongMaxValue, jArray.getDouble(0), Double.POSITIVE_INFINITY);
-    }
-
-    /**
-     * Test <code>getInt</code> with Integer.MAX_VALUE
+     * Test <code>getInt</code> with <code>Integer.MAX_VALUE</code>
      */
     @Test
     public void test_getMaxIntPositive() throws JSONException {
@@ -291,7 +303,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getInt</code> with Integer.MIN_VALUE
+     * Test <code>getInt</code> with <code>Integer.MIN_VALUE</code>
      */
     @Test
     public void test_getMaxIntNegative() throws JSONException {
@@ -299,12 +311,13 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getInt</code> with double bigger than max long
+     * Test <code>getInt</code> with number bigger than <code>Integer.MAX_VALUE</code>
      */
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @Test
     public void test_getIntMaxIntegerOverflow() throws JSONException {
-        long longBiggerThanIntegerMaxValue = Integer.MAX_VALUE + 311L;
-        JSONArray jArray = new JSONArray("[" + longBiggerThanIntegerMaxValue + "]");
+        final long longBiggerThanIntegerMaxValue = Integer.MAX_VALUE + 311L;
+        final JSONArray jArray = new JSONArray("[" + longBiggerThanIntegerMaxValue + "]");
         assertEquals((int) longBiggerThanIntegerMaxValue, jArray.getInt(0));
         assertEquals(longBiggerThanIntegerMaxValue, jArray.getLong(0));
     }
@@ -363,8 +376,6 @@ public class JSONArrayTest {
 
     /**
      * Test <code>getBoolean</code>
-     *
-     * @throws Exception shouldn't be thrown
      */
     @Test
     public void test_getBoolean() throws JSONException {
@@ -374,8 +385,6 @@ public class JSONArrayTest {
 
     /**
      * Test <code>getBoolean</code> with strings <code>"true"</code> and  <code>"false"</code>
-     *
-     * @throws Exception shouldn't be thrown
      */
     @Test
     public void test_getBoolean_StringValue() throws JSONException {
@@ -385,8 +394,6 @@ public class JSONArrayTest {
 
     /**
      * Test <code>getBoolean</code> with string <code>"True"</code> throws exception
-     *
-     * @throws Exception shouldn't be thrown
      */
     @Test
     public void test_getBoolean_IllegalStringValue_True_throwsJSONException() throws Exception {
@@ -422,16 +429,17 @@ public class JSONArrayTest {
     /**
      * Test <code>get</code> with a null member
      */
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @Test
     public void test_getNull() throws JSONException {
-        JSONArray jArray = new JSONArray("[null]");
+        final JSONArray jArray = new JSONArray("[null]");
         assertEquals(1, jArray.size());
         assertNull(jArray.get(0));
     }
 
-    /***********************************************************************************/
+    /* ******************************************************************************* */
     /* The following tests array expansion when using indexes > than the current array */
-    /***********************************************************************************/
+    /* ******************************************************************************* */
 
     /**
      * Test a basic JSON Array construction and helper 'put' function
@@ -439,7 +447,7 @@ public class JSONArrayTest {
     @Test
     public void test_putIntPosition() throws JSONException {
 
-        JSONArray jArray = new JSONArray();
+        final JSONArray jArray = new JSONArray();
         // Put the int at the noted position (1)
         jArray.put(5, 311);
 
@@ -448,16 +456,16 @@ public class JSONArrayTest {
             assertNull(jArray.get(i));
         }
 
-        Object objInt = jArray.get(5);
+        final Object objInt = jArray.get(5);
         assertNotNull(objInt);
         assertTrue(objInt instanceof java.lang.Integer);
         assertEquals(311, jArray.getInt(5));
     }
 
 
-    /**************************************************************************/
-    /* The following tests all test failure scenarios due to type mismatching.*/
-    /**************************************************************************/
+    /* *********************************************************************** */
+    /* The following tests all test failure scenarios due to type mismatching. */
+    /* *********************************************************************** */
 
     /**
      * Test <code>getLong</code> function failure due to type mismatch

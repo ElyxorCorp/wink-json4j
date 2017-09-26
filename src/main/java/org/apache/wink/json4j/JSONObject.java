@@ -47,11 +47,21 @@ import org.apache.wink.json4j.internal.SerializerVerbose;
 /**
  * Models a JSON Object.
  * 
- * Extension of HashMap that only allows String keys, and values which are JSON-able (such as a Java Bean). 
- * <BR><BR>
- * JSON-able values are: null, and instances of String, Boolean, Number, JSONObject and JSONArray.
- * <BR><BR>
+ * Extension of <code>HashMap</code> that only allows <code>String</code> keys,
+ * and values which are JSON-able (such as a Java Bean).
+ * <br/><br/>
+ * JSON-able values are: <code>null</code>, and instances of <code>String</code>,
+ * <code>Boolean</code>, <code>Number</code>, <code>JSONObject</code> and
+ * <code>JSONArray</code>.
+ * <br/><br/>
  * Instances of this class are not thread-safe.
+ * <br/><br/>
+ * This code does not handle the parsing of <code>Double</code> values using
+ * <strong>Hexadecimal Floating-point Constants</strong> which are of the format
+ * <code>0x1.0p64</code>.  For more info on this number representation, please
+ * visit <a href="">this page</a>
+ * <br/>
+ * There is a commented out test for this in <code>JSONObjectTest::test_opt_ReturnsDoubleClass_whenValueOutOfLongRange()</code>
  */
 public class JSONObject extends HashMap  implements JSONArtifact {
 
@@ -881,10 +891,11 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
     /**
      * Utility method to obtain the specified key as a 'double' value
-     * Only values of Number will be converted to double.  all other values will return Double.NaN.
+     * Only values of Number will be converted to double.  all other values
+     * will return <code>Double.NaN.</code>
      * Provided for compatibility to other JSON models.
      * @param key The key to look up.
-     * @return A double value if the value stored for key is an instance of Number.
+     * @return A double value if the value stored for key is an instance of Number
      */ 
     public double optDouble(String key) {
         Object val = this.opt(key);
@@ -898,7 +909,8 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
     /**
      * Utility method to obtain the specified key as a 'double' value
-     * Only values of Number will be converted to double.  all other values will return Double.NaN.
+     * Only values of Number will be converted to double.  all other
+     * values will return <code></code>Double.NaN.
      * Provided for compatibility to other JSON models.
      * @param key The key to look up.
      * @param defaultValue The default double value to return in case of NaN/null values in map.

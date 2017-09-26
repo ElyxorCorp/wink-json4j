@@ -22,7 +22,9 @@ package org.apache.wink.json4j.tests;
 import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.JSONObject;
+import org.apache.wink.json4j.tests.utils.CauseCauseMatcher;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -200,6 +202,26 @@ public class JSONObjectTest {
     }
 
     /**
+     * Test parsing a value which ia a number bigger than <code>Long.MAX_VALUE</code>
+     */
+    @Test
+    public void test_parseNumberGreaterThanMaxLong_throwsException() throws JSONException {
+        String strGreaterThanMaxLong = Long.MAX_VALUE + "0";
+        thrown.expectCause(new CauseCauseMatcher(NumberFormatException.class, String.format("For input string: \"%s\"", strGreaterThanMaxLong)));
+        new JSONObject("{\"foo\":[" + strGreaterThanMaxLong + "}");
+    }
+
+    /**
+     * Test parsing a value which ia a number smaller than <code>Long.MIN_VALUE</code>
+     */
+    @Test
+    public void test_parseNumberLessThanMinLong_throwsException() throws JSONException {
+        String strLessThanMinLong = Long.MIN_VALUE + "0";
+        thrown.expectCause(new CauseCauseMatcher(NumberFormatException.class, String.format("For input string: \"%s\"", strLessThanMinLong)));
+        new JSONObject("{\"foo\":" + strLessThanMinLong + "}");
+    }
+
+    /**
      * Test toString(). Because JSONObject is non-ordered, we could have
      * two possible outcomes for a 2 attribute json object.
      * TODO: This needs to move to an output formatter
@@ -298,7 +320,7 @@ public class JSONObjectTest {
     @Test
     public void test_putBoolean() throws Exception {
         final JSONObject jObject = new JSONObject();
-        jObject.put("bool", new Boolean(true));
+        jObject.put("bool", Boolean.valueOf(true));
         final Object x = jObject.get("bool");
         assertNotNull(x);
         assertTrue(x instanceof java.lang.Boolean);
@@ -335,6 +357,19 @@ public class JSONObjectTest {
         assertEquals(0, jObject.getJSONArray("array").size());
     }
 
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    @Test
+    public void test_putStringArray_createsArray() throws Exception {
+        final JSONObject jObject = new JSONObject();
+        final String[] someArray = {"Marty", "Biff"};
+        jObject.put("string_array", someArray);
+        assertEquals(JSONArray.class, jObject.get("string_array").getClass());
+        final JSONArray array = jObject.getJSONArray("string_array");
+        assertEquals("Marty", array.get(0));
+        assertEquals("Biff", array.get(1));
+    }
+
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @Test
     public void test_appendWithNoExistingKey_createsArray() throws Exception {
         final JSONObject jObject = new JSONObject();
@@ -423,7 +458,6 @@ public class JSONObjectTest {
     }
 
 
-
     /**
      * Test <code>getInt</code> with <code>Integer.MAX_VALUE</code>
      */
@@ -508,395 +542,267 @@ public class JSONObjectTest {
         assertEquals(-311617000, new JSONObject("{\"num\":-311617E+3}").getDouble("num"), Double.NEGATIVE_INFINITY);
     }
 
-    /**
-     * Test a basic JSON Object construction and helper 'get' function
-     */
-    public void test_getString() {
-        Exception ex = null;
+    @Test
+    public void test_getString() throws Exception {
+        assertEquals("1.21 gigwatts", new JSONObject("{\"string\":\"1.21 gigwatts\"}").getString("string"));
+    }
 
-        try {
-            JSONObject jObject = new JSONObject("{\"string\":\"some string\"}");
-            assertTrue(jObject.getString("string").equals("some string"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getBoolean() throws Exception {
+        assertTrue(new JSONObject("{\"bool\":true}").getBoolean("bool"));
+        assertFalse(new JSONObject("{\"bool\":false}").getBoolean("bool"));
+    }
+
+    @Test
+    public void test_getBoolean_StringValue_true_And_false() throws Exception {
+        assertTrue(new JSONObject("{\"bool_string\":\"true\"}").getBoolean("bool_string"));
+        assertFalse(new JSONObject("{\"bool_string\":\"false\"}").getBoolean("bool_string"));
+    }
+
+    @Test
+    public void test_getBoolean_StringValue_True_throwsException() throws Exception {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [invalid_bool_string]: [True] was not 'true' or 'false'");
+        new JSONObject("{\"invalid_bool_string\":\"True\"}").getBoolean("invalid_bool_string");
+    }
+
+    @Test
+    public void test_getBoolean_StringValue_False_throwsException() throws Exception {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [invalid_bool_string]: [False] was not 'true' or 'false'");
+        new JSONObject("{\"invalid_bool_string\":\"False\"}").getBoolean("invalid_bool_string");
+    }
+
+    @Test
+    public void test_optLong() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"long\":311}");
+        assertEquals(311, jObject.optLong("long"));
+        assertEquals(Long.MAX_VALUE, jObject.optLong("long2", Long.MAX_VALUE));
+        assertEquals(0, jObject.optLong("long2"));
+    }
+
+    @Test
+    public void test_optLongNegative() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"long\":-311}");
+        assertEquals(-311, jObject.optLong("long"));
+        assertEquals(Long.MIN_VALUE, jObject.optLong("long2", Long.MIN_VALUE));
+        assertEquals(0, jObject.optLong("long2"));
+    }
+
+    @Test
+    public void test_optInt() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"int\":311}");
+        assertEquals(311, jObject.optInt("int"));
+        assertEquals(Integer.MAX_VALUE, jObject.optInt("int2", Integer.MAX_VALUE));
+        assertEquals(0, jObject.optInt("int2"));
+    }
+
+    @Test
+    public void test_optIntNegative() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"int\":-311}");
+        assertEquals(-311, jObject.optInt("int"));
+        assertEquals(Integer.MIN_VALUE, jObject.optInt("int2", Integer.MIN_VALUE));
+        assertEquals(0, jObject.optInt("int2"));
+    }
+
+    @Test
+    public void test_optDouble() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"double\":123456789}");
+        assertEquals(123456789, jObject.optDouble("double"), Double.POSITIVE_INFINITY);
+        assertEquals(Double.MAX_VALUE, jObject.optDouble("double2", Double.MAX_VALUE), Double.POSITIVE_INFINITY);
+        assertEquals(Double.NaN, jObject.optDouble("double2"), Double.POSITIVE_INFINITY);
+    }
+
+    @Test
+    public void test_optDoubleNegative() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"double\":-123456789}");
+        assertEquals(-123456789, jObject.optDouble("double"), Double.NEGATIVE_INFINITY);
+        assertEquals(Double.MIN_VALUE, jObject.optDouble("double2", Double.MIN_VALUE), Double.NEGATIVE_INFINITY);
+        assertEquals(Double.NaN, jObject.optDouble("int2"), Double.NEGATIVE_INFINITY);
+    }
+
+    @Test
+    public void test_optDoubleDecimal() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"double\":311.617}");
+        assertEquals(311.617, jObject.optDouble("double"), Double.POSITIVE_INFINITY);
+    }
+
+    @Test
+    public void test_optDoubleNegativeDecimal() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"double\":-311.617}");
+        assertEquals(-311.617, jObject.optDouble("double"), Double.NEGATIVE_INFINITY);
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function
+     * Test <code>getDouble</code> with double decimal with an exponent (eg. e-3)
      */
-    public void test_getBoolean() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"bool\":true}");
-            assertTrue(jObject.getBoolean("bool"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_optPositiveDoubleWithExponential() throws JSONException {
+        assertEquals(311.617, new JSONObject("{\"double\":311617e-3}").optDouble("double"), Double.POSITIVE_INFINITY);
+        assertEquals(311.617, new JSONObject("{\"double\":311617E-3}").optDouble("double"), Double.POSITIVE_INFINITY);
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function
+     * Test <code>getDouble</code> with negative double decimal with an exponent (eg. e-3)
      */
-    public void test_getBoolean_StringValue() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"bool\":\"true\"}");
-            assertTrue(jObject.getBoolean("bool"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_optNegativeDoubleWithExponential() throws JSONException {
+        assertEquals(-311.617, new JSONObject("{\"double\":-311617e-3}").optDouble("double"), Double.POSITIVE_INFINITY);
+        assertEquals(-311.617, new JSONObject("{\"double\":-311617E-3}").optDouble("double"), Double.POSITIVE_INFINITY);
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'opt' function
+     * Test <code>getDouble</code> with double decimal with an exponent (eg. e+3)
      */
-    public void test_optLong() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"long\":1}");
-            assertTrue(jObject.optLong("long") == 1);
-            assertTrue(jObject.optLong("long2", 2) == 2);
-            assertTrue(jObject.optLong("long2") == 0);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_optPositiveDoubleWithPlusExponential() throws JSONException {
+        assertEquals(311617000, new JSONObject("{\"double\":311617e+3}").optDouble("double"), Double.POSITIVE_INFINITY);
+        assertEquals(311617000, new JSONObject("{\"double\":311617E+3}").optDouble("double"), Double.POSITIVE_INFINITY);
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'opt' function
+     * Test <code>getDouble</code> with negative double decimal with an exponent (eg. e+3)
      */
-    public void test_optLongNgative() {
-        Exception ex = null;
+    @Test
+    public void test_optNegativeDoubleWithPlusExponential() throws JSONException {
+        assertEquals(-311617000, new JSONObject("{\"double\":-311e+3}").optDouble("double"), Double.POSITIVE_INFINITY);
+        assertEquals(-311617000, new JSONObject("{\"double\":-311E+3}").optDouble("double"), Double.POSITIVE_INFINITY);
+    }
 
-        try {
-            JSONObject jObject = new JSONObject("{\"long\":-1}");
-            assertTrue(jObject.optLong("long") == -1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_optString() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"string\":\"Mayor Goldie Wilson. I like the sound of that.\"}");
+        assertEquals("Mayor Goldie Wilson. I like the sound of that.", jObject.optString("string"));
+        assertEquals("string!", jObject.optString("string2", "string!"));
+        assertNull(jObject.optString("string2"));
+    }
+
+    @Test
+    public void test_optBoolean() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"bool\":true}");
+        assertTrue(jObject.optBoolean("bool"));
+        assertFalse(jObject.optBoolean("bool2"));
+        assertTrue(jObject.optBoolean("bool2", true));
+    }
+
+    @Test
+    public void test_optBoolean_StringValue_true() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"bool\":\"true\"}");
+        assertTrue(jObject.optBoolean("bool"));
+    }
+
+    @Test
+    public void test_optBoolean_StringValue_false() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"bool\":\"false\"}");
+        assertFalse(jObject.optBoolean("bool"));
+    }
+
+    @Test
+    public void test_opt_ReturnsIntegerClass() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"int\" : " + Integer.MAX_VALUE + "}");
+        final JSONObject jObject2 = new JSONObject("{\"int\" : " + Integer.MIN_VALUE + "}");
+        final JSONObject jObject3 = new JSONObject("{\"int\" : 4500}");
+        final JSONObject jObject4 = new JSONObject("{\"int\" : 0}");
+        final JSONObject jObject5 = new JSONObject("{\"int\" : 0X7fffffff}");
+        final JSONObject jObject6 = new JSONObject("{\"int\" : 017777777777}");
+
+        assertEquals(Integer.class, jObject.opt("int").getClass());
+        assertEquals(Integer.class, jObject2.opt("int").getClass());
+        assertEquals(Integer.class, jObject3.opt("int").getClass());
+        assertEquals(Integer.class, jObject4.opt("int").getClass());
+        assertEquals(Integer.class, jObject5.opt("int").getClass());
+        assertEquals(Integer.class, jObject6.opt("int").getClass());
+    }
+
+    @Test
+    public void test_opt_ReturnsLongClass_whenValueOutOfIntegerRange() throws Exception {
+
+        final Long val1 = Long.valueOf(Integer.MAX_VALUE) + 1;
+        final Long val2 = Long.valueOf(Integer.MIN_VALUE) - 1;
+        final JSONObject jObject = new JSONObject("{\"int\" : " + val1 + "}");
+        final JSONObject jObject2 = new JSONObject("{\"int\" : " + val2 + "}");
+        final JSONObject jObject3 = new JSONObject("{\"int\" : 0X" + Long.toHexString(val1) + "}");
+        final JSONObject jObject4 = new JSONObject("{\"int\" : 020000000000}");
+        assertEquals(Long.class, jObject.opt("int").getClass());
+        assertEquals(Long.class, jObject2.opt("int").getClass());
+        assertEquals(Long.class, jObject3.opt("int").getClass());
+        assertEquals(Long.class, jObject4.opt("int").getClass());
+    }
+
+    @Ignore("JSONObject does not currently support this notation")
+    @Test
+    /**
+     * See javadoc for that class for more details.
+     */
+    public void test_parsesHexadeximalFloatingPointConstantNotation() throws Exception {
+        final String doubleHexStr = Double.toHexString(Double.valueOf(Long.MAX_VALUE) + 1.0);
+        final JSONObject jObject3 = new JSONObject("{\"number\" : " + doubleHexStr + "}");
+        assertEquals(Double.class, jObject3.opt("number").getClass());
+    }
+
+    @Ignore("Tokenizer does not support parsing leading-zero doubles")
+    @Test
+    /**
+     * The fix for this is in Tokenizer.java on/around line 409
+     * @see org.apache.wink.json4j.internal.Tokenizer#readNumber()
+     */
+    public void test_parsesDoubleWithLeadingZeros() throws Exception {
+        // 003.110
+        final String numberStr = "003.110";
+        final JSONObject jObject = new JSONObject("{\"number\" : " + numberStr + "}");
+        assertEquals(Double.class, jObject.opt("number").getClass());
+        assertEquals(3.11, jObject.optDouble("number"), Double.POSITIVE_INFINITY);
+    }
+
+    @Test
+    public void test_optWithValidHex() throws Exception {
+        final JSONObject jObject1 = new JSONObject("{\"int\" : 0X7f}");
+        final JSONObject jObject2 = new JSONObject("{\"int\" : 0x7f}");
+        final JSONObject jObject3 = new JSONObject("{\"int\" : -0x99e}");
+        final JSONObject jObject4 = new JSONObject("{\"int\" : -0X99e}");
+
+        assertEquals(127, jObject1.opt("int"));
+        assertEquals(127, jObject2.opt("int"));
+        assertEquals(-2462, jObject3.opt("int"));
+        assertEquals(-2462, jObject4.opt("int"));
+    }
+
+    @Test
+    public void test_optWithInvalidHexG() throws Exception {
+        thrown.expect(JSONException.class);
+        new JSONObject("{\"int\" : 343g}");
+    }
+
+    @Test
+    public void test_optWithInvalidHexA() throws Exception {
+        thrown.expect(JSONException.class);
+        new JSONObject("{\"int\" : 343a}");
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'opt' function
+     * Presumably there was an issue that the exceptions weren't the same
+     * calling two different parses with invalid Hex.
      */
-    public void test_optInt() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"int\":1}");
-            assertTrue(jObject.optInt("int") == 1);
-            assertTrue(jObject.optInt("int2", 2) == 2);
-            assertTrue(jObject.optInt("int2") == 0);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test a basic JSON Object construction and helper 'opt' function
-     */
-    public void test_optIntNegative() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"int\":-1}");
-            assertTrue(jObject.optInt("int") == -1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test a basic JSON Object construction and helper 'opt' function
-     */
-    public void test_optDouble() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"double\":1}");
-            assertTrue(jObject.optDouble("double") == 1);
-            assertTrue(jObject.optDouble("double2", 2) == 2);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test a basic JSON Object construction and helper 'opt' function
-     */
-    public void test_optDoubleNegative() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"double\":-1}");
-            assertTrue(jObject.optDouble("double") == -1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test a basic JSON Object construction and helper 'opt' function
-     */
-    public void test_optDoubleWithDecimal() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"double\":100.959}");
-            assertTrue(jObject.optDouble("double") == 100.959);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test a basic JSON Object construction and helper 'opt' function
-     */
-    public void test_optDoubleNegativeWithDecimal() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"double\":-100.959}");
-            assertTrue(jObject.optDouble("double") == -100.959);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test a basic JSON Object construction and helper 'opt' function
-     */
-    public void test_optDoubleWithExponential() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"double\":100959e-3}");
-            assertTrue(jObject.optDouble("double") == 100.959);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test a basic JSON Object construction and helper 'opt' function
-     */
-    public void test_optDoubleNegativeWithExponential() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"double\":-100959e-3}");
-            assertTrue(jObject.optDouble("double") == -100.959);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test a basic JSON Object construction and helper 'opt' function
-     */
-    public void test_optString() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"string\":\"some string\"}");
-            assertTrue(jObject.optString("string").equals("some string"));
-            assertTrue(jObject.optString("string2", "string!").equals("string!"));
-            assertTrue(jObject.optString("string2") == null);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test a basic JSON Object construction and helper 'opt' function
-     */
-    public void test_optBoolean() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"bool\":true}");
-            assertTrue(jObject.optBoolean("bool"));
-            assertTrue(jObject.optBoolean("bool2") == false);
-            assertTrue(jObject.optBoolean("bool2", true) == true);
-
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test a basic JSON Object construction and helper 'opt' function
-     */
-    public void test_optBoolean_StringValue() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"bool\":\"true\"}");
-            assertTrue(jObject.optBoolean("bool"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test returning of Integer object if within Integer range.
-     */
-    public void test_opt_ReturnsIntegerClass() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"int\" : " + Integer.MAX_VALUE + "}");
-            JSONObject jObject2 = new JSONObject("{\"int\" : " + Integer.MIN_VALUE + "}");
-            JSONObject jObject3 = new JSONObject("{\"int\" : 4500}");
-            JSONObject jObject4 = new JSONObject("{\"int\" : 0}");
-            JSONObject jObject5 = new JSONObject("{\"int\" : 0X7fffffff}");
-            JSONObject jObject6 = new JSONObject("{\"int\" : 017777777777}");
-            assertEquals(jObject.opt("int").getClass(), Integer.class);
-            assertEquals(jObject2.opt("int").getClass(), Integer.class);
-            assertEquals(jObject3.opt("int").getClass(), Integer.class);
-            assertEquals(jObject4.opt("int").getClass(), Integer.class);
-            assertEquals(jObject5.opt("int").getClass(), Integer.class);
-            assertEquals(jObject6.opt("int").getClass(), Integer.class);
-
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test returning of Long object if value out of Integer range.
-     */
-    public void test_opt_ReturnsLongClass() {
-        Exception ex = null;
-
-        try {
-            Long val1 = Long.valueOf(Integer.MAX_VALUE) + 1;
-            Long val2 = Long.valueOf(Integer.MIN_VALUE) - 1;
-            JSONObject jObject = new JSONObject("{\"int\" : " + val1 + "}");
-            JSONObject jObject2 = new JSONObject("{\"int\" : " + val2 + "}");
-            JSONObject jObject3 = new JSONObject("{\"int\" : 0X" + Long.toHexString(val1.longValue()) + "}");
-            JSONObject jObject4 = new JSONObject("{\"int\" : 020000000000}");
-            assertEquals(jObject.opt("int").getClass(), Long.class);
-            assertEquals(jObject2.opt("int").getClass(), Long.class);
-            assertEquals(jObject3.opt("int").getClass(), Long.class);
-            assertEquals(jObject4.opt("int").getClass(), Long.class);
-
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
-    public void test_optWithHex() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject3 = new JSONObject("{\"int\" : 0X7f}");
-            assertEquals(jObject3.opt("int"), 127);
-            jObject3 = new JSONObject("{\"int\" : 0x7f}");
-            assertEquals(jObject3.opt("int"), 127);
-            jObject3 = new JSONObject("{\"int\" : -0x99e}");
-            assertEquals(jObject3.opt("int"), -2462);
-            jObject3 = new JSONObject("{\"int\" : -0X99e}");
-            assertEquals(jObject3.opt("int"), -2462);
-
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-
-        try {
-            JSONObject jObject3 = new JSONObject("{\"int\" : 343g}");
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex instanceof JSONException);
-        try {
-            JSONObject jObject3 = new JSONObject("{\"int\" : 343a}");
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex instanceof JSONException);
-
-    }
-
+    @Test
     public void test_optNumberReturnsSameException() {
-        Exception ex = null;
+
         // Test to make sure same exception is thrown when hex char is included in
         // normal identifier.
         try {
-            JSONObject jObject3 = new JSONObject("{\"int\" : 343h}");
-            assertEquals(jObject3.opt("int"), 127);
-
-
-        } catch (Exception ex1) {
-            ex = ex1;
+            new JSONObject("{\"int\" : 343h}");
+            assertFalse(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof JSONException);
+            assertNull(ex.getCause());
         }
-        assertTrue(ex instanceof JSONException);
-        Throwable cause = ex.getCause();
-        assertTrue(cause == null);
 
         try {
-            JSONObject jObject3 = new JSONObject("{\"int\" : 343a}");
-            assertEquals(jObject3.opt("int"), 127);
-        } catch (Exception ex1) {
-            ex = ex1;
+            new JSONObject("{\"int\" : 343a}");
+            assertFalse(true);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof JSONException);
+            assertNull(ex.getCause());
         }
-        assertTrue(ex instanceof JSONException);
-        cause = ex.getCause();
-        assertTrue(cause == null);
-
-    }
-
-    public void test_ArrayRetrievalFromJavaArrayInsertion() throws Exception {
-        JSONObject json = new JSONObject();
-        String[] someArray = {"Hello", "World!"};
-        json.put("somearray", someArray);
-        JSONArray array = json.getJSONArray("somearray");
-        assertEquals(array.get(0), "Hello");
-        assertEquals(array.get(1), "World!");
     }
 
     /**************************************************************************/
@@ -904,153 +810,121 @@ public class JSONObjectTest {
     /**************************************************************************/
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function failure due to type mismatch
+     * Test <code>getLong</code> function failure due to type mismatch
      */
-    public void test_getLong_typeMisMatch() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"long\":\"1\"}");
-            assertTrue(jObject.getLong("long") == 1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getLong_typeMisMatchString_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [foo] was not a type that can be converted to long");
+        new JSONObject("{\"foo\":\"1\"}").getLong("foo");
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function failure due to type mismatch
+     * Test <code>getDouble</code> function failure due to type mismatch
      */
-    public void test_getDouble_typeMisMatch() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"double\":\"1\"}");
-            assertTrue(jObject.getDouble("double") == 1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getDouble_typeMisMatchString_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [foo] was not a type that can be converted to double");
+        new JSONObject("{\"foo\":\"1\"}").getDouble("foo");
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function failure due to type mismatch
+     * Test <code>getInt</code> function failure due to type mismatch
      */
-    public void test_getInt_typeMisMatch() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"int\":\"1\"}");
-            assertTrue(jObject.getLong("int") == 1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getInt_typeMisMatchString_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [foo] was not a type that can be converted to integer");
+        new JSONObject("{\"foo\":\"1\"}").getInt("foo");
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function failure due to type mismatch
+     * Test <code>getShort</code> function failure due to type mismatch
      */
-    public void test_getString_typeMisMatch() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"string\":null}");
-            assertTrue(jObject.getString("string") == "1");
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getShort_typeMisMatchString_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [foo] was not a type that can be converted to short");
+        new JSONObject("{\"foo\":\"1\"}").getShort("foo");
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function failure due to type mismatch
+     * Test <code>getShort</code> function failure due to type mismatch
      */
-    public void test_getBoolean_typeMisMatch() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"bool\":1}");
-            assertTrue(jObject.getBoolean("bool") == true);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getString_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [foo] was null.  Object required");
+        new JSONObject("{\"foo\":null}").getString("foo");
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function failure due to type mismatch
+     * Test <code>getString</code> function returns string representation of number
      */
-    public void test_getLong_typeMisMatchNull() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"long\":null}");
-            assertTrue(jObject.getLong("long") == 1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getString_returnsIntegerToString() throws JSONException {
+        assertEquals("311", new JSONObject("{\"foo\":311}").getString("foo"));
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function failure due to type mismatch
+     * Test <code>getBoolean</code> function failure due to type mismatch
      */
-    public void test_getInt_typeMisMatchNull() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"int\":null}");
-            assertTrue(jObject.getLong("int") == 1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getBoolean_typeMisMatchNumber_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at key: [foo] was not a boolean or string value of 'true' or 'false'");
+        new JSONObject("{\"foo\":311}").getBoolean("foo");
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function failure due to type mismatch
+     * Test <code>getLong</code> function failure due to value null
      */
-    public void test_getDouble_typeMisMatchNull() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"double\":null}");
-            assertTrue(jObject.getDouble("double") == 1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getLong_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [foo] was null.  Number required.");
+        new JSONObject("{\"foo\":null}").getLong("foo");
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function failure due to type mismatch
+     * Test <code>getInt</code> function failure due to value null
      */
-    public void test_getString_typeMisMatchNull() {
-        Exception ex = null;
-
-        try {
-            JSONObject jObject = new JSONObject("{\"string\":null}");
-            assertTrue(jObject.getString("string") == "1");
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getInt_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [foo] was null.  Number required.");
+        new JSONObject("{\"foo\":null}").getInt("foo");
     }
 
     /**
-     * Test a basic JSON Object construction and helper 'get' function failure due to type mismatch
+     * Test <code>getDouble</code> function failure due to value null
      */
-    public void test_getBoolean_typeMisMatchNull() {
-        Exception ex = null;
+    @Test
+    public void test_getDouble_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [foo] was null.  Number required.");
+        new JSONObject("{\"foo\":null}").getLong("foo");
+    }
 
-        try {
-            JSONObject jObject = new JSONObject("{\"bool\":null}");
-            assertTrue(jObject.getBoolean("bool") == true);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    /**
+     * Test <code>getShort</code> function failure due to value null
+     */
+    @Test
+    public void test_getShort_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [foo] was null.  Number required.");
+        new JSONObject("{\"foo\":null}").getShort("foo");
+    }
+
+    /**
+     * Test <code>getBoolean</code> function failure due to value null
+     */
+    @Test
+    public void test_getBoolean_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("The value for key: [foo] was null");
+        new JSONObject("{\"foo\":null}").getBoolean("foo");
     }
 
     /**
