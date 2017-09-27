@@ -23,6 +23,7 @@ import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.JSONObject;
 import org.apache.wink.json4j.tests.utils.CauseCauseMatcher;
+import org.apache.wink.json4j.tests.utils.VerifyUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -40,6 +41,7 @@ import static org.junit.Assert.*;
 /**
  * Tests for the basic Java JSONObject model
  */
+@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 public class JSONObjectTest {
 
     @Rule
@@ -96,6 +98,7 @@ public class JSONObjectTest {
     /**
      * Test the construction from a reader.
      */
+    @SuppressWarnings("EmptyFinallyBlock")
     @Test
     public void test_newFromReader() throws Exception {
         try (Reader rdr = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("utf8_basic.json"), "UTF-8")) {
@@ -110,6 +113,7 @@ public class JSONObjectTest {
     /**
      * Test the construction from a stream.
      */
+    @SuppressWarnings("EmptyFinallyBlock")
     @Test
     public void test_newFromStream() throws Exception {
         try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("utf8_basic.json")) {
@@ -127,7 +131,7 @@ public class JSONObjectTest {
     @Test
     public void test_newFromMap() throws Exception {
         int anInt = 1;
-        final HashMap<String, Object> map = new HashMap();
+        final HashMap<String, Object> map = new HashMap<>();
         map.put("string", "This is a string");
         map.put("null", null);
         map.put("integer", anInt);
@@ -357,7 +361,6 @@ public class JSONObjectTest {
         assertEquals(0, jObject.getJSONArray("array").size());
     }
 
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @Test
     public void test_putStringArray_createsArray() throws Exception {
         final JSONObject jObject = new JSONObject();
@@ -369,7 +372,6 @@ public class JSONObjectTest {
         assertEquals("Biff", array.get(1));
     }
 
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @Test
     public void test_appendWithNoExistingKey_createsArray() throws Exception {
         final JSONObject jObject = new JSONObject();
@@ -732,7 +734,7 @@ public class JSONObjectTest {
     @Ignore("JSONObject does not currently support this notation")
     @Test
     /**
-     * See javadoc for that class for more details.
+     * See javadoc for that class for more details
      */
     public void test_parsesHexadeximalFloatingPointConstantNotation() throws Exception {
         final String doubleHexStr = Double.toHexString(Double.valueOf(Long.MAX_VALUE) + 1.0);
@@ -805,9 +807,9 @@ public class JSONObjectTest {
         }
     }
 
-    /**************************************************************************/
-    /* The following tests all test failure scenarios due to type mismatching.*/
-    /**************************************************************************/
+    /* *********************************************************************** */
+    /* The following tests all test failure scenarios due to type mismatching. */
+    /* *********************************************************************** */
 
     /**
      * Test <code>getLong</code> function failure due to type mismatch
@@ -930,95 +932,65 @@ public class JSONObjectTest {
     /**
      * Test the iterator of the keys.
      */
-    public void test_keys() {
-        Exception ex = null;
-        HashMap map = new HashMap();
-        try {
-            JSONObject jObject = new JSONObject("{\"foo\": \"bar\", \"number\": 1, \"bool\":null}");
-            Iterator keys = jObject.keys();
-            while (keys.hasNext()) {
-                String key = (String) keys.next();
-                map.put(key, key);
-            }
-        } catch (Exception ex1) {
-            ex = ex1;
+    @Test
+    public void test_keys() throws Exception {
+        final HashMap<String, Object> map = new HashMap<>();
+        final JSONObject jObject = new JSONObject("{\"foo\": \"bar\", \"number\": 1.21, \"bool\":null}");
+        final Iterator keys = jObject.keys();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            map.put(key, key);
         }
-        assertTrue(ex == null);
-        assertTrue(map.size() == 3);
-        assertTrue(map.get("foo") != null);
-        assertTrue(map.get("number") != null);
-        assertTrue(map.get("bool") != null);
+        assertEquals(3, map.size());
+        assertTrue(map.containsKey("foo"));
+        assertTrue(map.containsKey("number"));
+        assertTrue(map.containsKey("bool"));
     }
 
     /**
      * Test the iterator of the sorted keys.
      */
-    public void test_sortedKeys() {
-        HashMap map = new HashMap();
-        JSONObject jObject = null;
-        try {
-            jObject = new JSONObject("{\"foo\": \"bar\", \"number\": 1, \"bool\":null}");
-        } catch (Exception ex) {
-            assertTrue(false);
-        }
+    @Test
+    public void test_sortedKeys() throws Exception {
+        final JSONObject jObject = new JSONObject("{\"foo\": \"bar\", \"number\": 1, \"bool\":null}");
         Iterator keys = jObject.sortedKeys();
-        String[] sKeys = new String[]{"bool", "foo", "number"};
-        int i = 0;
-        while (keys.hasNext()) {
-            String key = (String) keys.next();
-            String sKey = sKeys[i];
-            i++;
-            assertTrue(key.equals(sKey));
-        }
+        final String[] sKeys = new String[]{"bool", "foo", "number"};
+        VerifyUtils.verifyKeys(keys, sKeys);
     }
 
     /**
      * Test the toString of JSONObject.
      * Use the value to construct a new object and verify contents match.
      */
-    public void test_toString() {
-        HashMap map = new HashMap();
-        JSONObject jObject = null;
-        JSONObject jObject2 = null;
-        try {
-            jObject = new JSONObject("{\"foo\": \"bar\", \"number\": 1, \"bool\":true}");
-            jObject2 = new JSONObject(jObject.toString());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
-        try {
-            assertTrue(jObject != jObject2);
-            assertTrue(jObject.length() == jObject2.length());
-            assertTrue(jObject.getString("foo").equals(jObject2.getString("foo")));
-            assertTrue(jObject.getBoolean("bool") == jObject2.getBoolean("bool"));
-            assertTrue(jObject.getInt("number") == jObject2.getInt("number"));
-        } catch (JSONException jex) {
-            jex.printStackTrace();
-            assertTrue(false);
-        }
+    @Test
+    public void test_toString_isSymmetrical() throws Exception {
+
+        final String jsonStr = "{\"foo\":\"bar\",\"number\":1,\"bool\":true}";
+        final JSONObject jObject = new JSONObject(jsonStr);
+        final JSONObject jObject2 = new JSONObject(jObject.toString());
+
+        assertEquals(jObject.length(), jObject2.length());
+        assertEquals(jObject.getString("foo"), jObject2.getString("foo"));
+        assertEquals(jObject.getBoolean("bool"), jObject2.getBoolean("bool"));
+        assertEquals(jObject.getInt("number"), jObject2.getInt("number"));
     }
 
     /**
      * Test JSONObject creation does not throw exception if key is missing and
      * does not add missing value.
      */
-    public void test_MissingKeyIsIgnored() {
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("key1", "key1");
-            obj.put("key2", "key2");
-            obj.put("key3", "key3");
-            String[] keys = {"key1", "key3"};
-            JSONObject testObj = new JSONObject(obj, keys);
-            assertTrue(testObj.size() == 2);
-            assertTrue(testObj.opt("key2") == null);
-            assertTrue(testObj.opt("key3").equals("key3"));
-            assertTrue(testObj.opt("key1").equals("key1"));
-        } catch (JSONException jex) {
-            jex.printStackTrace();
-            assertTrue(false);
-        }
+    @Test
+    public void test_constructFromExistingObject_withMissingKey_keyIsIgnored() throws Exception {
+        final JSONObject obj = new JSONObject();
+        obj.put("key1", "val1");
+        obj.put("key2", "val2");
+        obj.put("key3", "val3");
+        String[] keys = {"key1", "key3"};
+        final JSONObject testObj = new JSONObject(obj, keys);
+        assertEquals(2, testObj.size());
+        assertEquals("val1", testObj.opt("key1"));
+        assertFalse(testObj.has("key2"));
+        assertEquals("val3", testObj.opt("key3"));
     }
 
     /***********************************************************/
@@ -1028,82 +1000,68 @@ public class JSONObjectTest {
     /**
      * Verify a standard UTF-8 file with high character codes (Korean), can be read via a reader and parsed.
      */
-    public void test_utf8_korean() {
-        Exception ex = null;
-        try {
-            Reader reader = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("utf8_helloworld_ko.json"), "UTF-8");
-            JSONObject jObject = new JSONObject(reader);
-            reader.close();
-            assertTrue(jObject.getString("greet").equals("\uc548\ub155 \uc138\uc0c1\uc544"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
+    @Test
+    public void test_utf8_korean() throws Exception {
+        final String expectedKoreanStr = "\uc548\ub155 \uc138\uc0c1\uc544";
+        try (Reader reader = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("utf8_helloworld_ko.json"), "UTF-8")) {
+            final JSONObject jObject = new JSONObject(reader);
+            assertEquals(expectedKoreanStr, jObject.getString("greet"));
+        } finally {
+            /* */
         }
-        assertTrue(ex == null);
     }
 
     /**
      * Verify a UTF 8 file with character codes in the lower part will parse and
      * serialize correctly in escaped unicode format (which is valid JSON and easier
      * to debug)
+     * <p>
+     * TODO: Address this when the toggle for excapted vs unescaped is allowed during outputting
      */
-    public void test_utf8_lowerchar() {
-        Exception ex = null;
-        try {
-            Reader reader = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("utf8_lowerchar.json"), "UTF-8");
-            JSONObject jObject = new JSONObject(reader);
-            reader.close();
+    @Test
+    public void test_utf8_lowerchar_toStringEscapesCodes() throws Exception {
+        try (Reader reader = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("utf8_lowerchar.json"), "UTF-8")) {
+            final JSONObject jObject = new JSONObject(reader);
             assertTrue(jObject.getString("message").equals("\u00c5\u00c5\u00c5\u00c5"));
             assertTrue(jObject.toString().equals("{\"message\":\"\\u00c5\\u00c5\\u00c5\\u00c5\"}"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
+        } finally {
+            /* */
         }
-        assertTrue(ex == null);
     }
 
 
-    /*****************************************************************************************/
+    /* ************************************************************************************* */
     /* These tests check for specific 'behaviors' so that the parser is compatible to others */
     /* and allows comments, etc.                                                             */
+    /*                                                                                       */
+    /* TODO: Implement a method to retain comments between a parse, and a save                */
+    /* ************************************************************************************* */
 
-    /*****************************************************************************************/
-
+    @Test
     public void test_CStyleComment() throws Exception {
-        try {
-            JSONObject jObj = new JSONObject("/* comment */ { 'test' : 'value' }");
-            assertTrue(jObj.has("test"));
-            assertTrue(jObj.getString("test").equals("value"));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+        final JSONObject jObj = new JSONObject("/* comment */ { 'test' : 'value' }");
+        assertTrue(jObj.has("test"));
+        assertEquals("value", jObj.getString("test"));
+        assertFalse(jObj.has("comment"));
     }
 
+    @Test
     public void test_CPPComment() throws Exception {
-        try {
-            JSONObject jObj = new JSONObject("// test comment\n{'test':'value'}");
-            assertTrue(jObj.has("test"));
-            assertTrue(jObj.getString("test").equals("value"));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+        final JSONObject jObj = new JSONObject("// test comment\n{'test':'value'}");
+        assertTrue(jObj.has("test"));
+        assertEquals("value", jObj.getString("test"));
+        assertFalse(jObj.has("comment"));
     }
 
+    @Test
     public void test_CStyleCommentWithACommentCharInMiddle() throws Exception {
-        try {
-            JSONObject jObj = new JSONObject("/* * */ { 'test' : 'value' }");
-            assertTrue(jObj.has("test"));
-            assertTrue(jObj.getString("test").equals("value"));
+        final JSONObject jObj = new JSONObject("/* * */ { 'test' : 'value' }");
+        assertTrue(jObj.has("test"));
+        assertEquals("value", jObj.getString("test"));
 
-            JSONObject jObj2 = new JSONObject("/* / */ { 'test' : 'value' }");
-            assertTrue(jObj2.has("test"));
-            assertTrue(jObj2.getString("test").equals("value"));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+        final JSONObject jObj2 = new JSONObject("/* / */ { 'test' : 'value' }");
+        assertTrue(jObj2.has("test"));
+        assertEquals("value", jObj2.getString("test"));
     }
 
     public void test_UnquotedObjectKey() throws Exception {
