@@ -36,12 +36,13 @@ import org.apache.wink.json4j.utils.XML;
 /**
  * Tests for the basic Java JSON model parser
  */
-public class JSONParserTests extends TestCase {
+public class JSONParserTests {
 
     /**
      * Test a basic transform of an XML file to a JSON string, reparse with generic parser to validate generic parser,
      * then with compact emit for checking.
      */
+    @Test
     public void testJSONGenericObjectParse() {
         Exception ex = null;
         InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml");

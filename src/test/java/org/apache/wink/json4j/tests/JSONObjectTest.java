@@ -1064,136 +1064,84 @@ public class JSONObjectTest {
         assertEquals("value", jObj2.getString("test"));
     }
 
+    @Test
     public void test_UnquotedObjectKey() throws Exception {
-        try {
-            JSONObject jObj = new JSONObject("{test:'value'}");
-            assertTrue(jObj.has("test"));
-            assertTrue(jObj.getString("test").equals("value"));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+        final JSONObject jObj = new JSONObject("{ some_key:'A String',another_key:311}");
+        assertTrue(jObj.has("some_key"));
+        assertEquals("A String", jObj.getString("some_key"));
+        assertTrue(jObj.has("some_key"));
+        assertEquals(311, jObj.getInt("another_key"));
     }
 
     /**
      * Test special characters in unquoted string key.
      */
+    @Test
     public void test_UnquotedObjectKeyWithSpecialChars() throws Exception {
-        try {
-            JSONObject jObj = new JSONObject("{test-key:'value'}");
-            assertTrue(jObj.has("test-key"));
-            assertTrue(jObj.getString("test-key").equals("value"));
+        JSONObject jObj = new JSONObject("{test-key:'value'}");
+        assertTrue(jObj.has("test-key"));
+        assertEquals("value", jObj.getString("test-key"));
 
-            jObj = new JSONObject("{test0:'value'}");
-            assertTrue(jObj.has("test0"));
-            assertTrue(jObj.getString("test0").equals("value"));
+        jObj = new JSONObject("{test0:'value'}");
+        assertTrue(jObj.has("test0"));
+        assertEquals("value", jObj.getString("test0"));
 
-            jObj = new JSONObject("{test$:'value'}");
-            assertTrue(jObj.has("test$"));
-            assertTrue(jObj.getString("test$").equals("value"));
+        jObj = new JSONObject("{test$:'value'}");
+        assertTrue(jObj.has("test$"));
+        assertEquals("value", jObj.getString("test$"));
 
-            jObj = new JSONObject("{test_key:'value'}");
-            assertTrue(jObj.has("test_key"));
-            assertTrue(jObj.getString("test_key").equals("value"));
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+        jObj = new JSONObject("{test_key:'value'}");
+        assertTrue(jObj.has("test_key"));
+        assertEquals("value", jObj.getString("test_key"));
     }
 
     /**
      * Test special characters in unquoted string value.
      */
+    @Test
     public void test_UnquotedObjectValueWithSpecialChars() throws Exception {
-        try {
-            JSONObject jObj = new JSONObject("{test:@value}");
-            assertTrue(jObj.has("test"));
-            assertTrue(jObj.getString("test").equals("@value"));
+        JSONObject jObj = new JSONObject("{test:@value}");
+        assertTrue(jObj.has("test"));
+        assertEquals("@value", jObj.getString("test"));
 
-            jObj = new JSONObject("{test:$100}");
-            assertTrue(jObj.has("test"));
-            assertTrue(jObj.getString("test").equals("$100"));
+        jObj = new JSONObject("{test:$100}");
+        assertTrue(jObj.has("test"));
+        assertEquals("$100", jObj.getString("test"));
 
-            jObj = new JSONObject("{test:$value}");
-            assertTrue(jObj.has("test"));
-            assertTrue(jObj.getString("test").equals("$value"));
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+        jObj = new JSONObject("{test:$value}");
+        assertTrue(jObj.has("test"));
+        assertEquals("$value", jObj.getString("test"));
     }
 
+    @Test
     public void test_CStyleCommentFailsStrict() throws Exception {
-        Exception ex1 = null;
-        try {
-            JSONObject jObj = new JSONObject("/* comment */ { 'test' : 'value' }", true);
-        } catch (Exception ex) {
-            ex1 = ex;
-        }
-        assertTrue(ex1 != null);
+        thrown.expect(JSONException.class);
+        new JSONObject("/* comment */ { 'test' : 'value' }", true);
     }
 
+    @Test
     public void test_CPPCommentFailsStrict() throws Exception {
-        Exception ex1 = null;
-        try {
-            JSONObject jObj = new JSONObject("// test comment\n{'test':'value'}", true);
-        } catch (Exception ex) {
-            ex1 = ex;
-        }
-
-        assertTrue(ex1 != null);
+        thrown.expect(JSONException.class);
+        new JSONObject("// test comment\n{'test':'value'}", true);
     }
 
+    @Test
     public void test_UnquotedObjectKeyFailsStrict() throws Exception {
-        Exception ex1 = null;
-        try {
-            JSONObject jObj = new JSONObject("{test:'value'}", true);
-        } catch (Exception ex) {
-            ex1 = ex;
-        }
-        assertTrue(ex1 != null);
+        thrown.expect(JSONException.class);
+        new JSONObject("{test:'value'}", true);
     }
 
-
-    public void testIsNull() {
-        Map jsonMap = new LinkedHashMap(1);
+    @Test
+    public void test_isNull_withNullVarieties() throws Exception {
+        final Map jsonMap = new LinkedHashMap(3);
         jsonMap.put("key1", null);
         jsonMap.put("key2", JSONObject.NULL);
         jsonMap.put("key3", "NOT NULL");
 
-
-        JSONObject json = new JSONObject(jsonMap);
+        final JSONObject json = new JSONObject(jsonMap);
 
         assertTrue(json.isNull("key1"));
         assertTrue(json.isNull("key2"));
         assertFalse(json.isNull("key3"));
     }
-
-
-    /*****************************************************************/
-    /* The following tests checks basic 'java beans' convert to JSON */
-    /*****************************************************************/
-
-    /**
-     * Test that a new Java Date serializes 'bean style' when encountered.
-     */
-    public void test_Date() {
-        Exception ex = null;
-        try {
-            Date date = new Date();
-            JSONObject ja = new JSONObject();
-            ja.put("date", date);
-            JSONObject jsonDate = ja.getJSONObject("date");
-            assertTrue(jsonDate instanceof JSONObject);
-            assertTrue(jsonDate.get("class").equals("java.util.Date"));
-            System.out.println(ja.write(3));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-    }
-
 }

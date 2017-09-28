@@ -54,6 +54,20 @@ import org.apache.wink.json4j.internal.SerializerVerbose;
  * <code>Boolean</code>, <code>Number</code>, <code>JSONObject</code> and
  * <code>JSONArray</code>.
  * <br/><br/>
+ * Constructors that fill this object from a string will parse json formatted strings
+ *   with keys that are unquoted.. e.g.
+ *   <pre>
+ *   {
+ *       some_key: "This is a String",
+ *       other_key: 12345
+ *   }
+ *   </pre>
+ * <br/>
+ * Constructors will also parse objects when there are <code>C-style</code> and
+ * <code>CPP-style</code> comments, however, it does not retain the comments, so saving
+ * the JSON after parsing it will lose the comments. For now.
+ *
+ * <br/><br/>
  * Instances of this class are not thread-safe.
  * <br/><br/>
  * This code does not handle the parsing of <code>Double</code> values using
