@@ -19,13 +19,18 @@
 
 package org.apache.wink.json4j.tests.utils;
 
+import org.apache.wink.json4j.JSONArray;
+import org.apache.wink.json4j.JSONException;
+import org.apache.wink.json4j.JSONObject;
+
 import java.util.Iterator;
 import java.util.Objects;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class VerifyUtils {
-    private VerifyUtils() {}
+    private VerifyUtils() {
+    }
 
     public static void verifyKeys(Iterator keys, String[] sKeys) {
         Objects.requireNonNull(keys);
@@ -40,4 +45,50 @@ public class VerifyUtils {
         }
     }
 
+    /**
+     * Verifies the rules described in the Javadoc for <code>XML</code>
+     * @param obj The object to verify
+     * @throws JSONException
+     * @see org.apache.wink.json4j.utils.XML
+     */
+    public static void verifyJsonObjectMatchesSimpleDotXml(JSONObject obj) throws JSONException {
+        assertNotNull(obj);
+        assertTrue(obj.has("getValuesReturn"));
+        final JSONObject getValueReturn = obj.getJSONObject("getValuesReturn");
+
+        assertTrue(getValueReturn.has("return"));
+        assertEquals("true", getValueReturn.getString("return"));
+
+        assertTrue(getValueReturn.has("attribute"));
+        assertEquals("value", getValueReturn.getJSONObject("attribute").getString("attrValue"));
+
+        assertTrue(getValueReturn.has("String"));
+        assertTrue(getValueReturn.get("String") instanceof JSONArray);
+        assertEquals("First item", getValueReturn.getJSONArray("String").get(0));
+        assertEquals("Second item", getValueReturn.getJSONArray("String").get(1));
+        assertEquals("Third item", getValueReturn.getJSONArray("String").get(2));
+
+        assertTrue(getValueReturn.has("TextTag"));
+        assertEquals("Text!", getValueReturn.getString("TextTag"));
+
+        assertTrue(getValueReturn.has("EmptyTag"));
+        assertEquals(Boolean.TRUE, getValueReturn.get("EmptyTag"));
+
+        assertTrue(getValueReturn.has("TagWithAttrs"));
+        final JSONObject tagWithAttrs = getValueReturn.getJSONObject("TagWithAttrs");
+        assertNotNull(tagWithAttrs);
+        assertEquals(3, tagWithAttrs.length());
+        assertEquals("value1", tagWithAttrs.getString("attr1"));
+        assertEquals("value2", tagWithAttrs.getString("attr2"));
+        assertEquals("value3", tagWithAttrs.getString("attr3"));
+
+        assertTrue(getValueReturn.has("TagWithAttrsAndText"));
+        final JSONObject tagWithAttrsAndText = getValueReturn.getJSONObject("TagWithAttrsAndText");
+        assertNotNull(tagWithAttrs);
+        assertEquals(4, tagWithAttrsAndText.length());
+        assertEquals("Text!", tagWithAttrsAndText.getString("content"));
+        assertEquals("value1", tagWithAttrsAndText.getString("attr1"));
+        assertEquals("value2", tagWithAttrsAndText.getString("attr2"));
+        assertEquals("value3", tagWithAttrsAndText.getString("attr3"));
+    }
 }

@@ -414,9 +414,9 @@ public class JSONWriterTest {
         assertTrue(str.equals(expectedResult));
     }
 
-    /*******************************/
-    /*All the error condition tests*/
-    /*******************************/
+    /* ***************************** */
+    /* All the error condition tests */
+    /* ***************************** */
 
     /**
      * Test that setting a value in an object without defining its key fails.

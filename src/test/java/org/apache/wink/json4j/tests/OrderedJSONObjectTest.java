@@ -34,13 +34,14 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests for the basic Java OrderedJSONObject model
  */
+@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 public class OrderedJSONObjectTest {
 
     @Test
     public void test_OrderedJson() throws Exception {
         final String expectedJSON = "{\"attribute\":\"foo\",\"number\":100.959,\"boolean\":true}";
 
-        OrderedJSONObject obj = new OrderedJSONObject(expectedJSON);
+        final OrderedJSONObject obj = new OrderedJSONObject(expectedJSON);
         assertEquals(expectedJSON, obj.write(false));
     }
 
@@ -100,14 +101,14 @@ public class OrderedJSONObjectTest {
     @Test
     public void test_OrderedJsonMultiPut() throws Exception {
 
-        OrderedJSONObject obj = new OrderedJSONObject();
+        final OrderedJSONObject obj = new OrderedJSONObject();
 
         obj.put("Entry1", "Value1");
         obj.put("Entry2", "Value2");
         obj.put("Entry3", "Value3");
         obj.put("Entry2", "ReplacedValue2");
 
-        Iterator order = obj.getOrder();
+        final Iterator order = obj.getOrder();
         String key = order.next().toString();
         assertEquals("Entry1", key);
         assertEquals("Value1", obj.getString(key));
@@ -125,17 +126,16 @@ public class OrderedJSONObjectTest {
     @Test
     public void test_OrderedClone() throws Exception {
 
-        OrderedJSONObject obj = new OrderedJSONObject();
+        final OrderedJSONObject obj = new OrderedJSONObject();
 
         obj.put("Entry1", "Value1");
         obj.put("Entry2", "Value2");
         obj.put("Entry3", "Value3");
         obj.put("Entry2", "ReplacedValue2");
 
-        OrderedJSONObject clone = (OrderedJSONObject) obj.clone();
-        obj = null;
+        final OrderedJSONObject clone = (OrderedJSONObject) obj.clone();
 
-        Iterator order = clone.getOrder();
+        final Iterator order = clone.getOrder();
         verifyNextAttribute(order, clone, "Entry1", "Value1");
         verifyNextAttribute(order, clone, "Entry2", "ReplacedValue2");
         verifyNextAttribute(order, clone, "Entry3", "Value3");
@@ -144,6 +144,7 @@ public class OrderedJSONObjectTest {
     /**
      * Test of ensuring an object loaded via an Ordered parse remains in the proper order.
      */
+    @SuppressWarnings("EmptyFinallyBlock")
     @Test
     public void test_OrderedJsonRead() throws Exception {
 
@@ -151,39 +152,35 @@ public class OrderedJSONObjectTest {
 
             final OrderedJSONObject obj = new OrderedJSONObject(is);
 
-            Iterator order = obj.getOrder();
+            final Iterator order = obj.getOrder();
             assertEquals(3, obj.length());
 
             verifyNextAttribute(order, obj, "First_Entry", "Entry One");
-            Object entryValue2 = obj.get("Second_Entry");
+            final Object entryValue2 = obj.get("Second_Entry");
             verifyNextAttribute(order, obj, "Second_Entry", entryValue2);
             verifyNextAttribute(order, obj, "Third_Entry", 3);
 
             //Validate the nested JSONObject was also constructed in an ordered manner.
             final OrderedJSONObject subObj = (OrderedJSONObject) entryValue2;
-            order = subObj.getOrder();
-            verifyNextAttribute(order, subObj, "name", "Demo Object");
-            Object demosArray = subObj.get("demos");
-            verifyNextAttribute(order, subObj, "demos", demosArray);
+            final Iterator subOrder = subObj.getOrder();
+            verifyNextAttribute(subOrder, subObj, "name", "Demo Object");
+            final Object demosArray = subObj.get("demos");
+            verifyNextAttribute(subOrder, subObj, "demos", demosArray);
 
         } finally {
             /* */
         }
-
     }
 
-    public void test_toString() {
-        try {
-            JSONObject obj = new JSONObject();
+    @Test
+    public void test_toString_isSymmetrical() throws Exception {
+
+            final JSONObject obj = new JSONObject();
             obj.put("attribute", "foo");
             obj.put("number", new Double(100.959));
-            String jsonStr = obj.write();
-            String jsonStr2 = obj.toString();
-            assertTrue(jsonStr.equals(jsonStr2));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            assertTrue(false);
-        }
+            final String jsonStr = obj.write();
+            final String jsonStr2 = obj.toString();
+            assertEquals(jsonStr, jsonStr2);
     }
 
     private void verifyNextAttribute(Iterator iter, JSONObject obj, String expectedKey, Object expectedValue) throws JSONException {
