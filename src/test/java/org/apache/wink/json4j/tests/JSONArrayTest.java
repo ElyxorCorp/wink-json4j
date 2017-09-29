@@ -19,767 +19,600 @@
 
 package org.apache.wink.json4j.tests;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.Date;
-
-import junit.framework.TestCase;
-
 import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.JSONObject;
+import org.apache.wink.json4j.tests.utils.CauseCauseMatcher;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests for the basic Java JSONArray model
  */
-public class JSONArrayTest extends TestCase {
+public class JSONArrayTest {
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     /**
-     * Test the noargs contructor.
+     * Test the no-args constructor.
      */
+    @Test
     public void test_new() {
-        JSONArray jObject = new JSONArray();
-        assertTrue(jObject != null);
-        assertTrue(jObject.length() == 0);
+        final JSONArray jObject = new JSONArray();
+        assertNotNull(jObject);
+        assertEquals(0, jObject.length());
     }
 
     /**
      * Test the creation of a JSONArray from a string array
      */
-    public void test_newFromStringArray() {
-        Exception ex = null;
-        try {
-            String[] strArray = new String[] {"hello", "world", null, "after null"};
+    @Test
+    public void test_newFromStringArray() throws Exception {
+        final String[] strArray = new String[]{"hello", "world", null, "after null"};
 
-            JSONArray jArray = new JSONArray(strArray);
-            assertTrue(jArray.length() == 4);
-            assertTrue(jArray.getString(0).equals("hello"));
-            assertTrue(jArray.optString(2) == null);
-            assertTrue(jArray.getString(3).equals("after null"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+        final JSONArray jArray = new JSONArray(strArray);
+        assertEquals(4, jArray.length());
+        assertEquals("hello", jArray.getString(0));
+        assertNull(jArray.optString(2));
+        assertEquals("after null", jArray.getString(3));
     }
 
     /**
-     * Test the String empty object contructor.
+     * Test the String empty object constructor.
      */
-    public void test_newFromEmptyObjectString() {
-        JSONArray jObject = null;
-        Exception ex = null;
-        // Load from empty object string.
-        try {
-            jObject = new JSONArray("[]");
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-        assertTrue(jObject != null);
-        assertTrue(jObject.length() == 0);
+    @Test
+    public void test_newFromEmptyObjectString() throws Exception {
+        final JSONArray jObject = new JSONArray("[]");
+        assertNotNull(jObject);
+        assertEquals(0, jObject.length());
     }
 
     /**
-     * Test the String non-empty object contructor.
+     * Test the String non-empty object constructor.
      */
-    public void test_newFromString() {
-        JSONArray jObject = null;
-        Exception ex = null;
-        // Load a basic JSON string
-        try {
-            jObject = new JSONArray("[\"foo\", \"bar\", \"bool\", true]");
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
-        assertTrue(jObject != null);
-        assertTrue(jObject.length() == 4);
+    @Test
+    public void test_newFromString() throws Exception {
+        final JSONArray jObject = new JSONArray("[\"foo\", \"bar\", \"bool\", true]");
+        assertNotNull(jObject);
+        assertEquals(4, jObject.length());
+        assertEquals("foo", jObject.get(0));
+        assertEquals("bar", jObject.get(1));
+        assertEquals("bool", jObject.get(2));
+        assertEquals(true, jObject.get(3));
     }
 
     /**
      * Test the construction from a reader.
      */
-    public void test_newFromReader() {
-        JSONArray jObject = null;
-        Exception ex = null;
-        // read in a basic JSON file of a toplevel array that has all the various types in it.
-        try {
-            Reader rdr = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("utf8_basic_array.json"), "UTF-8");
-            jObject = new JSONArray(rdr);
-            rdr.close();
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
+    public void test_newFromReader() throws Exception {
+
+        // read in a basic JSON file of a top-level array that has all the various types in it.
+        try (Reader rdr = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("utf8_basic_array.json"), "UTF-8")) {
+            testUtf8BasicArray(new JSONArray(rdr));
+        } finally {
+            /* */
         }
-        assertTrue(jObject != null);
-        assertTrue(jObject.length() == 7);
-        assertTrue(ex == null);
     }
 
     /**
      * Test the construction from a stream.
      */
-    public void test_newFromStream() {
-        JSONArray jObject = null;
-        Exception ex = null;
-        // read in a basic JSON file of a toplevel array that has all the various types in it.
-        // Inputstreams are read as UTF-8 by the underlying parser.
-        try {
-            InputStream is = this.getClass().getClassLoader().getResourceAsStream("utf8_basic_array.json");
-            jObject = new JSONArray(is);
-            is.close();
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
+    public void test_newFromStream() throws Exception {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("utf8_basic_array.json")) {
+            testUtf8BasicArray(new JSONArray(is));
+        } finally {
+            /* */
         }
-        assertTrue(jObject != null);
-        assertTrue(jObject.length() == 7);
-        assertTrue(ex == null);
     }
 
     /**
-     * Test the String non-empty object contructor parse failure.
+     * Test the String non-empty object constructor parse failure.
      */
-    public void test_newFromStringFailure() {
-        JSONArray jObject = null;
-        Exception ex = null;
+    @Test
+    public void test_newFromStringFailure() throws JSONException {
 
-        // Load a basic JSON string that's not valid in strict (unquoted string)
-        try {
-            jObject = new JSONArray("[\"foo\", bar, \"bool\", true]", true);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex != null);
-        assertTrue(ex instanceof JSONException);
+        thrown.expect(JSONException.class);
+        new JSONArray("[\"foo\", bar, \"bool\", true]", true);
     }
 
     /**
      * Test a basic JSON Array construction and helper 'put' function
      */
-    public void test_putLong() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray();
-            jArray.put((long)1);
-            Long l = (Long)jArray.get(0);
-            assertTrue(l != null);
-            assertTrue(l instanceof java.lang.Long);
-            assertTrue(jArray.getLong(0) == 1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_putLong() throws JSONException {
+        final JSONArray jArray = new JSONArray();
+        jArray.put(5L);
+        final Object l = jArray.get(0);
+        assertNotNull(l);
+        assertTrue(l instanceof java.lang.Long);
+        assertEquals(5L, jArray.getLong(0));
     }
 
     /**
      * Test a basic JSON Array construction and helper 'put' function
      */
-    public void test_putInt() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray();
-            jArray.put(1);
-            Integer i = (Integer)jArray.get(0);
-            assertTrue(i != null);
-            assertTrue(i instanceof java.lang.Integer);
-            assertTrue(jArray.getInt(0) == 1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_putInt() throws JSONException {
+        final JSONArray jArray = new JSONArray();
+        jArray.put(311);
+        final Object i = jArray.get(0);
+        assertNotNull(i);
+        assertTrue(i instanceof java.lang.Integer);
+        assertEquals(311, jArray.getInt(0));
     }
 
     /**
      * Test a basic JSON Array construction and helper 'put' function
      */
-    public void test_putShort() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray();
-            jArray.put((short)1);
-            Short s = (Short)jArray.get(0);
-            assertTrue(s != null);
-            assertTrue(s instanceof java.lang.Short);
-            assertTrue(jArray.getShort(0) == 1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_putShort() throws JSONException {
+        final JSONArray jArray = new JSONArray();
+        jArray.put((short) 2);
+        final Object s = jArray.get(0);
+        assertNotNull(s);
+        assertTrue(s instanceof java.lang.Short);
+        assertEquals((short) 2, jArray.getShort(0));
     }
 
     /**
      * Test a basic JSON Array construction and helper 'put' function
      */
-    public void test_putDouble() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray();
-            jArray.put((double)1.123);
-            Double d = (Double)jArray.get(0);
-            assertTrue(d != null);
-            assertTrue(d instanceof java.lang.Double);
-            assertTrue(jArray.getDouble(0) == 1.123);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_putDouble() throws JSONException {
+        final JSONArray jArray = new JSONArray();
+        jArray.put(3.11);
+        final Object d = jArray.get(0);
+        assertNotNull(d);
+        assertTrue(d instanceof java.lang.Double);
+        assertEquals(3.11, jArray.getDouble(0), Double.POSITIVE_INFINITY);
     }
 
     /**
      * Test a basic JSON Array construction and helper 'put' function
      */
-    public void test_putBoolean() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray();
-            jArray.put(true);
-            Boolean b = (Boolean)jArray.get(0);
-            assertTrue(b != null);
-            assertTrue(b instanceof java.lang.Boolean);
-            assertTrue(jArray.getBoolean(0) == true);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_putBoolean() throws JSONException {
+        final JSONArray jArray = new JSONArray();
+        jArray.put(Boolean.valueOf(false));
+        final Object b = jArray.get(0);
+        assertNotNull(b);
+        assertTrue(b instanceof java.lang.Boolean);
+        assertEquals(false, jArray.getBoolean(0));
     }
 
     /**
      * Test a basic JSON Array construction and helper 'put' function
      */
-    public void test_putString() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray();
-            jArray.put("Hello World.");
-            String s = (String)jArray.get(0);
-            assertTrue(s != null);
-            assertTrue(s instanceof java.lang.String);
-            assertTrue(jArray.getString(0).equals("Hello World."));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_put_boolean() throws JSONException {
+        final JSONArray jArray = new JSONArray();
+        jArray.put(true);
+        final Object b = jArray.get(0);
+        assertNotNull(b);
+        assertTrue(b instanceof java.lang.Boolean);
+        assertEquals(true, jArray.getBoolean(0));
     }
 
     /**
      * Test a basic JSON Array construction and helper 'put' function
      */
-    public void test_putNull() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray();
-            jArray.put((Object)null);
-            String s = (String)jArray.get(0);
-            assertTrue(s == null);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_putString() throws Exception {
+        final JSONArray jArray = new JSONArray();
+        final String str = "1.21 Gigawatts of electricity; a bolt of lightning!";
+        jArray.put(str);
+        final Object s = jArray.get(0);
+        assertNotNull(s);
+        assertTrue(s instanceof java.lang.String);
+        assertEquals(str, jArray.getString(0));
+    }
+
+    /**
+     * Test parsing a value which ia a number bigger than <code>Long.MAX_VALUE</code>
+     */
+    @Test
+    public void test_parseNumberGreaterThanMaxLong_throwsException() throws JSONException {
+        final String strGreaterThanMaxLong = Long.MAX_VALUE + "0";
+        thrown.expectCause(new CauseCauseMatcher(NumberFormatException.class, String.format("For input string: \"%s\"", strGreaterThanMaxLong)));
+        new JSONArray("[" + strGreaterThanMaxLong + "]");
+    }
+
+    /**
+     * Test parsing a value which ia a number smaller than <code>Long.MIN_VALUE</code>
+     */
+    @Test
+    public void test_parseNumberLessThanMinLong_throwsException() throws JSONException {
+        final String strLessThanMinLong = Long.MIN_VALUE + "0";
+        thrown.expectCause(new CauseCauseMatcher(NumberFormatException.class, String.format("For input string: \"%s\"", strLessThanMinLong)));
+        new JSONArray("[" + strLessThanMinLong + "]");
     }
 
     /**
      * Test a basic JSON Array construction and helper 'put' function
      */
-    public void test_putJSONObject() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray();
-            jArray.put(new JSONObject());
-            JSONObject obj = (JSONObject)jArray.get(0);
-            assertTrue(obj != null);
-            assertTrue(obj instanceof JSONObject);
-            assertTrue(((JSONObject)jArray.get(0)).toString().equals("{}"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_putNull() throws JSONException {
+        final JSONArray jArray = new JSONArray();
+        final Object nullObj = null;
+        jArray.put(nullObj);
+        assertNull(jArray.get(0));
     }
 
     /**
      * Test a basic JSON Array construction and helper 'put' function
      */
-    public void test_putJSONArray() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray();
-            jArray.put(new JSONArray());
-            JSONArray obj = (JSONArray)jArray.get(0);
-            assertTrue(obj != null);
-            assertTrue(obj instanceof JSONArray);
-            assertTrue(((JSONArray)jArray.get(0)).toString().equals("[]"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_putJSONObject() throws JSONException {
+        final JSONArray jArray = new JSONArray();
+        final String jsonStr = "{\"foo\":\"bar\"}";
+        jArray.put(new JSONObject(jsonStr));
+        final Object obj = jArray.get(0);
+        assertNotNull(obj);
+        assertTrue(obj instanceof JSONObject);
+        assertEquals(jsonStr, jArray.get(0).toString());
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test a basic JSON Array construction and helper 'put' function
      */
-    public void test_getLong() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[1]");
-            assertTrue(jArray.getLong(0) == (long)1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_putJSONArray() throws JSONException {
+        final JSONArray jArray = new JSONArray();
+        final String jsonStr = "[\"foo\",\"bar\"]";
+        jArray.put(new JSONArray(jsonStr));
+        final Object obj = jArray.get(0);
+        assertNotNull(obj);
+        assertTrue(obj instanceof JSONArray);
+        assertEquals(jsonStr, jArray.get(0).toString());
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getLong</code> with <code>Long.MAX_VALUE</code>
      */
-    public void test_getLongNgative() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[-1]");
-            assertTrue(jArray.getLong(0) == (long)-1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getMaxLongPositive() throws JSONException {
+        assertEquals(Long.MAX_VALUE, new JSONArray("[" + Long.MAX_VALUE + "]").getLong(0));
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getLong</code> with <code>Long.MIN_VALUE</code>
      */
-    public void test_getInt() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[1]");
-            assertTrue(jArray.getInt(0) == 1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getMaxLongNegative() throws JSONException {
+        assertEquals(Long.MIN_VALUE, new JSONArray("[" + Long.MIN_VALUE + "]").getLong(0));
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getInt</code> with <code>Integer.MAX_VALUE</code>
      */
-    public void test_getIntNegative() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[-1]");
-            assertTrue(jArray.getInt(0) == -1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getMaxIntPositive() throws JSONException {
+        assertEquals(Integer.MAX_VALUE, new JSONArray("[" + Integer.MAX_VALUE + "]").getInt(0));
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getInt</code> with <code>Integer.MIN_VALUE</code>
      */
-    public void test_getDouble() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[1]");
-            assertTrue(jArray.getDouble(0) == (double)1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getMaxIntNegative() throws JSONException {
+        assertEquals(Integer.MIN_VALUE, new JSONArray("[" + Integer.MIN_VALUE + "]").getInt(0));
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getInt</code> with number bigger than <code>Integer.MAX_VALUE</code>
      */
-    public void test_getDoubleNegative() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[-1]");
-            assertTrue(jArray.getDouble(0) == (double)-1);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    @Test
+    public void test_getIntMaxIntegerOverflow() throws JSONException {
+        final long longBiggerThanIntegerMaxValue = Integer.MAX_VALUE + 311L;
+        final JSONArray jArray = new JSONArray("[" + longBiggerThanIntegerMaxValue + "]");
+        assertEquals((int) longBiggerThanIntegerMaxValue, jArray.getInt(0));
+        assertEquals(longBiggerThanIntegerMaxValue, jArray.getLong(0));
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getDouble</code> with double decimal
      */
-    public void test_getDoubleWithDecimal() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[100.959]");
-            assertTrue(jArray.getDouble(0) == (double)100.959);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getPositiveDoubleWithDecimal() throws JSONException {
+        assertEquals(311.617, new JSONArray("[311.617]").getDouble(0), Double.POSITIVE_INFINITY);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getDouble</code> with negative double decimal
      */
-    public void test_getDoubleNegativeWithDecimal() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[-100.959]");
-            assertTrue(jArray.getDouble(0) == (double)-100.959);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getNegativeDoubleWithDecimal() throws JSONException {
+        assertEquals(-311.617, new JSONArray("[-311.617]").getDouble(0), Double.NEGATIVE_INFINITY);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getDouble</code> with double decimal with an exponent (eg. e-3)
      */
-    public void test_getDoubleWithExponential() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[100959e-3]");
-            assertTrue(jArray.getDouble(0) == (double)100.959);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getPositiveDoubleWithExponential() throws JSONException {
+        assertEquals(311.617, new JSONArray("[311617e-3]").getDouble(0), Double.POSITIVE_INFINITY);
+        assertEquals(311.617, new JSONArray("[311617E-3]").getDouble(0), Double.POSITIVE_INFINITY);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getDouble</code> with negative double decimal with an exponent (eg. e-3)
      */
-    public void test_getDoubleNegativeWithExponential() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[-100959e-3]");
-            assertTrue(jArray.getDouble(0) == (double)-100.959);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getNegativeDoubleWithExponential() throws JSONException {
+        assertEquals(-311.617, new JSONArray("[-311617e-3]").getDouble(0), Double.POSITIVE_INFINITY);
+        assertEquals(-311.617, new JSONArray("[-311617E-3]").getDouble(0), Double.POSITIVE_INFINITY);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getDouble</code> with double decimal with an exponent (eg. e+3)
      */
-    public void test_getString() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[\"some string\"]");
-            assertTrue(jArray.getString(0).equals("some string"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getPositiveDoubleWithPlusExponential() throws JSONException {
+        assertEquals(311617000, new JSONArray("[311617e+3]").getDouble(0), Double.POSITIVE_INFINITY);
+        assertEquals(311617000, new JSONArray("[311617E+3]").getDouble(0), Double.POSITIVE_INFINITY);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getDouble</code> with negative double decimal with an exponent (eg. e+3)
      */
-    public void test_getBoolean() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[true]");
-            assertTrue(jArray.getBoolean(0));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getNegativeDoubleWithPlusExponential() throws JSONException {
+        assertEquals(-311617000, new JSONArray("[-311e+3]").getDouble(0), Double.POSITIVE_INFINITY);
+        assertEquals(-311617000, new JSONArray("[-311E+3]").getDouble(0), Double.POSITIVE_INFINITY);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getBoolean</code>
      */
-    public void test_getBoolean_StringValue() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[\"true\"]");
-            assertTrue(jArray.getBoolean(0));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getBoolean() throws JSONException {
+        assertTrue(new JSONArray("[true]").getBoolean(0));
+        assertFalse(new JSONArray("[false]").getBoolean(0));
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function
+     * Test <code>getBoolean</code> with strings <code>"true"</code> and  <code>"false"</code>
      */
-    public void test_getNull() {
-        Exception ex = null;
-
-        try {
-            JSONArray jArray = new JSONArray("[null]");
-            assertTrue(jArray.get(0) == null);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_getBoolean_StringValue() throws JSONException {
+        assertTrue(new JSONArray("[\"true\"]").getBoolean(0));
+        assertFalse(new JSONArray("[\"false\"]").getBoolean(0));
     }
 
-    /***********************************************************************************/
+    /**
+     * Test <code>getBoolean</code> with string <code>"True"</code> throws exception
+     */
+    @Test
+    public void test_getBoolean_IllegalStringValue_True_throwsJSONException() throws Exception {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was not a boolean or string value of 'true' or 'false'.");
+        assertTrue(new JSONArray("[\"True\"]").getBoolean(0));
+    }
+
+    /**
+     * Test <code>getBoolean</code> with string <code>"False"</code> throws exception
+     *
+     * @throws Exception shouldn't be thrown
+     */
+    @Test
+    public void test_getBoolean_IllegalStringValue_False_throwsJSONException() throws Exception {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was not a boolean or string value of 'true' or 'false'.");
+        assertTrue(new JSONArray("[\"False\"]").getBoolean(0));
+    }
+
+    /**
+     * Test <code>getBoolean</code> with string <code>"False"</code> throws exception
+     *
+     * @throws Exception shouldn't be thrown
+     */
+    @Test
+    public void test_getBoolean_IllegalStringValue_Null_throwsJSONException() throws Exception {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was null");
+        assertTrue(new JSONArray("[ null ]").getBoolean(0));
+    }
+
+    /**
+     * Test <code>get</code> with a null member
+     */
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    @Test
+    public void test_getNull() throws JSONException {
+        final JSONArray jArray = new JSONArray("[null]");
+        assertEquals(1, jArray.size());
+        assertNull(jArray.get(0));
+    }
+
+    /* ******************************************************************************* */
     /* The following tests array expansion when using indexes > than the current array */
-    /***********************************************************************************/
+    /* ******************************************************************************* */
 
     /**
      * Test a basic JSON Array construction and helper 'put' function
      */
-    public void test_putIntPosition() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray();
-            // Put the int at the noted position (1)
-            jArray.put(5, 1);
-            System.out.println(jArray.toString());
+    @Test
+    public void test_putIntPosition() throws JSONException {
 
-            assertTrue(jArray.size() == 6);
-            Integer i = (Integer)jArray.get(5);
-            assertTrue(i != null);
-            assertTrue(i instanceof java.lang.Integer);
-            assertTrue(jArray.getInt(5) == 1);
+        final JSONArray jArray = new JSONArray();
+        // Put the int at the noted position (1)
+        jArray.put(5, 311);
 
-            // Verify that the 0 position is a null (expanded)
-            i = (Integer)jArray.get(3);
-            assertTrue(i == null);
-            System.out.println(jArray.toString());
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
+        assertEquals(6, jArray.size());
+        for (int i = 0; i < jArray.size() - 2; i++) {
+            assertNull(jArray.get(i));
         }
-        assertTrue(ex == null);
+
+        final Object objInt = jArray.get(5);
+        assertNotNull(objInt);
+        assertTrue(objInt instanceof java.lang.Integer);
+        assertEquals(311, jArray.getInt(5));
     }
 
 
-    /**************************************************************************/
-    /* The following tests all test failure scenarios due to type mismatching.*/
-    /**************************************************************************/
+    /* *********************************************************************** */
+    /* The following tests all test failure scenarios due to type mismatching. */
+    /* *********************************************************************** */
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function failure due to type mismatch
+     * Test <code>getLong</code> function failure due to type mismatch
      */
-    public void test_getLong_typeMisMatch() {
-        Exception ex = null;
-
-        try {
-            JSONArray jArray = new JSONArray("[\"1\"]");
-            assertTrue(jArray.getLong(0) == (long)1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getLong_typeMisMatchString_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was not a number");
+        new JSONArray("[\"1\"]").getLong(0);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function failure due to type mismatch
+     * Test <code>getDouble</code> function failure due to type mismatch
      */
-    public void test_getDouble_typeMisMatch() {
-        Exception ex = null;
-
-        try {
-            JSONArray jArray = new JSONArray("[\"1\"]");
-            assertTrue(jArray.getDouble(0) == 1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getDouble_typeMisMatchString_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was not a number");
+        new JSONArray("[\"1\"]").getDouble(0);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function failure due to type mismatch
+     * Test <code>getInt</code> function failure due to type mismatch
      */
-    public void test_getInt_typeMisMatch() {
-        Exception ex = null;
-
-        try {
-            JSONArray jArray = new JSONArray("[\"1\"]");
-            assertTrue(jArray.getLong(0) == (int)1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getInt_typeMisMatchString_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was not a number");
+        new JSONArray("[\"1\"]").getInt(0);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function failure due to type mismatch
+     * Test <code>getShort</code> function failure due to type mismatch
      */
-    public void test_getString_typeMisMatch() {
-        Exception ex = null;
-
-        try {
-            JSONArray jArray = new JSONArray("[null]");
-            assertTrue(jArray.getString(0) == "null");
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getShort_typeMisMatchString_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was not a number");
+        new JSONArray("[\"1\"]").getShort(0);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function failure due to type mismatch
+     * Test <code>getShort</code> function failure due to type mismatch
      */
-    public void test_getBoolean_typeMisMatch() {
-        Exception ex = null;
-
-        try {
-            JSONArray jArray = new JSONArray("[1]");
-            assertTrue(jArray.getBoolean(0) == true);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        System.out.println("Error: " + ex);
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getString_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was null");
+        new JSONArray("[null]").getString(0);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function failure due to type mismatch
+     * Test <code>getString</code> function returns string representation of number
      */
-    public void test_getLong_typeMisMatchNull() {
-        Exception ex = null;
-
-        try {
-            JSONArray jArray = new JSONArray("[null]");
-            assertTrue(jArray.getLong(0) == (long)1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getString_returnsIntegerToString() throws JSONException {
+        assertEquals("311", new JSONArray("[311]").getString(0));
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function failure due to type mismatch
+     * Test <code>getBoolean</code> function failure due to type mismatch
      */
-    public void test_getInt_typeMisMatchNull() {
-        Exception ex = null;
-
-        try {
-            JSONArray jArray = new JSONArray("[null]");
-            assertTrue(jArray.getLong(0) == (int)1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getBoolean_typeMisMatchNumber_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was not a boolean or string value of 'true' or 'false'");
+        new JSONArray("[311]").getBoolean(0);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function failure due to type mismatch
+     * Test <code>getLong</code> function failure due to value null
      */
-    public void test_getDouble_typeMisMatchNull() {
-        Exception ex = null;
-
-        try {
-            JSONArray jArray = new JSONArray("[null]");
-            assertTrue(jArray.getDouble(0) == (double)1);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getLong_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was null");
+        new JSONArray("[null]").getLong(0);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function failure due to type mismatch
+     * Test <code>getInt</code> function failure due to value null
      */
-    public void test_getString_typeMisMatchNull() {
-        Exception ex = null;
-
-        try {
-            JSONArray jArray = new JSONArray("[null]");
-            assertTrue(jArray.getString(0) == "1");
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    @Test
+    public void test_getInt_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was null");
+        new JSONArray("[null]").getInt(0);
     }
 
     /**
-     * Test a basic JSON Array construction and helper 'get' function failure due to type mismatch
+     * Test <code>getDouble</code> function failure due to value null
      */
-    public void test_getBoolean_typeMisMatchNull() {
-        Exception ex = null;
+    @Test
+    public void test_getDouble_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was null");
+        new JSONArray("[null]").getLong(0);
+    }
 
-        try {
-            JSONArray jArray = new JSONArray("[null]");
-            assertTrue(jArray.getBoolean(0) == true);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex instanceof JSONException);
+    /**
+     * Test <code>getShort</code> function failure due to value null
+     */
+    @Test
+    public void test_getShort_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was null");
+        new JSONArray("[null]").getShort(0);
+    }
+
+    /**
+     * Test <code>getBoolean</code> function failure due to value null
+     */
+    @Test
+    public void test_getBoolean_typeMisMatchNull_throwsJSONException() throws JSONException {
+        thrown.expect(JSONException.class);
+        thrown.expectMessage("Value at index: [0] was null");
+        new JSONArray("[null]").getBoolean(0);
     }
 
     /**
      * Test a 'join' of a JSONArray
      */
-    public void test_JoinNoDelimiter() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[1, true, false, null, \"My String\", [1,2,3], {\"foo\":\"bar\"}]");
-            String joined = jArray.join("");
-            assertTrue(joined.equals("1truefalsenullMy String[1,2,3]{\"foo\":\"bar\"}"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_JoinNoDelimiter() throws JSONException {
+        assertEquals("1truefalsenullMy String[1,2,3]{\"foo\":\"bar\"}",
+                new JSONArray("[1, true, false, null, \"My String\", [1,2,3], {\"foo\":\"bar\"}]").join(""));
     }
 
     /**
-     * Test a 'join' of a JSONArray
+     * Test a 'join' of a JSONArray using a '|'
      */
-    public void test_JoinDelimiter() {
-        Exception ex = null;
-        try {
-            JSONArray jArray = new JSONArray("[1, true, false, null, \"My String\", [1,2,3], {\"foo\":\"bar\"}]");
-            String joined = jArray.join("|");
-            assertTrue(joined.equals("1|true|false|null|My String|[1,2,3]|{\"foo\":\"bar\"}"));
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    @Test
+    public void test_JoinDelimiter() throws JSONException {
+        assertEquals("1|true|false|null|My String|[1,2,3]|{\"foo\":\"bar\"}",
+                new JSONArray("[1, true, false, null, \"My String\", [1,2,3], {\"foo\":\"bar\"}]").join("|"));
     }
 
-    /*****************************************************************/
-    /* The following tests checks basic 'java beans' convert to JSON */
-    /*****************************************************************/
-
-    /**
-     * Test that a new Java Date serializes 'bean style' when encountered.
-     */
-    public void test_Date() {
-        Exception ex = null;
-        try{
-            Date date = new Date();
-            JSONArray ja = new JSONArray();
-            ja.put(date);
-            JSONObject jsonDate = ja.getJSONObject(0);
-            assertTrue(jsonDate instanceof JSONObject);
-            assertTrue(jsonDate.get("class").equals("java.util.Date"));
-            System.out.println(ja.write(3));
-        } catch (Exception ex1){
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+    private void testUtf8BasicArray(JSONArray jArray) throws Exception {
+        assertNotNull(jArray);
+        assertEquals(7, jArray.length());
+        assertEquals(1, jArray.get(0));
+        assertEquals(2, jArray.get(1));
+        assertNull(jArray.get(2));
+        assertEquals(true, jArray.get(3));
+        assertEquals("string", jArray.get(4));
+        assertTrue(jArray.get(5) instanceof JSONObject);
+        assertTrue(jArray.get(6) instanceof JSONArray);
+        assertEquals(3, jArray.getJSONArray(6).length());
     }
-
 }

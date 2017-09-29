@@ -19,17 +19,17 @@
 
 package org.apache.wink.json4j.compat.tests;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.HashMap;
-import java.util.Iterator;
-
 import junit.framework.TestCase;
-
 import org.apache.wink.json4j.compat.JSONArray;
 import org.apache.wink.json4j.compat.JSONException;
 import org.apache.wink.json4j.compat.JSONFactory;
 import org.apache.wink.json4j.compat.JSONObject;
+import org.apache.wink.json4j.tests.utils.VerifyUtils;
+
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Tests for the basic Java JSONObject model
@@ -37,7 +37,7 @@ import org.apache.wink.json4j.compat.JSONObject;
 public class ApacheJSONObjectTest extends TestCase {
 
     /**
-     * Test the noargs contructor.
+     * Test the noargs constructor.
      */
     public void test_new() {
         System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
@@ -48,17 +48,17 @@ public class ApacheJSONObjectTest extends TestCase {
     }
 
     /**
-     * Test the String empty object contructor.
+     * Test the String empty object constructor.
      */
     public void test_newFromEmptyObjectString() {
         JSONObject jObject = null;
         Exception ex = null;
         // Load from empty object string.
-        try{
+        try {
             System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
             JSONFactory factory = JSONFactory.newInstance();
             jObject = factory.createJSONObject("{}");
-        }catch(Exception ex1){
+        } catch (Exception ex1) {
             ex = ex1;
             ex.printStackTrace();
         }
@@ -68,17 +68,17 @@ public class ApacheJSONObjectTest extends TestCase {
     }
 
     /**
-     * Test the String non-empty object contructor.
+     * Test the String non-empty object constructor.
      */
     public void test_newFromString() {
         JSONObject jObject = null;
         Exception ex = null;
         // Load a basic JSON string
-        try{
+        try {
             System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
             JSONFactory factory = JSONFactory.newInstance();
             jObject = factory.createJSONObject("{\"foo\":\"bar\", \"bool\": true}");
-        }catch(Exception ex1){
+        } catch (Exception ex1) {
             ex = ex1;
             ex.printStackTrace();
         }
@@ -94,13 +94,13 @@ public class ApacheJSONObjectTest extends TestCase {
         JSONObject jObject = null;
         Exception ex = null;
         // read in a basic JSON file that has all the various types in it.
-        try{
+        try {
             Reader rdr = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("utf8_basic.json"), "UTF-8");
             System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
             JSONFactory factory = JSONFactory.newInstance();
             jObject = factory.createJSONObject(rdr);
             rdr.close();
-        }catch(Exception ex1){
+        } catch (Exception ex1) {
             ex = ex1;
             ex.printStackTrace();
         }
@@ -122,11 +122,11 @@ public class ApacheJSONObjectTest extends TestCase {
         map.put("bool", new Boolean(true));
 
         // Load a JSON object from a map with JSONable values.
-        try{
+        try {
             System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
             JSONFactory factory = JSONFactory.newInstance();
             jObject = factory.createJSONObject(map);
-        }catch(Exception ex1){
+        } catch (Exception ex1) {
             ex = ex1;
             ex.printStackTrace();
         }
@@ -245,8 +245,8 @@ public class ApacheJSONObjectTest extends TestCase {
             System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
             JSONFactory factory = JSONFactory.newInstance();
             JSONObject jObject = factory.createJSONObject();
-            jObject.put("long", (long)1);
-            Long l = (Long)jObject.get("long");
+            jObject.put("long", (long) 1);
+            Long l = (Long) jObject.get("long");
             assertTrue(l != null);
             assertTrue(l instanceof java.lang.Long);
             assertTrue(jObject.getLong("long") == 1);
@@ -267,7 +267,7 @@ public class ApacheJSONObjectTest extends TestCase {
             JSONFactory factory = JSONFactory.newInstance();
             JSONObject jObject = factory.createJSONObject();
             jObject.put("int", 1);
-            Integer i = (Integer)jObject.get("int");
+            Integer i = (Integer) jObject.get("int");
             assertTrue(i != null);
             assertTrue(i instanceof java.lang.Integer);
             assertTrue(jObject.getInt("int") == 1);
@@ -287,8 +287,8 @@ public class ApacheJSONObjectTest extends TestCase {
             System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
             JSONFactory factory = JSONFactory.newInstance();
             JSONObject jObject = factory.createJSONObject();
-            jObject.put("short", (short)1);
-            Short s = (Short)jObject.get("short");
+            jObject.put("short", (short) 1);
+            Short s = (Short) jObject.get("short");
             assertTrue(s != null);
             assertTrue(s instanceof java.lang.Short);
             assertTrue(jObject.getShort("short") == 1);
@@ -308,8 +308,8 @@ public class ApacheJSONObjectTest extends TestCase {
             System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
             JSONFactory factory = JSONFactory.newInstance();
             JSONObject jObject = factory.createJSONObject();
-            jObject.put("double", (double)1.123);
-            Double d = (Double)jObject.get("double");
+            jObject.put("double", (double) 1.123);
+            Double d = (Double) jObject.get("double");
             assertTrue(d != null);
             assertTrue(d instanceof java.lang.Double);
             assertTrue(jObject.getDouble("double") == 1.123);
@@ -330,7 +330,7 @@ public class ApacheJSONObjectTest extends TestCase {
             JSONFactory factory = JSONFactory.newInstance();
             JSONObject jObject = factory.createJSONObject();
             jObject.put("bool", true);
-            Boolean b = (Boolean)jObject.get("bool");
+            Boolean b = (Boolean) jObject.get("bool");
             assertTrue(b != null);
             assertTrue(b instanceof java.lang.Boolean);
             assertTrue(jObject.getBoolean("bool") == true);
@@ -351,7 +351,7 @@ public class ApacheJSONObjectTest extends TestCase {
             JSONFactory factory = JSONFactory.newInstance();
             JSONObject jObject = factory.createJSONObject();
             jObject.put("string", "Hello World.");
-            String s = (String)jObject.get("string");
+            String s = (String) jObject.get("string");
             assertTrue(s != null);
             assertTrue(s instanceof java.lang.String);
             assertTrue(jObject.getString("string").equals("Hello World."));
@@ -372,10 +372,10 @@ public class ApacheJSONObjectTest extends TestCase {
             JSONFactory factory = JSONFactory.newInstance();
             JSONObject jObject = factory.createJSONObject();
             jObject.put("object", factory.createJSONObject());
-            JSONObject obj = (JSONObject)jObject.get("object");
+            JSONObject obj = (JSONObject) jObject.get("object");
             assertTrue(obj != null);
             assertTrue(obj instanceof JSONObject);
-            assertTrue(((JSONObject)jObject.get("object")).toString().equals("{}"));
+            assertTrue(((JSONObject) jObject.get("object")).toString().equals("{}"));
         } catch (Exception ex1) {
             ex = ex1;
             ex.printStackTrace();
@@ -393,10 +393,10 @@ public class ApacheJSONObjectTest extends TestCase {
             JSONFactory factory = JSONFactory.newInstance();
             JSONObject jObject = factory.createJSONObject();
             jObject.put("array", factory.createJSONArray());
-            JSONArray obj = (JSONArray)jObject.get("array");
+            JSONArray obj = (JSONArray) jObject.get("array");
             assertTrue(obj != null);
             assertTrue(obj instanceof JSONArray);
-            assertTrue(((JSONArray)jObject.get("array")).toString().equals("[]"));
+            assertTrue(((JSONArray) jObject.get("array")).toString().equals("[]"));
         } catch (Exception ex1) {
             ex = ex1;
             ex.printStackTrace();
@@ -414,11 +414,11 @@ public class ApacheJSONObjectTest extends TestCase {
             JSONFactory factory = JSONFactory.newInstance();
             JSONObject jObject = factory.createJSONObject();
             jObject.put("string", "Hello World.");
-            String s = (String)jObject.get("string");
+            String s = (String) jObject.get("string");
             assertTrue(s != null);
             assertTrue(s instanceof java.lang.String);
             jObject.append("string", "Another string.");
-            JSONArray array = (JSONArray)jObject.get("string");
+            JSONArray array = (JSONArray) jObject.get("string");
             assertTrue(array != null);
             assertTrue(array instanceof JSONArray);
         } catch (Exception ex1) {
@@ -437,12 +437,12 @@ public class ApacheJSONObjectTest extends TestCase {
             System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
             JSONFactory factory = JSONFactory.newInstance();
             JSONObject jObject = factory.createJSONObject();
-            jObject.put("null", (Object)null);
-            String s = (String)jObject.get("null");
+            jObject.put("null", (Object) null);
+            String s = (String) jObject.get("null");
             assertTrue(s == null);
             assertTrue(jObject.has("null"));
             jObject.append("null", "Another string.");
-            JSONArray array = (JSONArray)jObject.get("null");
+            JSONArray array = (JSONArray) jObject.get("null");
 
             System.out.println("Array size: " + array.length());
             for (int i = 0; i < array.length(); i++) {
@@ -474,12 +474,12 @@ public class ApacheJSONObjectTest extends TestCase {
             JSONArray array = factory.createJSONArray();
             array.put("Hello World.");
             jObject.put("array", array);
-            JSONArray array1 = (JSONArray)jObject.get("array");
+            JSONArray array1 = (JSONArray) jObject.get("array");
             assertTrue(array1 != null);
             assertTrue(array1 instanceof JSONArray);
             assertTrue(array1.length() == 1);
             jObject.append("array", "Another string.");
-            JSONArray array2 = (JSONArray)jObject.get("array");
+            JSONArray array2 = (JSONArray) jObject.get("array");
             assertTrue(array2 != null);
             assertTrue(array2 instanceof JSONArray);
             assertTrue(array2.length() == 2);
@@ -891,13 +891,13 @@ public class ApacheJSONObjectTest extends TestCase {
             JSONObject jObject = factory.createJSONObject("{\"foo\": \"bar\", \"number\": 1, \"bool\":null}");
             Iterator keys = jObject.keys();
             while (keys.hasNext()) {
-                String key = (String)keys.next();
+                String key = (String) keys.next();
                 map.put(key, key);
             }
         } catch (Exception ex1) {
             ex = ex1;
         }
-        assertTrue(ex  == null);
+        assertTrue(ex == null);
         assertTrue(map.size() == 3);
         assertTrue(map.get("foo") != null);
         assertTrue(map.get("number") != null);
@@ -908,7 +908,6 @@ public class ApacheJSONObjectTest extends TestCase {
      * Test the iterator of the sorted keys.
      */
     public void test_sortedKeys() {
-        HashMap map = new HashMap();
         JSONObject jObject = null;
         try {
             System.setProperty("org.apache.wink.common.model.json.factory.impl", "org.apache.wink.json4j.compat.impl.ApacheJSONFactory");
@@ -917,15 +916,9 @@ public class ApacheJSONObjectTest extends TestCase {
         } catch (Exception ex) {
             assertTrue(false);
         }
-        Iterator keys = jObject.sortedKeys();
-        String[] sKeys = new String[] {"bool", "foo", "number"};
-        int i = 0;
-        while (keys.hasNext()) {
-            String key = (String)keys.next();
-            String sKey = sKeys[i];
-            i++;
-            assertTrue(key.equals(sKey));
-        }
+
+        String[] sKeys = new String[]{"bool", "foo", "number"};
+        VerifyUtils.verifyKeys(jObject.sortedKeys(), sKeys);
     }
 
     /**
@@ -945,13 +938,13 @@ public class ApacheJSONObjectTest extends TestCase {
             ex.printStackTrace();
             assertTrue(false);
         }
-        try{
+        try {
             assertTrue(jObject != jObject2);
             assertTrue(jObject.length() == jObject2.length());
             assertTrue(jObject.getString("foo").equals(jObject2.getString("foo")));
             assertTrue(jObject.getBoolean("bool") == jObject2.getBoolean("bool"));
             assertTrue(jObject.getInt("number") == jObject2.getInt("number"));
-        }catch(JSONException jex){
+        } catch (JSONException jex) {
             jex.printStackTrace();
             assertTrue(false);
         }

@@ -22,187 +22,118 @@ package org.apache.wink.json4j.tests;
 /**
  * Basic junit imports.
  */
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-
-import junit.framework.TestCase;
 
 import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONObject;
+import org.apache.wink.json4j.tests.utils.ComplexXMLConstants;
+import org.apache.wink.json4j.tests.utils.LongTextXMLConstants;
+import org.apache.wink.json4j.tests.utils.SimpleXMLConstants;
 import org.apache.wink.json4j.utils.XML;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.xml.sax.SAXException;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for all the basic XML Transform functions.
  */
-public class XMLTests extends TestCase {
+public class XMLTests {
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     /**
      * Test a basic transform of an XML file to a JSON string with verbose emit.
      */
-    public void testSimpleXMLDocument_AsFileToStringCompact() {
-        Exception ex = null;
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml");
-
-        try {
-            String JSON = XML.toJson(is);
-            is.close();
-            System.out.println("JSON compacted text:\n");
-            System.out.println(JSON);
-        } catch (Exception ex1) {
-            ex = ex1;
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
+    public void testSimpleXMLDocument_AsFileToStringCompact() throws Exception {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml")) {
+            final String strJSON = XML.toJson(is);
+            assertEquals(SimpleXMLConstants.strCompactSimpleJSON, strJSON);
+        } finally {
+        /* */
         }
-        assertTrue(ex == null);
     }
 
     /**
      * Test a basic transform of an XML file to a JSON string with compact emit.
      */
-    public void testSimpleXMLDocument_AsFileToStringVerbose() {
-        Exception ex = null;
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml");
-
-        try {
-            String JSON = XML.toJson(is, true);
-            is.close();
-            System.out.println("JSON non-compact text:\n");
-            System.out.println(JSON);
-        } catch (Exception ex1) {
-            ex = ex1;
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
+    public void testSimpleXMLDocument_AsFileToStringVerbose() throws Exception {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml")) {
+            final String strJSON = XML.toJson(is, true);
+            assertEquals(SimpleXMLConstants.strVerboseSimpleJSON, strJSON);
+        } finally {
+        /* */
         }
-        assertTrue(ex == null);
     }
 
+
+    /**
+     * Test a complex transform of an XML file to a JSON string with compact emit.
+     */
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
+    public void testComplexXMLDocument_AsFileToStringCompact() throws Exception {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("complex.xml")) {
+            final String strJSON = XML.toJson(is, false);
+            assertEquals(ComplexXMLConstants.strCompactComplexJSON, strJSON);
+        } finally {
+        /* */
+        }
+    }
 
     /**
      * Test a complex transform of an XML file to a JSON string with verbose emit.
      */
-    public void testComplexXMLDocument_AsFileToStringCompact() {
-        Exception ex = null;
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml");
-
-        try {
-            String JSON = XML.toJson(is);
-            is.close();
-            System.out.println("JSON compacted text:\n");
-            System.out.println(JSON);
-        } catch (Exception ex1) {
-            ex = ex1;
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
+    public void testComplexXMLDocument_AsFileToStringVerbose() throws Exception {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("complex.xml")) {
+            final String strJSON = XML.toJson(is, true);
+            assertEquals(ComplexXMLConstants.strVerboseComplexJSON, strJSON);
+        } finally {
+        /* */
         }
-        assertTrue(ex == null);
     }
 
     /**
      * Test a complex transform of an XML file to a JSON string with compact emit.
      */
-    public void testComplexXMLDocument_AsFileToStringVerbose() {
-        Exception ex = null;
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("complex.xml");
-
-        try {
-            String JSON = XML.toJson(is, true);
-            is.close();
-            System.out.println("JSON non-compact text:\n");
-            System.out.println(JSON);
-        } catch (Exception ex1) {
-            ex = ex1;
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
+    public void testComplexXMLDocumentWithLongText_AsFileToStringCompact() throws Exception {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("long-text.xml")) {
+            final String strJSON = XML.toJson(is, false);
+            assertEquals(LongTextXMLConstants.strCompactLongTextJSON, strJSON);
+        } finally {
+        /* */
         }
-        assertTrue(ex == null);
     }
 
     /**
-     * Test a complex transform of an XML file to a JSON string with compact emit.
+     * Test a complex transform of an XML file to a JSON string with verbose  emit.
      */
-    public void testComplexXMLDocumentWithLongText_AsFileToStringVerbose() {
-        Exception ex = null;
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("long-text.xml");
-
-        try {
-            String JSON = XML.toJson(is, true);
-            is.close();
-            System.out.println("JSON non-compact text with LONG string:\n");
-            System.out.println(JSON);
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
+    public void testComplexXMLDocumentWithLongText_AsFileToStringVerbose() throws Exception {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("long-text.xml")) {
+            final String strJSON = XML.toJson(is, true);
+            assertEquals(LongTextXMLConstants.strVerboseLongTextJSON, strJSON);
+        } finally {
+        /* */
         }
-        assertTrue(ex == null);
     }
 
-    /**
-     * Test a basic transform of an XML stream to a JSON string with verbose emit.
-     */
-    public void testSimpleXMLDocument_AsStreamToStringCompact() {
-        Exception ex = null;
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml");
-
-        try {
-            String JSON = XML.toJson(is);
-            is.close();
-            System.out.println("JSON compacted text:\n");
-            System.out.println(JSON);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex == null);
-    }
-
-
-
-    /**
-     * Test a basic transform of an XML stream to a JSON string with compact emit.
-     */
-    public void testSimpleXMLDocument_AsStreamToStringVerbose() {
-        Exception ex = null;
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml");
-
-        try {
-            String JSON = XML.toJson(is, true);
-            is.close();
-            System.out.println("JSON non-compact text:\n");
-            System.out.println(JSON);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex == null);
-    }
-
-
-    /**
-     * Test a complex transform of an XML stream to a JSON string with verbose emit.
-     */
-    public void testComplexXMLDocument_AsStreamToStringCompact() {
-        Exception ex = null;
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("complex.xml");
-
-        try {
-            String JSON = XML.toJson(is);
-            is.close();
-            System.out.println("JSON compacted text:\n");
-            System.out.println(JSON);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex == null);
-    }
-
-    /**
-     * Test a complex transform of an XML stream to a JSON string with verbose emit.
-     */
-    public void testComplexXMLDocument_AsStreamToStringVerbose() {
-        Exception ex = null;
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("complex.xml");
-
-        try {
-            String JSON = XML.toJson(is, true);
-            is.close();
-            System.out.println("JSON non-compact text:\n");
-            System.out.println(JSON);
-        } catch (Exception ex1) {
-            ex = ex1;
-        }
-        assertTrue(ex == null);
-    }
 
     /**
      * Test a basic transform of an XML stream to a JSON stream with compact emit.
@@ -299,18 +230,15 @@ public class XMLTests extends TestCase {
     /**
      * Test a malformed XML document failure.
      */
-    public void testSimpleXMLDocument_AsFileToStringCompactFailure() {
-        Exception ex = null;
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple_broken.xml");
-
-        try {
-            String JSON = XML.toJson(is, true);
-            System.out.println("JSON compacted text:\n");
-            System.out.println(JSON);
-        } catch (Exception ex1) {
-            ex = ex1;
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
+    public void testSimpleXMLDocument_AsFileToStringCompactFailure() throws Exception {
+        thrown.expect(SAXException.class);
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple_broken.xml")) {
+            XML.toJson(is, true);
+        } finally {
+            /* */
         }
-        assertTrue(ex instanceof org.xml.sax.SAXException);
     }
 
     /**
@@ -319,7 +247,7 @@ public class XMLTests extends TestCase {
     public void testAtomFeedConversion1() {
         Exception ex = null;
         InputStream is = this.getClass().getClassLoader().getResourceAsStream("atom-xml-entry1");
-        File oFile   = new File("target/json_output/atomentry-xml-json1.json");
+        File oFile = new File("target/json_output/atomentry-xml-json1.json");
 
         try {
             File parent = oFile.getParentFile();
@@ -344,7 +272,7 @@ public class XMLTests extends TestCase {
     public void testAtomFeedConversion2() {
         Exception ex = null;
         InputStream is = this.getClass().getClassLoader().getResourceAsStream("atom-xml-feed1");
-        File oFile   = new File("target/json_output/atomfeed-xml-json2.json");
+        File oFile = new File("target/json_output/atomfeed-xml-json2.json");
 
         try {
             File parent = oFile.getParentFile();
@@ -366,7 +294,9 @@ public class XMLTests extends TestCase {
     /**
      * Test a simple low character UTF-8 string.
      */
-    public void testLowCharacterUTF8String() {
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
+    public void testLowCharacterUTF8String() throws Exception {
         Exception ex = null;
         InputStream is = this.getClass().getClassLoader().getResourceAsStream("utf8-lowerchar.xml");
         File fileOut = new File("target/json_output/utf8-lowerchar.json");
@@ -384,8 +314,8 @@ public class XMLTests extends TestCase {
             is = fileOut.toURI().toURL().openStream();// this.getClass().getClassLoader().getResourceAsStream("target/json_output/utf8-lowerchar.json");
             JSONObject jObject = new JSONObject(is);
             is.close();
-            String str = (String)jObject.get("hi");
-            String expected="\u00C5\u00C5\u00C5\u00C5";
+            String str = (String) jObject.get("hi");
+            String expected = "\u00C5\u00C5\u00C5\u00C5";
             //Compare this to the string with unicode \u00C5 in it.
             assertTrue(expected.equals(str));
 
@@ -399,6 +329,8 @@ public class XMLTests extends TestCase {
     /**
      * Test a simple array of UTF-8 strings.
      */
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
     public void testArrayUTF8String() {
         Exception ex = null;
         InputStream is = this.getClass().getClassLoader().getResourceAsStream("utf8-array.xml");
@@ -417,14 +349,14 @@ public class XMLTests extends TestCase {
             is = fileOut.toURI().toURL().openStream(); //this.getClass().getClassLoader().getResourceAsStream("utf8-array.json");
             JSONObject jObject = new JSONObject(is);
             is.close();
-            String expected="\u592a\u548c\u6bbf";
-            JSONObject search = (JSONObject)jObject.get("search");
-            JSONObject payload = (JSONObject)search.get("payLoad");
-            JSONObject ssug = (JSONObject)payload.get("sSug");
-            JSONArray items = (JSONArray)ssug.get("item");
+            String expected = "\u592a\u548c\u6bbf";
+            JSONObject search = (JSONObject) jObject.get("search");
+            JSONObject payload = (JSONObject) search.get("payLoad");
+            JSONObject ssug = (JSONObject) payload.get("sSug");
+            JSONArray items = (JSONArray) ssug.get("item");
 
-            for (int i = 0; i <items.size(); i++) {
-                String str = (String)items.get(i);
+            for (int i = 0; i < items.size(); i++) {
+                String str = (String) items.get(i);
                 assertTrue(expected.equals(str));
             }
         } catch (Exception ex1) {
@@ -434,51 +366,56 @@ public class XMLTests extends TestCase {
         assertTrue(ex == null);
     }
 
-    /************************************
-     * Performance tests.
-     /***********************************/
+    /* ********************************* */
+    /* Performance tests.                */
+    /* ********************************* */
 
     /**
      * Test a complex transform of an XML file to a JSON string with compact emit.
-    public void testComplexXMLDocument_AsFileToStringCompactTiming() {
-        Exception ex   = null;
-        File file      = new File("xmlfiles/complex.xml");
-        long endTime   = 0;
-        long startTime = 0;
-
-        try {
-            startTime = System.currentTimeMillis();
-            for (int i = 0; i < 10000; i++) {
-                String JSON = XML.toJson(file);
-            }
-            endTime = System.currentTimeMillis();
-            System.out.println("Complex xml timing.  Total time for 10000 transforms: [" + (endTime - startTime) + "ms].  Time per execution: [" + ((endTime - startTime)/10000) + "ms]");
-        } catch (Exception ex1) {
-            ex = ex1;
+     */
+    @Ignore("Performance Tests Ignored - simple.xml to JSON")
+    @Test
+    public void testSimpleXMLDocument_AsInputStreamToStringCompactTiming() throws Exception {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml")) {
+            executeAndTimeXmlToJSON(stringFromInputStream(is), "simple.xml");
         }
-        assertTrue(ex == null);
     }
 
-    /**
-     * Test a complex transform of an XML file to a JSON string with compact emit.
-    public void testSimpleXMLDocument_AsFileToStringCompactTiming() {
-        Exception ex   = null;
-        File file      = new File("xmlfiles/simple.xml");
-        long endTime   = 0;
+    @Ignore("Performance Tests Ignored - complex.xml to JSON")
+    @Test
+    public void testComplexXMLDocument_AsInputStreamToStringCompactTiming() throws Exception {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("complex.xml")) {
+            executeAndTimeXmlToJSON(stringFromInputStream(is), "complex.xml");
+        }
+    }
+
+    private void executeAndTimeXmlToJSON(String strXML, String description) throws Exception {
+        long endTime = 0;
         long startTime = 0;
 
+        startTime = System.currentTimeMillis();
+        for (int i = 0; i < 10000; i++) {
 
-        try {
-            startTime = System.currentTimeMillis();
-            for (int i = 0; i < 10000; i++) {
-                String JSON = XML.toJson(file);
+            try (InputStream strIS = new ByteArrayInputStream(strXML.getBytes(StandardCharsets.UTF_8.name()))) {
+                XML.toJson(strIS);
+            } finally {
+                    /* */
             }
-            endTime = System.currentTimeMillis();
-            System.out.println("Simple xml timing.  Total time for 10000 transforms: [" + (endTime - startTime) + "ms].  Time per execution: [" + ((endTime - startTime)/10000) + "ms]");
-        } catch (Exception ex1) {
-            ex = ex1;
         }
-        assertTrue(ex == null);
+        endTime = System.currentTimeMillis();
+        System.out.println(description + " timing.  Total time for 10000 transforms: [" + (endTime - startTime) + "ms].  Time per execution: [" + ((endTime - startTime) / 10000) + "ms]");
     }
-    */
+
+    private String stringFromInputStream(InputStream is) throws Exception {
+        try (ByteArrayOutputStream result = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[2048];
+            int length;
+            while ((length = is.read(buffer)) != -1) {
+                result.write(buffer, 0, length);
+            }
+            return result.toString(StandardCharsets.UTF_8.name());
+        } finally {
+/* */
+        }
+    }
 }

@@ -22,114 +22,99 @@ package org.apache.wink.json4j.tests;
 /**
  * Basic junit imports.
  */
-import java.io.InputStream;
-import java.io.StringWriter;
-
-import junit.framework.TestCase;
 
 import org.apache.wink.json4j.JSON;
 import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONArtifact;
 import org.apache.wink.json4j.JSONObject;
+import org.apache.wink.json4j.tests.utils.VerifyUtils;
 import org.apache.wink.json4j.utils.XML;
+import org.junit.Test;
+
+import java.io.InputStream;
+import java.io.StringWriter;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests for the basic Java JSON model parser
  */
-public class JSONParserTests extends TestCase {
+public class JSONParserTests {
 
     /**
      * Test a basic transform of an XML file to a JSON string, reparse with generic parser to validate generic parser,
      * then with compact emit for checking.
+     *
+     * @see XML
      */
-    public void testJSONGenericObjectParse() {
-        Exception ex = null;
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml");
-
-        try {
-            String json = XML.toJson(is);
-            JSONArtifact jsonA = JSON.parse(json);
+    @SuppressWarnings("EmptyFinallyBlock")
+    @Test
+    public void testJSONGenericObjectParse() throws Exception {
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml")) {
+            final String json = XML.toJson(is);
+            final JSONArtifact jsonA = JSON.parse(json);
 
             assertTrue(jsonA instanceof JSONObject);
-
-            StringWriter strWriter = new StringWriter();
-            jsonA.write(strWriter);
-            System.out.println("JSON compacted text (jObject):");
-            System.out.println(strWriter.toString());
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
+            VerifyUtils.verifyJsonObjectMatchesSimpleDotXml((JSONObject) jsonA);
+        } finally {
+            /* */
         }
-        assertTrue(ex == null);
     }
 
     /**
      * Test a basic parse of a JSONArray in text form
      * then with compact emit for checking.
      */
-    public void testJSONGenericArrayParse() {
-        Exception ex = null;
-        try {
-            String json = "[ \"foo\", true, 1, null ]";
-            JSONArtifact jsonA = JSON.parse(json);
+    @Test
+    public void testJSONGenericArrayParse() throws Exception {
 
-            assertTrue(jsonA instanceof JSONArray);
+        final String json = "[ \"foo\", true, 311, null ]";
+        final JSONArtifact jsonA = JSON.parse(json);
+        assertNotNull(jsonA);
+        assertTrue(jsonA instanceof JSONArray);
 
-            StringWriter strWriter = new StringWriter();
-            jsonA.write(strWriter);
-            System.out.println("JSON compacted text (jArray):");
-            System.out.println(strWriter.toString());
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+        final JSONArray jArray = (JSONArray) jsonA;
+        assertEquals(4, jArray.length());
+        assertEquals("foo", jArray.get(0));
+        assertEquals(Boolean.TRUE, jArray.get(1));
+        assertEquals(311, jArray.get(2));
+        assertNull(jArray.get(3));
     }
 
     /**
      * Test a basic parse of a JSONArray that had starting whitespace in text form
      * then with compact emit for checking.
      */
-    public void testJSONGenericObjectParse_startingWhitespace() {
-        Exception ex = null;
-        try {
-            String json = "\t\t\t    \b\n\f\r   \t\t  { \"foo\": true, \"bar\": 1, \"noVal\": null }";
-            JSONArtifact jsonA = JSON.parse(json);
+    @Test
+    public void testJSONGenericObjectParse_startingWhitespace() throws Exception {
+        final String json = "\t\t\t    \b\n\f\r   \t\t  { \"foo\": true, \"bar\": 311, \"noVal\": null }";
+        final JSONArtifact jsonA = JSON.parse(json);
+        assertNotNull(jsonA);
+        assertTrue(jsonA instanceof JSONObject);
 
-            assertTrue(jsonA instanceof JSONObject);
-
-            StringWriter strWriter = new StringWriter();
-            jsonA.write(strWriter);
-            System.out.println("JSON compacted text (jObject):");
-            System.out.println(strWriter.toString());
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+        final JSONObject jObj = (JSONObject) jsonA;
+        assertEquals(3, jObj.length());
+        assertEquals(Boolean.TRUE, jObj.get("foo"));
+        assertEquals(311, jObj.get("bar"));
+        assertNull(jObj.get("noVal"));
     }
 
     /**
      * Test a basic parse of a JSONArray that had starting whitespace in text form
      * then with compact emit for checking.
      */
-    public void testJSONGenericArrayParse_startingWhitespace() {
-        Exception ex = null;
-        try {
-            String json = "\t\t\t    \b\n\f\r   \t\t  [ \"foo\", true, 1, null ]";
-            JSONArtifact jsonA = JSON.parse(json);
-
+    @Test
+    public void testJSONGenericArrayParse_startingWhitespace() throws Exception {
+            final String json = "\t\t\t    \b\n\f\r   \t\t  [ \"foo\", true, 311, null ]";
+            final JSONArtifact jsonA = JSON.parse(json);
+            assertNotNull(jsonA);
             assertTrue(jsonA instanceof JSONArray);
 
-            StringWriter strWriter = new StringWriter();
-            jsonA.write(strWriter);
-            System.out.println("JSON compacted text (jArray):");
-            System.out.println(strWriter.toString());
-        } catch (Exception ex1) {
-            ex = ex1;
-            ex.printStackTrace();
-        }
-        assertTrue(ex == null);
+            final JSONArray jArray = (JSONArray) jsonA;
+            assertEquals(4, jArray.length());
+            assertEquals("foo", jArray.get(0));
+            assertEquals(Boolean.TRUE, jArray.get(1));
+            assertEquals(311, jArray.get(2));
+            assertNull(jArray.get(3));
     }
-
 }

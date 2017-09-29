@@ -49,6 +49,12 @@ import org.apache.wink.json4j.internal.SerializerVerbose;
  */
 public class JSONArray extends ArrayList implements JSONArtifact {
 
+    private final static String WAS_NOT_A_BOOLEAN = "was not a boolean or string value of 'true' or 'false'.";
+    private final static String WAS_NOT_A_JSONOBJECT = "was not a JSONObject.";
+    private final static String WAS_NOT_A_NUMBER = "was not a number.";
+    private final static String WAS_NULL = "was null.";
+    private final static String WAS_NULL_OBJECT_REQUIRED = "was null.  Object required.";
+
     /**
      * Serial UID for serialization checking.
      */
@@ -565,7 +571,11 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     }
 
     /**
-     * Method to place an int into the array.  
+     * Method to place an int into the array.
+     *
+     * If you put into a position greater than the size of the array,
+     * it will fill the empty spot with <code>null</code>
+     *
      * @param index The position in the array to place the int.
      * @param value An int
      * @return A reference to this array instance.
@@ -638,18 +648,31 @@ public class JSONArray extends ArrayList implements JSONArtifact {
         return this;
     }
 
-    /*****************/
-    /* End of mapping*/
-    /*****************/
+    /******************/
+    /* End of mapping */
+    /**************** */
 
-    /********************/
-    /* Utility functions*/
-    /********************/
+    /*********************/
+    /* Utility functions */
+    /*********************/
 
     /**
      * Function to obtain a value at the specified index as a boolean.
+     * This will return <code>true</code> if:<p/>
+     *   <ul>
+     *       <li>the backing value is a <code>Boolean</code> and is <code>true</code></li>
+     *       <li>the backing value is a <code>String</code> and is <code>"true"</code></li>
+     *   </ul>
+     * This will return <code>false</code> if:<p/>
+     *   <ul>
+     *       <li>the backing value is a <code>Boolean</code> and is <code>false</code></li>
+     *       <li>the backing value is a <code>String</code> and is <code>"false"</code></li>
+     *   </ul>
+     *
+     * It will throw an exception for any other value
+     *
      * @param index The index of the item to retrieve.
-     * @return boolean value.
+     * @return boolean value - see description
      * @throws JSONException if the index is outside the range or if the type at the position was not Boolean or a string of 'true' or 'false' 
      */
     public boolean getBoolean(int index) throws JSONException {
@@ -659,7 +682,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
                 if (Boolean.class.isAssignableFrom(val.getClass())) {
                     return((Boolean)val).booleanValue();
                 } else if (Number.class.isAssignableFrom(val.getClass())) {
-                    throw new JSONException("Value at index: [" + index + "] was not a boolean or string value of 'true' or 'false'.");
+                    throw throwNullValueAtIndexException(index, WAS_NOT_A_BOOLEAN);
                 } else if (String.class.isAssignableFrom(val.getClass())) {
                     String str = (String)val;
                     if (str.equals("true")) {
@@ -667,11 +690,11 @@ public class JSONArray extends ArrayList implements JSONArtifact {
                     } else if (str.equals("false")) {
                         return false;
                     } else {
-                        throw new JSONException("Value at index: [" + index + "] was not a boolean or string value of 'true' or 'false'.");
+                        throw throwNullValueAtIndexException(index, WAS_NOT_A_BOOLEAN);
                     }
                 }
             } else {
-                throw new JSONException("Value at index: [" + index + "] was null");
+                throw throwNullValueAtIndexException(index, WAS_NULL);
             }
         } catch (java.lang.IndexOutOfBoundsException iobe) {
             JSONException jex = new JSONException("The specified index was outside of the array boundries");
@@ -694,10 +717,10 @@ public class JSONArray extends ArrayList implements JSONArtifact {
                 if (Number.class.isAssignableFrom(val.getClass())) {
                     return((Number)val).doubleValue();
                 } else {
-                    throw new JSONException("Value at index: [" + index + "] was not a number.");
+                    throw throwNullValueAtIndexException(index, WAS_NOT_A_NUMBER);
                 }
             } else {
-                throw new JSONException("Value at index: [" + index + "] was null");
+                throw throwNullValueAtIndexException(index, WAS_NULL);
             }
 
         } catch (java.lang.IndexOutOfBoundsException iobe) {
@@ -720,12 +743,11 @@ public class JSONArray extends ArrayList implements JSONArtifact {
                 if (Number.class.isAssignableFrom(val.getClass())) {
                     return((Number)val).longValue();
                 } else {
-                    throw new JSONException("Value at index: [" + index + "] was not a number.");
+                    throw throwNullValueAtIndexException(index, WAS_NOT_A_NUMBER);
                 }
             } else {
-                throw new JSONException("Value at index: [" + index + "] was null");
+                throw throwNullValueAtIndexException(index, WAS_NULL);
             }
-
         } catch (java.lang.IndexOutOfBoundsException iobe) {
             JSONException jex = new JSONException("The specified index was outside of the array boundries");
             jex.initCause(iobe);
@@ -746,10 +768,10 @@ public class JSONArray extends ArrayList implements JSONArtifact {
                 if (Number.class.isAssignableFrom(val.getClass())) {
                     return((Number)val).intValue();
                 } else {
-                    throw new JSONException("Value at index: [" + index + "] was not a number.");
+                    throw throwNullValueAtIndexException(index, WAS_NOT_A_NUMBER);
                 }
             } else {
-                throw new JSONException("Value at index: [" + index + "] was null");
+                throw throwNullValueAtIndexException(index, WAS_NULL);
             }
 
         } catch (java.lang.IndexOutOfBoundsException iobe) {
@@ -772,10 +794,10 @@ public class JSONArray extends ArrayList implements JSONArtifact {
                 if (Number.class.isAssignableFrom(val.getClass())) {
                     return((Number)val).shortValue();
                 } else {
-                    throw new JSONException("Value at index: [" + index + "] was not a number.");
+                    throw throwNullValueAtIndexException(index, WAS_NOT_A_NUMBER);
                 }
             } else {
-                throw new JSONException("Value at index: [" + index + "] was null");
+                throw throwNullValueAtIndexException(index, WAS_NULL);
             }
 
         } catch (java.lang.IndexOutOfBoundsException iobe) {
@@ -797,7 +819,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
             if (val != null) {
                 return val.toString();
             } else {
-                throw new JSONException("The value at index: [" + index + "] was null.");
+                throw throwNullValueAtIndexException(index, WAS_NULL);
             }
         } catch (java.lang.IndexOutOfBoundsException iobe) {
             JSONException jex = new JSONException("The specified index was outside of the array boundries");
@@ -805,7 +827,6 @@ public class JSONArray extends ArrayList implements JSONArtifact {
             throw jex;
         }
     }
-
 
     /**
      * Utility method to obtain the specified key as a JSONObject
@@ -821,10 +842,10 @@ public class JSONArray extends ArrayList implements JSONArtifact {
                 if (JSONObject.class.isAssignableFrom(val.getClass())) {
                     return(JSONObject)val;
                 } else {
-                    throw new JSONException("The value for index: [" + index + "] was not a JSONObject");
+                    throw throwNullValueAtIndexException(index, WAS_NOT_A_JSONOBJECT);
                 }
             } else {
-                throw new JSONException("The value for index: [" + index + "] was null.  Object required.");
+                throw throwNullValueAtIndexException(index, WAS_NULL_OBJECT_REQUIRED);
             }
         } catch (java.lang.IndexOutOfBoundsException iobe) {
             JSONException jex = new JSONException("The specified index was outside of the array boundries");
@@ -847,10 +868,10 @@ public class JSONArray extends ArrayList implements JSONArtifact {
                 if (JSONArray.class.isAssignableFrom(val.getClass())) {
                     return(JSONArray)val;
                 } else {
-                    throw new JSONException("The value index key: [" + index + "] was not a JSONObject");
+                    throw throwNullValueAtIndexException(index, WAS_NOT_A_JSONOBJECT);
                 }
             } else {
-                throw new JSONException("The value for index: [" + index + "] was null.  Object required.");
+                throw throwNullValueAtIndexException(index, WAS_NULL_OBJECT_REQUIRED);
             }
         } catch (java.lang.IndexOutOfBoundsException iobe) {
             JSONException jex = new JSONException("The specified index was outside of the array boundries");
@@ -1343,5 +1364,9 @@ public class JSONArray extends ArrayList implements JSONArtifact {
         } catch (Throwable th){
             return defaultValue;
         }
+    }
+
+    private static JSONException throwNullValueAtIndexException(int index, String msg) throws JSONException {
+        return new JSONException(String.format("Value at index: [%d] %s", index, msg));
     }
 }

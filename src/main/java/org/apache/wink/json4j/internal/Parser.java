@@ -41,7 +41,7 @@ public class Parser {
     private boolean firstArtifact = false;
 
     /**
-     * Contructor
+     * constructor
      * @param reader The Reader to use when reading in the JSON stream/string.
      *
      * @throws JSONException Thrown if an error occurs in tokenizing the JSON string.
@@ -58,7 +58,7 @@ public class Parser {
     }
 
     /**
-     * Contructor
+     * constructor
      * @param reader The Reader to use when reading in the JSON stream/string.
      * @param strict Boolean indicating if the parser should parse in strict mode, meaning unqoted strings and comments are not allowed.
      *
@@ -86,20 +86,20 @@ public class Parser {
     }
 
     /**
-     * Method to initiate the parse of the toplevel JSON object, which will in turn parse all child JSON objects contained within.
+     * Method to initiate the parse of the top-level JSON object, which will in turn parse all child JSON objects contained within.
      * Same as calling parse(false);
      * 
-     * @throws JSONException Thrown if an IO error occurd during parse of the JSON object(s).
+     * @throws JSONException Thrown if an IO error occurred during parse of the JSON object(s).
      */
     public JSONObject parse(JSONObject jObj) throws JSONException {
         return parse(false, jObj);
     }
 
     /**
-     * Method to initiate the parse of the toplevel JSON object, which will in turn parse all child JSON objects contained within.
-     * @param ordered Flag to denote if the parse should contruct a JSON object which maintains serialization order of the attributes.
+     * Method to initiate the parse of the top-level JSON object, which will in turn parse all child JSON objects contained within.
+     * @param ordered Flag to denote if the parse should construct a JSON object which maintains serialization order of the attributes.
      * 
-     * @throws JSONException Thrown if an IO error occurd during parse of the JSON object(s).
+     * @throws JSONException Thrown if an IO error occurred during parse of the JSON object(s).
      */
     public JSONObject parse(boolean ordered) throws JSONException {
         try {
