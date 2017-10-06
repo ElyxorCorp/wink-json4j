@@ -31,6 +31,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -114,39 +117,5 @@ public class JSONParserTests {
         assertEquals(Boolean.TRUE, jArray.get(1));
         assertEquals(311, jArray.get(2));
         assertNull(jArray.get(3));
-    }
-
-    @Ignore("Performance Tests Ignored - parsing Highly nested JSON")
-    @Test
-    public void testHighlyNestedJSON_genericParse() throws Exception {
-        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("examples-highly-nested.json")) {
-            PerformanceUtils.executeAndTimeInputStreamProcessing(
-                    StringUtils.stringFromInputStream(is),
-                    "Parse highly nested JSON",
-                    inputStream -> {
-                        try {
-                            JSON.parse(inputStream);
-                        } catch (Exception e) {
-                            assertFalse("Test Failed: " + e.getMessage(), true);
-                        }
-                    });
-        }
-    }
-
-    @Ignore("Performance Tests Ignored - parsing Highly nested JSON")
-    @Test
-    public void testHighlyNestedJSON_JSONObjectParse() throws Exception {
-        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("examples-highly-nested.json")) {
-            PerformanceUtils.executeAndTimeInputStreamProcessing(
-                    StringUtils.stringFromInputStream(is),
-                    "Parse highly nested JSON",
-                    inputStream -> {
-                        try {
-                            new JSONObject(inputStream);
-                        } catch (Exception e) {
-                            assertFalse("Test Failed: " + e.getMessage(), true);
-                        }
-                    });
-        }
     }
 }

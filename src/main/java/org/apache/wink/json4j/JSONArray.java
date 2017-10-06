@@ -687,18 +687,23 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Function to obtain a value at the specified index as a boolean.
-     * This will return <tt>true</tt> if:<p/>
+     * <p>
+     * This will return <tt>true</tt> if:
+     * </p>
      * <ul>
-     * <li>the backing value is a <tt>Boolean</tt> and is <tt>true</tt></li>
-     * <li>the backing value is a <tt>String</tt> and is <tt>"true"</tt></li>
+     *   <li>the backing value is a <tt>Boolean</tt> and is <tt>true</tt></li>
+     *   <li>the backing value is a <tt>String</tt> and is <tt>"true"</tt></li>
      * </ul>
-     * This will return <tt>false</tt> if:<p/>
+     * <p>
+     * This will return <tt>false</tt> if:
+     * </p>
      * <ul>
-     * <li>the backing value is a <tt>Boolean</tt> and is <tt>false</tt></li>
-     * <li>the backing value is a <tt>String</tt> and is <tt>"false"</tt></li>
+     *   <li>the backing value is a <tt>Boolean</tt> and is <tt>false</tt></li>
+     *   <li>the backing value is a <tt>String</tt> and is <tt>"false"</tt></li>
      * </ul>
      * <p>
      * It will throw an exception for any other value
+     * </p>
      *
      * @param index The index of the item to retrieve.
      * @return boolean value - see description

@@ -22,17 +22,21 @@ package org.apache.wink.json4j.formatter;
 /**
  * This class allows configurability on the output formatting when the JSON
  * is written out to a string.
- *
+ * <p>
  * If <tt>Format.Compact</tt> is set, the only option used is <tt>#escapeForwardSlashes</tt>.
  * Otherwise, the serializer will use all the settings when determining how to format the
  * <tt>JSONObject</tt> or <tt>JSONArray</tt> to a string.
- *
- * The default value for newline is <tt>System.lineseparator()</tt><br/>
- * The default value for the indent is <tt>\t</tt><br/>
+ * </p>
+ * <p>
+ * The default value for newline is <tt>System.lineseparator()</tt>
+ * The default value for the indent is <tt>\t</tt>
+ * </p>
+ * <p>
  * The default value for empty array on same line is false, which will put the
  *   open/close brackets on different lines even if there are no values in the array
  * The default is to escape the forward slash character.  The JSON spec says this
  *   escaping is optional
+ * </p>
  *
  *   @see org.apache.wink.json4j.internal.Serializer
  *   @see org.apache.wink.json4j.internal.SerializerVerbose

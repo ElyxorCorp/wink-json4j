@@ -30,11 +30,13 @@ import java.util.*;
  * <p>
  * Extension of <tt>HashMap</tt> that only allows <tt>String</tt> keys,
  * and values which are JSON-able (such as a Java Bean).
- * <br/><br/>
+ * </p>
+ * <p>
  * JSON-able values are: <tt>null</tt>, and instances of <tt>String</tt>,
  * <tt>Boolean</tt>, <tt>Number</tt>, <tt>JSONObject</tt> and
  * <tt>JSONArray</tt>.
- * <br/><br/>
+ * </p>
+ * <p>
  * Constructors that fill this object from a string will parse json formatted strings
  * with keys that are unquoted.. e.g.
  * <pre>
@@ -43,19 +45,20 @@ import java.util.*;
  *       other_key: 12345
  *   }
  *   </pre>
- * <br/>
+ * <p>
  * Constructors will also parse objects when there are <tt>C-style</tt> and
  * <tt>CPP-style</tt> comments, however, it does not retain the comments, so saving
  * the JSON after parsing it will lose the comments. For now.
+ * </p>
  * <p>
- * <br/><br/>
  * Instances of this class are not thread-safe.
- * <br/><br/>
+ * </p>
+ * <p>
  * This code does not handle the parsing of <tt>Double</tt> values using
  * <strong>Hexadecimal Floating-point Constants</strong> which are of the format
  * <tt>0x1.0p64</tt>.  For more info on this number representation, please
- * visit <a href="">this page</a>
- * <br/>
+ * visit <a href="http://www.exploringbinary.com/hexadecimal-floating-point-constants/">this page</a>
+ * </p>
  * There is a commented out test for this in <tt>JSONObjectTest::test_opt_ReturnsDoubleClass_whenValueOutOfLongRange()</tt>
  */
 public class JSONObject extends HashMap implements JSONArtifact {
@@ -1549,7 +1552,7 @@ public class JSONObject extends HashMap implements JSONArtifact {
 
     /**
      * Over-ridden toString() method.  Returns the same value as write(), which is a compact JSON String.
-     * If an error occurs in the serialization, the return will be of format: JSON Generation Error: [<some error>]
+     * If an error occurs in the serialization, the return will be of format: JSON Generation Error: [&lt;some error$gt;]
      *
      * @return A string of JSON text, if possible.
      * @see #write()
@@ -1560,7 +1563,7 @@ public class JSONObject extends HashMap implements JSONArtifact {
 
     /**
      * Verbose capable toString method.
-     * If an error occurs in the serialization, the return will be of format: JSON Generation Error: [<some error>]
+     * If an error occurs in the serialization, the return will be of format: JSON Generation Error: [&lt;some error$gt;]
      *
      * @param verbose Whether or not to tab-indent the output.
      * @return A string of JSON text, if possible.

@@ -19,10 +19,7 @@
 
 package org.apache.wink.json4j.internal;
 
-import org.apache.wink.json4j.JSONArray;
-import org.apache.wink.json4j.JSONException;
-import org.apache.wink.json4j.JSONObject;
-import org.apache.wink.json4j.JSONString;
+import org.apache.wink.json4j.*;
 import org.apache.wink.json4j.formatter.FormatOptions;
 import org.apache.wink.json4j.formatter.FormatOptionsBuilder;
 
@@ -83,6 +80,7 @@ public class Serializer {
 
     /**
      * Gets the currently configured <tt>FormatOptions</tt>
+     *
      * @return - format options
      */
     protected FormatOptions formatOptions() {
@@ -263,12 +261,12 @@ public class Serializer {
 
         // Serialize the various types!
         Class clazz = object.getClass();
+        if (String.class.isAssignableFrom(clazz)) return writeString((String) object);
+        if (JSONObject.class.isAssignableFrom(clazz)) return writeObject((JSONObject) object);
         if (Number.class.isAssignableFrom(clazz)) return writeNumber((Number) object);
         if (Boolean.class.isAssignableFrom(clazz)) return writeBoolean((Boolean) object);
-        if (JSONObject.class.isAssignableFrom(clazz)) return writeObject((JSONObject) object);
         if (JSONArray.class.isAssignableFrom(clazz)) return writeArray((JSONArray) object);
         if (JSONString.class.isAssignableFrom(clazz)) return writeRawString(((JSONString) object).toJSONString());
-        if (String.class.isAssignableFrom(clazz)) return writeString((String) object);
 
         throw new IOException("Attempting to serialize unserializable object: '" + object + "'");
     }

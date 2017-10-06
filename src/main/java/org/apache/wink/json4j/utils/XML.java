@@ -19,20 +19,15 @@
 
 package org.apache.wink.json4j.utils;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.util.Iterator;
-import java.util.Properties;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.wink.json4j.JSONArray;
+import org.apache.wink.json4j.JSONObject;
+import org.apache.wink.json4j.utils.internal.JSONSAXHandler;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -44,25 +39,22 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-
-import org.apache.wink.json4j.JSONArray;
-import org.apache.wink.json4j.JSONObject;
-import org.apache.wink.json4j.utils.internal.JSONSAXHandler;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
+import java.io.*;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
- * This class is a static helper for various ways of converting an XML document/InputStream 
+ * This class is a static helper for various ways of converting an XML document/InputStream
  * into a JSON stream or String and vice-versa.
- * 
+ * <p>
  * For example, the XML document:<br>
+ * {@code
  * <xmp>
- *   <getValuesReturn return="true">
+ *     <getValuesReturn return="true">
  *     <attribute attrValue="value"/>
  *     <String>First item</String>
  *     <String>Second item</String>
@@ -73,99 +65,100 @@ import org.xml.sax.XMLReader;
  *     <TagWithAttrsAndText attr1="value1" attr2="value2" attr3="value3">Text!</TagWithAttrsAndText>
  *   </getValuesReturn>
  * </xmp>
- * <br>
+ * }
+ * </p>
+ * <p>
  * in JSON (in non-compact form) becomes<br>
+ * {@code
  * <xmp>
  * {
- *    "getValuesReturn" : {
- *       "return" : "true",
- *       "TextTag" : "Text!",
- *       "String" : [
- *          "First item",
- *          "Second item",
- *          "Third item"
- *       ],
- *       "TagWithAttrsAndText" : {
- *          "content" : "Text!",
- *          "attr3" : "value3",
- *          "attr2" : "value2",
- *          "attr1" : "value1"
- *       }
- *       ,
- *       "EmptyTag" : true,
- *       "attribute" : {
- *          "attrValue" : "value"
- *       }
- *       ,
- *       "TagWithAttrs" : {
- *          "attr3" : "value3",
- *          "attr2" : "value2",
- *          "attr1" : "value1"
- *       }
- *    }
- * } 
+ *   "getValuesReturn" : {
+ *     "return" : "true",
+ *     "TextTag" : "Text!",
+ *     "String" : [
+ *       "First item",
+ *       "Second item",
+ *       "Third item"
+ *     ],
+ *     "TagWithAttrsAndText" : {
+ *       "content" : "Text!",
+ *       "attr3" : "value3",
+ *       "attr2" : "value2",
+ *       "attr1" : "value1"
+ *     },
+ *     "EmptyTag" : true,
+ *     "attribute" : {
+ *       "attrValue" : "value"
+ *     },
+ *     "TagWithAttrs" : {
+ *       "attr3" : "value3",
+ *       "attr2" : "value2",
+ *       "attr1" : "value1"
+ *     }
+ *   }
+ * }
  * </xmp>
+ * }
  */
 public class XML {
     /**
      * Logger init.
      */
     private static final String CLASS_NAME = "org.apache.commons.json.xml.transform.XML";
-    private static final Logger logger     = Logger.getLogger(CLASS_NAME,null);
+    private static final Logger logger = Logger.getLogger(CLASS_NAME, null);
 
     /**
      * Stylesheet for just doing indention.
      */
     private static final String styleSheet = " <xsl:stylesheet version=\"1.0\"                                   \n" +
-                                            "     xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">           \n" +
-                                            "   <xsl:output method=\"xml\"/>                                    \n" +
-                                            "   <xsl:param name=\"indent-increment\" select=\"'   '\" />        \n" +
-                                            "   <xsl:template match=\"*\">                                      \n" +
-                                            "      <xsl:param name=\"indent\" select=\"'&#xA;'\"/>              \n" +
-                                            "      <xsl:value-of select=\"$indent\"/>                           \n" +
-                                            "      <xsl:copy>                                                   \n" +
-                                            "        <xsl:copy-of select=\"@*\" />                              \n" +
-                                            "        <xsl:apply-templates>                                      \n" +
-                                            "          <xsl:with-param name=\"indent\"                          \n" +
-                                            "               select=\"concat($indent, $indent-increment)\"/>     \n" +
-                                            "        </xsl:apply-templates>                                     \n" +
-                                            "        <xsl:if test=\"*\">                                        \n" +
-                                            "          <xsl:value-of select=\"$indent\"/>                       \n" +
-                                            "        </xsl:if>                                                  \n" +
-                                            "      </xsl:copy>                                                  \n" +
-                                            "   </xsl:template>                                                 \n" +
-                                            "   <xsl:template match=\"comment()|processing-instruction()\">     \n" +
-                                            "      <xsl:param name=\"indent\" select=\"'&#xA;'\"/>              \n" +
-                                            "      <xsl:value-of select=\"$indent\"/>                           \n" +
-                                            "      <xsl:copy>                                                   \n" +
-                                            "        <xsl:copy-of select=\"@*\" />                              \n" +
-                                            "        <xsl:apply-templates>                                      \n" +
-                                            "          <xsl:with-param name=\"indent\"                          \n" +
-                                            "               select=\"concat($indent, $indent-increment)\"/>     \n" +
-                                            "        </xsl:apply-templates>                                     \n" +
-                                            "        <xsl:if test=\"*\">                                        \n" +
-                                            "          <xsl:value-of select=\"$indent\"/>                       \n" +
-                                            "        </xsl:if>                                                  \n" +
-                                            "      </xsl:copy>                                                  \n" +
-                                            "   </xsl:template>                                                 \n" +
-                                            "   <xsl:template match=\"text()[normalize-space(.)='']\"/>         \n" +
-                                            " </xsl:stylesheet>                                                 \n" ;
+            "     xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">           \n" +
+            "   <xsl:output method=\"xml\"/>                                    \n" +
+            "   <xsl:param name=\"indent-increment\" select=\"'   '\" />        \n" +
+            "   <xsl:template match=\"*\">                                      \n" +
+            "      <xsl:param name=\"indent\" select=\"'&#xA;'\"/>              \n" +
+            "      <xsl:value-of select=\"$indent\"/>                           \n" +
+            "      <xsl:copy>                                                   \n" +
+            "        <xsl:copy-of select=\"@*\" />                              \n" +
+            "        <xsl:apply-templates>                                      \n" +
+            "          <xsl:with-param name=\"indent\"                          \n" +
+            "               select=\"concat($indent, $indent-increment)\"/>     \n" +
+            "        </xsl:apply-templates>                                     \n" +
+            "        <xsl:if test=\"*\">                                        \n" +
+            "          <xsl:value-of select=\"$indent\"/>                       \n" +
+            "        </xsl:if>                                                  \n" +
+            "      </xsl:copy>                                                  \n" +
+            "   </xsl:template>                                                 \n" +
+            "   <xsl:template match=\"comment()|processing-instruction()\">     \n" +
+            "      <xsl:param name=\"indent\" select=\"'&#xA;'\"/>              \n" +
+            "      <xsl:value-of select=\"$indent\"/>                           \n" +
+            "      <xsl:copy>                                                   \n" +
+            "        <xsl:copy-of select=\"@*\" />                              \n" +
+            "        <xsl:apply-templates>                                      \n" +
+            "          <xsl:with-param name=\"indent\"                          \n" +
+            "               select=\"concat($indent, $indent-increment)\"/>     \n" +
+            "        </xsl:apply-templates>                                     \n" +
+            "        <xsl:if test=\"*\">                                        \n" +
+            "          <xsl:value-of select=\"$indent\"/>                       \n" +
+            "        </xsl:if>                                                  \n" +
+            "      </xsl:copy>                                                  \n" +
+            "   </xsl:template>                                                 \n" +
+            "   <xsl:template match=\"text()[normalize-space(.)='']\"/>         \n" +
+            " </xsl:stylesheet>                                                 \n";
 
     /**
      * Method to do the transform from an XML input stream to a JSON stream.
      * Neither input nor output streams are closed.  Closure is left up to the caller.  Same as calling toJson(inStream, outStream, false);  (Default is compact form)
      *
-     * @param XMLStream The XML stream to convert to JSON
+     * @param XMLStream  The XML stream to convert to JSON
      * @param JSONStream The stream to write out JSON to.  The contents written to this stream are always in UTF-8 format.
-     * 
      * @throws SAXException Thrown is a parse error occurs.
-     * @throws IOException Thrown if an IO error occurs.
+     * @throws IOException  Thrown if an IO error occurs.
      */
     public static void toJson(InputStream XMLStream, OutputStream JSONStream) throws SAXException, IOException {
         if (logger.isLoggable(Level.FINER)) {
             logger.entering(CLASS_NAME, "toJson(InputStream, OutputStream)");
         }
-        toJson(XMLStream,JSONStream,false);    
+        toJson(XMLStream, JSONStream, false);
 
         if (logger.isLoggable(Level.FINER)) {
             logger.entering(CLASS_NAME, "toJson(InputStream, OutputStream)");
@@ -176,12 +169,11 @@ public class XML {
      * Method to do the transform from an XML input stream to a JSON stream.
      * Neither input nor output streams are closed.  Closure is left up to the caller.
      *
-     * @param XMLStream The XML stream to convert to JSON
+     * @param XMLStream  The XML stream to convert to JSON
      * @param JSONStream The stream to write out JSON to.  The contents written to this stream are always in UTF-8 format.
-     * @param verbose Flag to denote whether or not to render the JSON text in verbose (indented easy to read), or compact (not so easy to read, but smaller), format.
-     *
+     * @param verbose    Flag to denote whether or not to render the JSON text in verbose (indented easy to read), or compact (not so easy to read, but smaller), format.
      * @throws SAXException Thrown if a parse error occurs.
-     * @throws IOException Thrown if an IO error occurs.
+     * @throws IOException  Thrown if an IO error occurs.
      */
     public static void toJson(InputStream XMLStream, OutputStream JSONStream, boolean verbose) throws SAXException, IOException {
         if (logger.isLoggable(Level.FINER)) {
@@ -215,11 +207,11 @@ public class XML {
                     logger.logp(Level.FINEST, CLASS_NAME, "transform", "Parsing the XML content to JSON");
                 }
 
-                /** 
+                /**
                  * Parse it.
                  */
                 source.setEncoding("UTF-8");
-                parser.parse(source);                 
+                parser.parse(source);
                 jsonHandler.flushBuffer();
             } catch (javax.xml.parsers.ParserConfigurationException pce) {
                 throw new SAXException("Could not get a parser: " + pce.toString());
@@ -232,40 +224,39 @@ public class XML {
     }
 
     /**
-     * Method to take an input stream to an XML document and return a String of the JSON format.  
-     * Note that the xmlStream is not closed when read is complete.  This is left up to the caller, who may wish to do more with it.  
+     * Method to take an input stream to an XML document and return a String of the JSON format.
+     * Note that the xmlStream is not closed when read is complete.  This is left up to the caller, who may wish to do more with it.
      * This is the same as toJson(xmlStream,false)
      *
      * @param xmlStream The InputStream to an XML document to transform to JSON.
      * @return A string of the JSON representation of the XML file
-     * 
      * @throws SAXException Thrown if an error occurs during parse.
-     * @throws IOException Thrown if an IOError occurs.
+     * @throws IOException  Thrown if an IOError occurs.
      */
     public static String toJson(InputStream xmlStream) throws SAXException, IOException {
-        return toJson(xmlStream,false);
+        return toJson(xmlStream, false);
     }
 
 
     /**
      * Method to take an input stream to an XML document and return a String of the JSON format.  Note that the xmlStream is not closed when read is complete.  This is left up to the caller, who may wish to do more with it.
+     *
      * @param xmlStream The InputStream to an XML document to transform to JSON.
-     * @param verbose Boolean flag denoting whther or not to write the JSON in verbose (formatted), or compact form (no whitespace)
+     * @param verbose   Boolean flag denoting whther or not to write the JSON in verbose (formatted), or compact form (no whitespace)
      * @return A string of the JSON representation of the XML file
-     * 
      * @throws SAXException Thrown if an error occurs during parse.
-     * @throws IOException Thrown if an IOError occurs.
-     */                                                                    
-    public static String toJson(InputStream xmlStream, boolean verbose)  throws SAXException, IOException {
+     * @throws IOException  Thrown if an IOError occurs.
+     */
+    public static String toJson(InputStream xmlStream, boolean verbose) throws SAXException, IOException {
         if (logger.isLoggable(Level.FINER)) {
             logger.exiting(CLASS_NAME, "toJson(InputStream, boolean)");
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        String result              = null;
+        String result = null;
 
         try {
-            toJson(xmlStream,baos,verbose);
+            toJson(xmlStream, baos, verbose);
             result = baos.toString("UTF-8");
             baos.close();
         } catch (UnsupportedEncodingException uec) {
@@ -283,24 +274,23 @@ public class XML {
 
 
     /**
-     * Method to take an XML file and return a String of the JSON format.  
-     * 
+     * Method to take an XML file and return a String of the JSON format.
+     *
      * @param xmlFile The XML file to transform to JSON.
      * @param verbose Boolean flag denoting whther or not to write the JSON in verbose (formatted), or compact form (no whitespace)
      * @return A string of the JSON representation of the XML file
-     * 
      * @throws SAXException Thrown if an error occurs during parse.
-     * @throws IOException Thrown if an IOError occurs.
+     * @throws IOException  Thrown if an IOError occurs.
      */
     public static String toJson(File xmlFile, boolean verbose) throws SAXException, IOException {
         if (logger.isLoggable(Level.FINER)) {
             logger.exiting(CLASS_NAME, "toJson(InputStream, boolean)");
         }
 
-        FileInputStream fis        = new FileInputStream(xmlFile);
-        String result              = null;
+        FileInputStream fis = new FileInputStream(xmlFile);
+        String result = null;
 
-        result = toJson(fis,verbose);
+        result = toJson(fis, verbose);
         fis.close();
 
         if (logger.isLoggable(Level.FINER)) {
@@ -311,35 +301,32 @@ public class XML {
     }
 
     /**
-     * Method to take an XML file and return a String of the JSON format.  
+     * Method to take an XML file and return a String of the JSON format.
      * This is the same as toJson(xmlStream,false)
      *
      * @param xmlFile The XML file to convert to JSON.
      * @return A string of the JSON representation of the XML file
-     * 
      * @throws SAXException Thrown if an error occurs during parse.
-     * @throws IOException Thrown if an IOError occurs.
+     * @throws IOException  Thrown if an IOError occurs.
      */
     public static String toJson(File xmlFile) throws SAXException, IOException {
-        return toJson(xmlFile,false);
+        return toJson(xmlFile, false);
     }
 
     /**
      * Method to do the transform from an JSON input stream to a XML stream.
      * Neither input nor output streams are closed.  Closure is left up to the caller.  Same as calling toXml(inStream, outStream, false);  (Default is compact form)
      *
-     * @param JSONStream The JSON stream to convert to XML
-     * @param XMLStream The stream to write out XML to.  The contents written to this stream are always in UTF-8 format.
-     * 
+     * @param jsonStream The JSON stream to convert to XML
+     * @param XMLStream  The stream to write out XML to.  The contents written to this stream are always in UTF-8 format.
      * @throws IOException Thrown if an IO error occurs.
      */
-    public static void toXml(InputStream JSONStream, OutputStream XMLStream)
-    throws IOException
-    {
+    public static void toXml(InputStream jsonStream, OutputStream XMLStream)
+            throws IOException {
         if (logger.isLoggable(Level.FINER)) {
             logger.entering(CLASS_NAME, "toXml(InputStream, OutputStream)");
         }
-        toXml(JSONStream,XMLStream,false);    
+        toXml(jsonStream, XMLStream, false);
 
         if (logger.isLoggable(Level.FINER)) {
             logger.entering(CLASS_NAME, "toXml(InputStream, OutputStream)");
@@ -350,22 +337,20 @@ public class XML {
      * Method to do the transform from an JSON input stream to a XML stream.
      * Neither input nor output streams are closed.  Closure is left up to the caller.
      *
-     * @param JSONStream The XML stream to convert to JSON
-     * @param XMLStream The stream to write out JSON to.  The contents written to this stream are always in UTF-8 format.
-     * @param verbose Flag to denote whether or not to render the XML text in verbose (indented easy to read), or compact (not so easy to read, but smaller), format.
-     *
+     * @param jsonStream The XML stream to convert to JSON
+     * @param XMLStream  The stream to write out JSON to.  The contents written to this stream are always in UTF-8 format.
+     * @param verbose    Flag to denote whether or not to render the XML text in verbose (indented easy to read), or compact (not so easy to read, but smaller), format.
      * @throws IOException Thrown if an IO error occurs.
      */
-    public static void toXml(InputStream JSONStream, OutputStream XMLStream, boolean verbose)
-    throws IOException
-    {
+    public static void toXml(InputStream jsonStream, OutputStream XMLStream, boolean verbose)
+            throws IOException {
         if (logger.isLoggable(Level.FINER)) {
             logger.entering(CLASS_NAME, "toXml(InputStream, OutputStream)");
         }
 
         if (XMLStream == null) {
             throw new NullPointerException("XMLStream cannot be null");
-        } else if (JSONStream == null) {
+        } else if (jsonStream == null) {
             throw new NullPointerException("JSONStream cannot be null");
         } else {
 
@@ -375,7 +360,7 @@ public class XML {
 
             try {
                 //Get the JSON from the stream.
-                JSONObject jObject = new JSONObject(JSONStream);
+                JSONObject jObject = new JSONObject(jsonStream);
 
                 //Create a new document
 
@@ -391,9 +376,10 @@ public class XML {
 
                 //Serialize it.
                 TransformerFactory tfactory = TransformerFactory.newInstance();
-                Transformer serializer  = null;
+                Transformer serializer = null;
                 if (verbose) {
-                    serializer = tfactory.newTransformer(new StreamSource( new StringReader(styleSheet) ));;
+                    serializer = tfactory.newTransformer(new StreamSource(new StringReader(styleSheet)));
+                    ;
                 } else {
                     serializer = tfactory.newTransformer();
                 }
@@ -418,42 +404,40 @@ public class XML {
     }
 
     /**
-     * Method to take an input stream to an JSON document and return a String of the XML format.  
-     * Note that the JSONStream is not closed when read is complete.  This is left up to the caller, who may wish to do more with it.  
-     * This is the same as toXml(JSONStream,false)
+     * Method to take an input stream to an JSON document and return a String of the XML format.
+     * Note that the JSONStream is not closed when read is complete.  This is left up to the caller, who may wish to do more with it.
+     * This is the same as toXml(jsonStream,false)
      *
-     * @param JSONStream The InputStream to an JSON document to transform to XML.
+     * @param jsonStream The InputStream to an JSON document to transform to XML.
      * @return A string of the JSON representation of the XML file
-     * 
      * @throws IOException Thrown if an IOError occurs.
      */
-    public static String toXml(InputStream JSONStream)
-    throws IOException
-    {
-        return toXml(JSONStream,false);
+    public static String toXml(InputStream jsonStream)
+            throws IOException {
+        return toXml(jsonStream, false);
     }
 
 
     /**
-     * Method to take an input stream to an JSON document and return a String of the XML format.  Note that the JSONStream is not closed when read is complete.  This is left up to the caller, who may wish to do more with it.
-     * @param xmlStream The InputStream to an JSON document to transform to XML.
-     * @param verbose Boolean flag denoting whther or not to write the XML in verbose (formatted), or compact form (no whitespace)
+     * Method to take an input stream to an JSON document and return a String of the XML format.  Note that the <tt>InputStream</tt> is
+     * not closed when read is complete.  This is left up to the caller, who may wish to do more with it.
+     *
+     * @param jsonStream The InputStream to an JSON document to transform to XML.
+     * @param verbose    Boolean flag denoting whether or not to write the XML in verbose (formatted), or compact form (no whitespace)
      * @return A string of the JSON representation of the XML file
-     * 
      * @throws IOException Thrown if an IOError occurs.
      */
-    public static String toXml(InputStream JSONStream, boolean verbose)
-    throws IOException
-    {
+    public static String toXml(InputStream jsonStream, boolean verbose)
+            throws IOException {
         if (logger.isLoggable(Level.FINER)) {
             logger.exiting(CLASS_NAME, "toXml(InputStream, boolean)");
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        String result              = null;
+        String result = null;
 
         try {
-            toXml(JSONStream,baos,verbose);
+            toXml(jsonStream, baos, verbose);
             result = baos.toString("UTF-8");
             baos.close();
         } catch (UnsupportedEncodingException uec) {
@@ -471,25 +455,23 @@ public class XML {
 
 
     /**
-     * Method to take a JSON file and return a String of the XML format.  
-     * 
-     * @param xmlFile The JSON file to transform to XML.
-     * @param verbose Boolean flag denoting whther or not to write the XML in verbose (formatted), or compact form (no whitespace)
+     * Method to take a JSON file and return a String of the XML format.
+     *
+     * @param jsonFile The JSON file to transform to XML.
+     * @param verbose  Boolean flag denoting whther or not to write the XML in verbose (formatted), or compact form (no whitespace)
      * @return A string of the XML representation of the JSON file
-     * 
      * @throws IOException Thrown if an IOError occurs.
      */
     public static String toXml(File jsonFile, boolean verbose)
-    throws IOException
-    {
+            throws IOException {
         if (logger.isLoggable(Level.FINER)) {
             logger.exiting(CLASS_NAME, "toXml(InputStream, boolean)");
         }
 
-        FileInputStream fis        = new FileInputStream(jsonFile);
-        String result              = null;
+        FileInputStream fis = new FileInputStream(jsonFile);
+        String result = null;
 
-        result = toXml(fis,verbose);
+        result = toXml(fis, verbose);
         fis.close();
 
         if (logger.isLoggable(Level.FINER)) {
@@ -500,25 +482,23 @@ public class XML {
     }
 
     /**
-     * Method to take an JSON file and return a String of the XML format.  
+     * Method to take an JSON file and return a String of the XML format.
      * This is the same as toXml(jsonStream,false)
      *
      * @param jsonFile The XML file to convert to XML.
      * @return A string of the XML representation of the JSON file
-     * 
      * @throws IOException Thrown if an IOError occurs.
      */
     public static String toXml(File jsonFile)
-    throws IOException
-    {
-        return toXml(jsonFile,false);
+            throws IOException {
+        return toXml(jsonFile, false);
     }
 
     private static void convertJSONObject(Document doc, Element parent, JSONObject jObject, String tagName) {
-        Set attributes    = jObject.keySet();
+        Set attributes = jObject.keySet();
         Iterator attrsItr = attributes.iterator();
 
-        Element element   = doc.createElement(removeProblemCharacters(tagName));
+        Element element = doc.createElement(removeProblemCharacters(tagName));
         if (parent != null) {
             parent.appendChild(element);
         } else {
@@ -538,9 +518,9 @@ public class XML {
             } else if (obj == null) {
                 element.setAttribute(attr, "");
             } else if (obj instanceof JSONObject) {
-                convertJSONObject(doc, element, (JSONObject)obj, attr);
+                convertJSONObject(doc, element, (JSONObject) obj, attr);
             } else if (obj instanceof JSONArray) {
-                convertJSONArray(doc, element, (JSONArray)obj, attr);
+                convertJSONArray(doc, element, (JSONArray) obj, attr);
             }
         }
     }
@@ -548,7 +528,7 @@ public class XML {
     private static void convertJSONArray(Document doc, Element parent, JSONArray jArray, String tagName) {
         tagName = removeProblemCharacters(tagName);
         for (int i = 0; i < jArray.size(); i++) {
-            Element element   = doc.createElement(tagName);
+            Element element = doc.createElement(tagName);
             if (parent != null) {
                 parent.appendChild(element);
             } else {
@@ -567,9 +547,9 @@ public class XML {
                 Node tNode = doc.createTextNode(escapeEntityCharacters(obj.toString()));
                 element.appendChild(tNode);
             } else if (obj instanceof JSONObject) {
-                convertJSONObject(doc, element, (JSONObject)obj, "jsonObject");
+                convertJSONObject(doc, element, (JSONObject) obj, "jsonObject");
             } else if (obj instanceof JSONArray) {
-                convertJSONArray(doc, element, (JSONArray)obj, "jsonArray");
+                convertJSONArray(doc, element, (JSONArray) obj, "jsonArray");
             }
         }
     }
@@ -577,6 +557,7 @@ public class XML {
     /**
      * Simple method to escape any special characters in the string into proper XML formatted
      * characters.
+     *
      * @param str The string to convert.
      */
     private static String escapeEntityCharacters(String str) {
@@ -587,35 +568,29 @@ public class XML {
                 char character = str.charAt(i);
 
                 switch (character) {
-                    case '&':
-                        {
-                            strBuf.append("&amp;");
-                            break;
-                        }
-                    case '>':
-                        {
-                            strBuf.append("&gt;");
-                            break;
-                        }
-                    case '<':
-                        {
-                            strBuf.append("&lt;");
-                            break;
-                        }
-                    case '\"':
-                        {
-                            strBuf.append("&quot;");
-                            break;
-                        }
-                    case '\'':
-                        {
-                            strBuf.append("&apos;");
-                            break;
-                        }
-                    default:
-                        {
-                            strBuf.append(character);
-                        }
+                    case '&': {
+                        strBuf.append("&amp;");
+                        break;
+                    }
+                    case '>': {
+                        strBuf.append("&gt;");
+                        break;
+                    }
+                    case '<': {
+                        strBuf.append("&lt;");
+                        break;
+                    }
+                    case '\"': {
+                        strBuf.append("&quot;");
+                        break;
+                    }
+                    case '\'': {
+                        strBuf.append("&apos;");
+                        break;
+                    }
+                    default: {
+                        strBuf.append(character);
+                    }
                 }
             }
             retVal = strBuf.toString();
@@ -626,6 +601,7 @@ public class XML {
     /**
      * Simple method to escape any special characters in the string into proper XML formatted
      * characters.
+     *
      * @param str The string to convert.
      */
     private static String removeProblemCharacters(String str) {
@@ -657,15 +633,13 @@ public class XML {
                     case '#':
                     case '*':
                     case '^':
-                    case '!':
-                        {
-                            strBuf.append("_");
-                            break;
-                        }
-                    default:
-                        {
-                            strBuf.append(character);
-                        }
+                    case '!': {
+                        strBuf.append("_");
+                        break;
+                    }
+                    default: {
+                        strBuf.append(character);
+                    }
                 }
             }
             retVal = strBuf.toString();

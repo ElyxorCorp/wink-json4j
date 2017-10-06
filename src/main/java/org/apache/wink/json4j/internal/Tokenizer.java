@@ -546,7 +546,7 @@ public class Tokenizer {
     /**
      * Method to read the next character from the string, keeping track of line/column position.
      * 
-     * @throws IOEXception Thrown when underlying reader throws an error.
+     * @throws IOException Thrown when underlying reader throws an error.
      */
     private void readChar() throws IOException {
         if ('\n' == lastChar) {

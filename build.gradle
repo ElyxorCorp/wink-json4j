@@ -105,12 +105,11 @@ task sourceJar(type: Jar, dependsOn: classes) {
   from sourceSets.main.allSource
 }
 
-// Commented out because javadoc doesn't compile
-//task javadocJar(type: Jar, dependsOn: javadoc) {
-//  classifier = 'javadoc'
-//  baseName = project.name
-//  from javadoc.destinationDir
-//}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  baseName = project.name
+  from javadoc.destinationDir
+}
 
 task testjar(type: Jar) {
   classifier = 'tests'

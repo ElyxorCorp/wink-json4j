@@ -363,46 +363,4 @@ public class XMLTests {
         }
         assertTrue(ex == null);
     }
-
-    /* ********************************* */
-    /* Performance tests.                */
-    /* ********************************* */
-
-    /**
-     * Test a complex transform of an XML file to a JSON string with compact emit.
-     */
-    @Ignore("Performance Tests Ignored - simple.xml to JSON")
-    @Test
-    public void testSimpleXMLDocument_AsInputStreamToStringCompactTiming() throws Exception {
-        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml")) {
-            PerformanceUtils.executeAndTimeInputStreamProcessing(
-                    StringUtils.stringFromInputStream(is),
-                    "simple.xml",
-                    inputStream -> {
-                        try {
-                            XML.toJson(inputStream);
-                        } catch (Exception e) {
-                            assertFalse("Test Failed: " + e.getMessage(), true);
-                        }
-                    });
-        }
-    }
-
-    @Ignore("Performance Tests Ignored - complex.xml to JSON")
-    @Test
-    public void testComplexXMLDocument_AsInputStreamToStringCompactTiming() throws Exception {
-        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("complex.xml")) {
-            PerformanceUtils.executeAndTimeInputStreamProcessing(
-                    StringUtils.stringFromInputStream(is),
-                    "complex.xml",
-                    inputStream -> {
-                        try {
-                            XML.toJson(inputStream);
-                        } catch (Exception e) {
-                            assertFalse("Test Failed: " + e.getMessage(), true);
-                        }
-                    });
-        }
-    }
-
 }

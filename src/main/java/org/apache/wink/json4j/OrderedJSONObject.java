@@ -203,7 +203,7 @@ public class OrderedJSONObject extends JSONObject {
 
     /**
      * Method to remove an entry from the OrderedJSONObject instance.  The
-     * key cannot be <tt>null</
+     * key cannot be <tt>null</tt>
      *
      * @param key key of the object to be removed
      * @return - object that was removed
