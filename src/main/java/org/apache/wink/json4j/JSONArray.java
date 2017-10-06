@@ -965,16 +965,14 @@ public class JSONArray extends ArrayList implements JSONArtifact {
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public OutputStream write(OutputStream os, boolean verbose) throws JSONException {
-        Writer writer = null;
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
-        } catch (UnsupportedEncodingException uex) {
-            JSONException jex = new JSONException(uex.toString());
-            jex.initCause(uex);
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
+            write(writer, verbose);
+            return os;
+        } catch (IOException ioe) {
+            JSONException jex = new JSONException(ioe.toString());
+            jex.initCause(ioe);
             throw jex;
         }
-        write(writer, verbose);
-        return os;
     }
 
     /**
@@ -986,16 +984,14 @@ public class JSONArray extends ArrayList implements JSONArtifact {
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public OutputStream write(OutputStream os, int indentDepth) throws JSONException {
-        Writer writer = null;
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
-        } catch (UnsupportedEncodingException uex) {
-            JSONException jex = new JSONException(uex.toString());
-            jex.initCause(uex);
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))) {
+            write(writer, indentDepth);
+            return os;
+        } catch (IOException ioe) {
+            JSONException jex = new JSONException(ioe.toString());
+            jex.initCause(ioe);
             throw jex;
         }
-        write(writer, indentDepth);
-        return os;
     }
 
     /**
