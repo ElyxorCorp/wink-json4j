@@ -19,41 +19,33 @@
 
 package org.apache.wink.json4j;
 
-import java.io.BufferedWriter;
-import java.io.CharArrayWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-
+import org.apache.wink.json4j.formatter.FormatOptions;
 import org.apache.wink.json4j.internal.BeanSerializer;
 import org.apache.wink.json4j.internal.Parser;
 import org.apache.wink.json4j.internal.Serializer;
 import org.apache.wink.json4j.internal.SerializerVerbose;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+
 /**
- * Extension of ArrayList that only allows values which are JSON-able.  
+ * Extension of ArrayList that only allows values which are JSON-able.
  * See JSONObject for a list of valid values.
- * 
+ * <p>
  * Instances of this class are not thread-safe.
  */
 public class JSONArray extends ArrayList implements JSONArtifact {
 
-    private final static String WAS_NOT_A_BOOLEAN = "was not a boolean or string value of 'true' or 'false'.";
-    private final static String WAS_NOT_A_JSONOBJECT = "was not a JSONObject.";
-    private final static String WAS_NOT_A_NUMBER = "was not a number.";
-    private final static String WAS_NULL = "was null.";
-    private final static String WAS_NULL_OBJECT_REQUIRED = "was null.  Object required.";
+    private static final String ERROR_OCCURRED_DURING_WRITE = "Error occurred during write.";
+    private static final String WAS_NOT_A_BOOLEAN = "was not a boolean or string value of 'true' or 'false'.";
+    private static final String WAS_NOT_A_JSONOBJECT = "was not a JSONObject.";
+    private static final String WAS_NOT_A_NUMBER = "was not a number.";
+    private static final String WAS_NULL = "was null.";
+    private static final String WAS_NULL_OBJECT_REQUIRED = "was null.  Object required.";
 
     /**
      * Serial UID for serialization checking.
@@ -69,6 +61,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Create a new instance of this class with the specified initial capacity.
+     *
      * @param initialCapacity The initial size to define the array as.
      */
     public JSONArray(int initialCapacity) {
@@ -77,28 +70,27 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Create a new instance of this class based off the contents of the passed in collection
+     *
      * @param col The Collection of objects to add into this array.
-     * @throws JSONException Thrown when objects in the collection are not JSONable.
+     * @throws JSONException        Thrown when objects in the collection are not JSONable.
      * @throws NullPointerException Thrown if col is null.
      */
     public JSONArray(Collection col) throws JSONException {
         super(col.size());
         Iterator itr = col.iterator();
-        if (itr != null) {
-            while (itr.hasNext()) {
-                this.add(itr.next());
-            }
+        while (itr.hasNext()) {
+            this.add(itr.next());
         }
     }
 
     /**
      * Create a new instance of this class based off the contents of the passed object array.
+     *
      * @param elems The strings to add to a new JSONArray
-     * @throws JSONException Thrown when objects in the array are not JSONable.
      */
-    public JSONArray(Object[] elems) throws JSONException {
-        if(elems != null){
-            for(int i = 0; i < elems.length; i++){
+    public JSONArray(Object[] elems) {
+        if (elems != null) {
+            for (int i = 0; i < elems.length; i++) {
                 this.add(elems[i]);
             }
         }
@@ -106,13 +98,13 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Create a new instance of this class based off the contents of the passed object array.
-     * @param elems The strings to add to a new JSONArray
+     *
+     * @param elems             The strings to add to a new JSONArray
      * @param includeSuperclass For JavaBeans, include all superclass info.
-     * @throws JSONException Thrown when objects in the array are not JSONable.
      */
-    public JSONArray(Object[] elems, boolean includeSuperclass) throws JSONException {
-        if(elems != null){
-            for(int i = 0; i < elems.length; i++){
+    public JSONArray(Object[] elems, boolean includeSuperclass) {
+        if (elems != null) {
+            for (int i = 0; i < elems.length; i++) {
                 this.add(elems[i]);
             }
         }
@@ -121,14 +113,14 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     /**
      * Create a new instance of this class based off the contents of the passed
      * in collection
-     * This will throw a <code>NullPointerException</code> if <code>col</code>
+     * This will throw a <tt>NullPointerException</tt> if <tt>col</tt>
      * is null
-     * @param col The Collection of objects to add into this array.
+     *
+     * @param col               The Collection of objects to add into this array.
      * @param includeSuperclass For JavaBeans, include all superclass info.
-     * @throws JSONException Thrown when objects in the collection are not JSONable.
      * @throws NullPointerException Thrown if col is null.
      */
-    public JSONArray(Collection col, boolean includeSuperclass) throws JSONException {
+    public JSONArray(Collection col, boolean includeSuperclass) {
         super(col.size());
         Iterator itr = col.iterator();
         if (itr != null) {
@@ -141,8 +133,9 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     /**
      * Create a new instance of this class from the provided JSON object string.
      * Note:  This is the same as calling new JSONArray(str, false);  Parsing in non-strict mode.
+     *
      * @param str The JSON array string to parse.
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
     public JSONArray(String str) throws JSONException {
         super();
@@ -152,9 +145,10 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Create a new instance of this class from the provided JSON object string.
-     * @param str The JSON array string to parse.
+     *
+     * @param str    The JSON array string to parse.
      * @param strict Boolean denoting if the JSON should be parsed n strict mode, meaning unquoted strings and comments are not allowed.
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
     public JSONArray(String str, boolean strict) throws JSONException {
         super();
@@ -165,9 +159,10 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     /**
      * Create a new instance of this class from the data provided from the reader.  The reader content must be a JSON array string.
      * Note:  The reader will not be closed, that is left to the caller.
-     * Note:  This is the same as calling new JSONArray(rdr, false);  Parsing in non-strict mode.     
+     * Note:  This is the same as calling new JSONArray(rdr, false);  Parsing in non-strict mode.
+     *
      * @param rdr The Reader from which to read the JSON array string to parse.
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
     public JSONArray(Reader rdr) throws JSONException {
         (new Parser(rdr)).parse(this);
@@ -176,9 +171,10 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     /**
      * Create a new instance of this class from the data provided from the reader.  The reader content must be a JSON array string.
      * Note:  The reader will not be closed, that is left to the caller.
-     * @param rdr The Reader from which to read the JSON array string to parse.
-     * @param strict Boolean denoting if the JSON should be parsed n strict mode, meaning unquoted strings and comments are not allowed.     
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     *
+     * @param rdr    The Reader from which to read the JSON array string to parse.
+     * @param strict Boolean denoting if the JSON should be parsed n strict mode, meaning unquoted strings and comments are not allowed.
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
     public JSONArray(Reader rdr, boolean strict) throws JSONException {
         (new Parser(rdr, strict)).parse(this);
@@ -188,19 +184,20 @@ public class JSONArray extends ArrayList implements JSONArtifact {
      * Create a new instance of this class from the data provided from the input stream.  The stream content must be a JSON array string.
      * Note:  The input stream content is assumed to be UTF-8 encoded.
      * Note:  The InputStream will not be closed, that is left to the caller.
+     *
      * @param is The InputStream from which to read the JSON array string to parse.
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
     public JSONArray(InputStream is) throws JSONException {
-        InputStreamReader isr = null;
-        if (is != null) {
-            try {
-                isr = new InputStreamReader(is, "UTF-8");
-            } catch (Exception ex) {
-                isr = new InputStreamReader(is);
-            }
-        } else {
-            throw new JSONException("Inputstream cannot be null");
+        if (null == is) {
+            throw new JSONException("InputStream cannot be null");
+        }
+
+        InputStreamReader isr;
+        try {
+            isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+        } catch (Exception ex) {
+            isr = new InputStreamReader(is);
         }
         (new Parser(isr)).parse(true, this);
     }
@@ -209,33 +206,43 @@ public class JSONArray extends ArrayList implements JSONArtifact {
      * Create a new instance of this class from the data provided from the input stream.  The stream content must be a JSON array string.
      * Note:  The input stream content is assumed to be UTF-8 encoded.
      * Note:  The InputStream will not be closed, that is left to the caller.
-     * @param is The InputStream from which to read the JSON array string to parse.
-     * @param strict Boolean denoting if the JSON should be parsed n strict mode, meaning unquoted strings and comments are not allowed.     
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     *
+     * @param is     The InputStream from which to read the JSON array string to parse.
+     * @param strict Boolean denoting if the JSON should be parsed n strict mode, meaning unquoted strings and comments are not allowed.
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
     public JSONArray(InputStream is, boolean strict) throws JSONException {
-        InputStreamReader isr = null;
-        if (is != null) {
-            try {
-                isr = new InputStreamReader(is, "UTF-8");
-            } catch (Exception ex) {
-                isr = new InputStreamReader(is);
-            }
-        } else {
+        if (null == is) {
             throw new JSONException("InputStream cannot be null");
+        }
+
+        InputStreamReader isr;
+        try {
+            isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+        } catch (Exception ex) {
+            isr = new InputStreamReader(is);
         }
         (new Parser(isr, strict)).parse(true, this);
     }
 
     /**
-     * Function to get a JSONArray entry at a specified index.
-     * @param index The position in the rray to fetch the object from
+     *
+     * @param index The position in the array to fetch the object from
+     *
      * @throws JSONException Thrown if the index is outside the array bounds.
      */
+
+    /**
+     * Function to get a JSONArray entry at a specified index.
+     *
+     * @param index the position of the object in the array to return
+     * @return the object
+     * @throws JSONException thrown if the index is outside the array bounds
+     */
     public Object getIndex(int index) throws JSONException {
-        try{
+        try {
             return super.get(index);
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             JSONException jex = new JSONException("Error occurred trying to access element at: " + index);
             jex.initCause(ex);
             throw jex;
@@ -246,8 +253,9 @@ public class JSONArray extends ArrayList implements JSONArtifact {
      * (non-Javadoc)
      * @see java.util.ArrayList#add(int, java.lang.Object)
      */
+    @Override
     public void add(int index, Object element) {
-        if(index > this.size() - 1){
+        if (index > this.size() - 1) {
             expandArray(index);
         }
         if (!JSONObject.isValidObject(element)) {
@@ -280,6 +288,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
      * (non-Javadoc)
      * @see java.util.ArrayList#add(java.lang.Object)
      */
+    @Override
     public boolean add(Object element) {
         return this.add(element, true);
     }
@@ -288,6 +297,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
      * (non-Javadoc)
      * @see java.util.ArrayList#addAll(java.util.Collection)
      */
+    @Override
     public boolean addAll(Collection collection) {
         for (Iterator iter = collection.iterator(); iter.hasNext(); ) {
             Object obj = iter.next();
@@ -307,8 +317,9 @@ public class JSONArray extends ArrayList implements JSONArtifact {
      * (non-Javadoc)
      * @see java.util.ArrayList#addAll(int, java.util.Collection)
      */
+    @Override
     public boolean addAll(int index, Collection collection) {
-        if(index > this.size() - 1){
+        if (index > this.size() - 1) {
             expandArray(index);
         }
         for (Iterator iter = collection.iterator(); iter.hasNext(); ) {
@@ -330,8 +341,9 @@ public class JSONArray extends ArrayList implements JSONArtifact {
      * (non-Javadoc)
      * @see java.util.ArrayList#set(int, java.lang.Object)
      */
+    @Override
     public Object set(int index, Object element) {
-        if(index > this.size() - 1){
+        if (index > this.size() - 1) {
             expandArray(index);
         }
         if (!JSONObject.isValidObject(element)) {
@@ -347,13 +359,14 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     /**
      * Internal function to pad-out the array list
      * Added to mimic expansion behavior of other JSON models.
+     *
      * @param toIndex Increase the array so that it has up to 'toIndex' as indexable slots.
      */
-    private void expandArray(int toIndex){
+    private void expandArray(int toIndex) {
         int maxIndex = this.size();
         toIndex = toIndex - maxIndex;
-        if(toIndex > 0){
-            for(int i = 0; i < toIndex; i++){
+        if (toIndex > 0) {
+            for (int i = 0; i < toIndex; i++) {
                 super.add(null);
             }
         }
@@ -364,10 +377,11 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     /**************************************************************/
 
     /**
-     * Map of java.util.ArrayList.add(int, java.lang.Object), for compatibility to other JSON parsers. 
-     * @see java.util.ArrayList#add(int, java.lang.Object)
-     * @throws JSONException in the case of index out of bounds, etc.
+     * Map of java.util.ArrayList.add(int, java.lang.Object), for compatibility to other JSON parsers.
+     *
      * @return A reference to this array instance.
+     * @throws JSONException in the case of index out of bounds, etc.
+     * @see java.util.ArrayList#add(int, java.lang.Object)
      */
     public JSONArray put(int index, Object element) throws JSONException {
         if (!JSONObject.isValidObject(element)) {
@@ -388,20 +402,22 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     }
 
     /**
-     * Map of java.util.ArrayList.add(java.lang.Object), for compatibility to other JSON parsers. 
-     * @see java.util.ArrayList#add(java.lang.Object)
+     * Map of java.util.ArrayList.add(java.lang.Object), for compatibility to other JSON parsers.
+     *
      * @return A reference to this array instance.
+     * @see java.util.ArrayList#add(java.lang.Object)
      */
     public JSONArray put(Object element) throws JSONException {
         return put(element, true);
     }
 
     /**
-     * Map of java.util.ArrayList.add(java.lang.Object), for compatibility to other JSON parsers. 
-     * @see java.util.ArrayList#add(java.lang.Object)
+     * Map of java.util.ArrayList.add(java.lang.Object), for compatibility to other JSON parsers.
+     *
      * @return A reference to this array instance.
+     * @see java.util.ArrayList#add(java.lang.Object)
      */
-    public JSONArray put(Object element, boolean includeSuperclass)  throws JSONException {
+    public JSONArray put(Object element, boolean includeSuperclass) throws JSONException {
         if (!JSONObject.isValidObject(element)) {
             try {
                 element = BeanSerializer.toJson(element, includeSuperclass);
@@ -410,7 +426,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
             }
         }
         try {
-            super.add(element);            
+            super.add(element);
         } catch (Exception ex) {
             JSONException jex = new JSONException("Exception occurred while placing element.");
             jex.initCause(ex);
@@ -421,28 +437,30 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Method to place a java.util.Map instance in the array.  It will convert the map to a JSONObject if necessary.
+     *
      * @param index The position in the array to place the Map (or coverted map).
      * @param value An instance of a java.util.Map to insert into the array.  Will convert to JSONObject if necessary.
      * @return A reference to this array instance.
      * @throws JSONException Thrown if the map cannot be converted to something JSONAble or the index is out of bounds.
      */
     public JSONArray put(int index, Map value) throws JSONException {
-        return this.put(index,value,true);
+        return this.put(index, value, true);
     }
 
     /**
      * Method to place a java.util.Map instance in the array.  It will convert the map to a JSONObject if necessary.
+     *
      * @param index The position in the array to place the Map (or coverted map).
      * @param value An instance of a java.util.Map to insert into the array.  Will convert to JSONObject if necessary.
      * @return A reference to this array instance.
      * @throws JSONException Thrown if the map cannot be converted to something JSONAble or the index is out of bounds.
      */
-    public JSONArray put(int index, Map value, boolean includeSuperclass) throws JSONException{
+    public JSONArray put(int index, Map value, boolean includeSuperclass) throws JSONException {
         if (value == null) {
-            this.add((Object)null);
+            this.add((Object) null);
         } else {
             if (JSONObject.class.isAssignableFrom(value.getClass())) {
-                this.add(index, (Object)value);
+                this.add(index, (Object) value);
             } else {
                 this.add(index, new JSONObject(value, includeSuperclass));
             }
@@ -452,6 +470,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Method to place a map into the array.  It will convert the map to a JSONObject if necessary.
+     *
      * @param value An instance of a java.util.Map to insert into the array.  Will convert to JSONObject if necessary.
      * @return A reference to this array instance.
      * @throws JSONException Thrown if the map cannot be converted to something JSONAble.
@@ -462,16 +481,17 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Method to place a map into the array.  It will convert the map to a JSONObject if necessary.
+     *
      * @param value An instance of a java.util.Map to insert into the array.  Will convert to JSONObject if necessary.
      * @return A reference to this array instance.
      * @throws JSONException Thrown if the map cannot be converted to something JSONAble.
      */
     public JSONArray put(Map value, boolean includeSuperclass) throws JSONException {
         if (value == null) {
-            this.add((Object)null);
+            this.add((Object) null);
         } else {
             if (JSONObject.class.isAssignableFrom(value.getClass())) {
-                this.add((Object)value);
+                this.add((Object) value);
             } else {
                 this.add(new JSONObject(value, includeSuperclass));
             }
@@ -481,28 +501,28 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Method to place a map into the array.  It will convert the map to a JSONArray if necessary.
+     *
      * @param index The position in the array to place the Collection.
      * @param value An instance of a java.util.Collection to insert into the array.  Will convert to JSONArray if necessary.
      * @return A reference to this array instance.
-     * @throws JSONException Thrown if the collection cannot be converted to something JSONAble or the index is out of bounds.
      */
-    public JSONArray put(int index, Collection value) throws JSONException {
-        return this.put(index,value,true);
+    public JSONArray put(int index, Collection value) {
+        return this.put(index, value, true);
     }
 
     /**
      * Method to place a map into the array.  It will convert the map to a JSONArray if necessary.
+     *
      * @param index The position in the array to place the Collection.
      * @param value An instance of a java.util.Collection to insert into the array.  Will convert to JSONArray if necessary.
      * @return A reference to this array instance.
-     * @throws JSONException Thrown if the collection cannot be converted to something JSONAble or the index is out of bounds.
      */
-    public JSONArray put(int index, Collection value, boolean includeSuperclass) throws JSONException {
+    public JSONArray put(int index, Collection value, boolean includeSuperclass) {
         if (value == null) {
-            this.add((Object)null);
+            this.add(null);
         } else {
             if (JSONArray.class.isAssignableFrom(value.getClass())) {
-                this.add(index, (Object)value);
+                this.add(index, value);
             } else {
                 this.add(index, new JSONArray(value, includeSuperclass));
             }
@@ -512,26 +532,26 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Method to place a map into the array.  It will convert the map to a JSONArray if necessary.
+     *
      * @param value An instance of a java.util.Collection to insert into the array.  Will convert to JSONArray if necessary.
      * @return A reference to this array instance.
-     * @throws JSONException Thrown if the collection cannot be converted to something JSONAble.
      */
-    public JSONArray put(Collection value) throws JSONException {
-        return this.put(value,true);
+    public JSONArray put(Collection value) {
+        return this.put(value, true);
     }
 
     /**
      * Method to place a map into the array.  It will convert the map to a JSONArray if necessary.
+     *
      * @param value An instance of a java.util.Collection to insert into the array.  Will convert to JSONArray if necessary.
      * @return A reference to this array instance.
-     * @throws JSONException Thrown if the collection cannot be converted to something JSONAble.
      */
-    public JSONArray put(Collection value, boolean includeSuperclass) throws JSONException {
+    public JSONArray put(Collection value, boolean includeSuperclass) {
         if (value == null) {
-            this.add((Object)null);
+            this.add(null);
         } else {
             if (JSONArray.class.isAssignableFrom(value.getClass())) {
-                this.add((Object)value);
+                this.add(value);
             } else {
                 this.add(new JSONArray(value, includeSuperclass));
             }
@@ -540,151 +560,160 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     }
 
     /**
-     * Method to place a long into the array.  
+     * Method to place a long into the array.
+     *
      * @param value A long
      * @return A reference to this array instance.
      */
     public JSONArray put(long value) {
-        this.add(new Long(value));
+        this.add(Long.valueOf(value));
         return this;
     }
 
     /**
-     * Method to place a long into the array.  
+     * Method to place a long into the array.
+     *
      * @param index The position in the array to place the long.
      * @param value A long
      * @return A reference to this array instance.
      */
     public JSONArray put(int index, long value) {
-        this.add(index, new Long(value));
+        this.add(index, Long.valueOf(value));
         return this;
     }
 
     /**
-     * Method to place a int into the array.  
+     * Method to place a int into the array.
+     *
      * @param value An int
      * @return A reference to this array instance.
      */
     public JSONArray put(int value) {
-        this.add(new Integer(value));
+        this.add(Integer.valueOf(value));
         return this;
     }
 
     /**
      * Method to place an int into the array.
-     *
+     * <p>
      * If you put into a position greater than the size of the array,
-     * it will fill the empty spot with <code>null</code>
+     * it will fill the empty spot with <tt>null</tt>
      *
      * @param index The position in the array to place the int.
      * @param value An int
      * @return A reference to this array instance.
      */
     public JSONArray put(int index, int value) {
-        this.add(index, new Integer(value));
+        this.add(index, Integer.valueOf(value));
         return this;
     }
 
     /**
-     * Method to place a short into the array.  
+     * Method to place a short into the array.
+     *
      * @param value A short
      * @return A reference to this array instance.
      */
     public JSONArray put(short value) {
-        this.add(new Short(value));
+        this.add(Short.valueOf(value));
         return this;
     }
 
     /**
-     * Method to place a short into the array.  
+     * Method to place a short into the array.
+     *
      * @param index The position in the array to place the short.
      * @param value A short
      * @return A reference to this array instance.
      */
     public JSONArray put(int index, short value) {
-        this.add(index, new Short(value));
+        this.add(index, Short.valueOf(value));
         return this;
     }
 
     /**
-     * Method to place a double into the array.  
+     * Method to place a double into the array.
+     *
      * @param value A double
      * @return A reference to this array instance.
      */
     public JSONArray put(double value) {
-        this.add(new Double(value));
+        this.add(Double.valueOf(value));
         return this;
     }
 
     /**
-     * Method to place a double into the array.  
+     * Method to place a double into the array.
+     *
      * @param index The position in the array to place the double.
      * @param value A double
      * @return A reference to this array instance.
      */
     public JSONArray put(int index, double value) {
-        this.add(index, new Double(value));
+        this.add(index, Double.valueOf(value));
         return this;
     }
 
     /**
-     * Method to place a int into the array.  
+     * Method to place a int into the array.
+     *
      * @param value A boolean
      * @return A reference to this array instance.
      */
     public JSONArray put(boolean value) {
-        this.add(new Boolean(value));
+        this.add(Boolean.valueOf(value));
         return this;
     }
 
     /**
-     * Method to place a boolean into the array.  
+     * Method to place a boolean into the array.
+     *
      * @param index The position in the array to place the int.
      * @param value A boolean
      * @return A reference to this array instance.
      */
     public JSONArray put(int index, boolean value) {
-        this.add(index, new Boolean(value));
+        this.add(index, Boolean.valueOf(value));
         return this;
     }
 
-    /******************/
+    /* ************** */
     /* End of mapping */
-    /**************** */
+    /* ************** */
 
-    /*********************/
+    /* ***************** */
     /* Utility functions */
-    /*********************/
+    /* ***************** */
 
     /**
      * Function to obtain a value at the specified index as a boolean.
-     * This will return <code>true</code> if:<p/>
-     *   <ul>
-     *       <li>the backing value is a <code>Boolean</code> and is <code>true</code></li>
-     *       <li>the backing value is a <code>String</code> and is <code>"true"</code></li>
-     *   </ul>
-     * This will return <code>false</code> if:<p/>
-     *   <ul>
-     *       <li>the backing value is a <code>Boolean</code> and is <code>false</code></li>
-     *       <li>the backing value is a <code>String</code> and is <code>"false"</code></li>
-     *   </ul>
-     *
+     * This will return <tt>true</tt> if:<p/>
+     * <ul>
+     * <li>the backing value is a <tt>Boolean</tt> and is <tt>true</tt></li>
+     * <li>the backing value is a <tt>String</tt> and is <tt>"true"</tt></li>
+     * </ul>
+     * This will return <tt>false</tt> if:<p/>
+     * <ul>
+     * <li>the backing value is a <tt>Boolean</tt> and is <tt>false</tt></li>
+     * <li>the backing value is a <tt>String</tt> and is <tt>"false"</tt></li>
+     * </ul>
+     * <p>
      * It will throw an exception for any other value
      *
      * @param index The index of the item to retrieve.
      * @return boolean value - see description
-     * @throws JSONException if the index is outside the range or if the type at the position was not Boolean or a string of 'true' or 'false' 
+     * @throws JSONException if the index is outside the range or if the type at the position was not Boolean or a string of 'true' or 'false'
      */
     public boolean getBoolean(int index) throws JSONException {
         try {
             Object val = this.get(index);
             if (val != null) {
                 if (Boolean.class.isAssignableFrom(val.getClass())) {
-                    return((Boolean)val).booleanValue();
+                    return ((Boolean) val).booleanValue();
                 } else if (Number.class.isAssignableFrom(val.getClass())) {
                     throw throwNullValueAtIndexException(index, WAS_NOT_A_BOOLEAN);
                 } else if (String.class.isAssignableFrom(val.getClass())) {
-                    String str = (String)val;
+                    String str = (String) val;
                     if (str.equals("true")) {
                         return true;
                     } else if (str.equals("false")) {
@@ -706,6 +735,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Function to obtain a value at the specified index as a double.
+     *
      * @param index The index of the item to retrieve.
      * @return double value.
      * @throws JSONException if the index is outside the range or if the type at the position was not Number.
@@ -715,7 +745,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
             Object val = this.get(index);
             if (val != null) {
                 if (Number.class.isAssignableFrom(val.getClass())) {
-                    return((Number)val).doubleValue();
+                    return ((Number) val).doubleValue();
                 } else {
                     throw throwNullValueAtIndexException(index, WAS_NOT_A_NUMBER);
                 }
@@ -732,6 +762,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Function to obtain a value at the specified index as a long.
+     *
      * @param index The index of the item to retrieve.
      * @return long value.
      * @throws JSONException if the index is outside the range or if the type at the position was not Number.
@@ -741,7 +772,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
             Object val = this.get(index);
             if (val != null) {
                 if (Number.class.isAssignableFrom(val.getClass())) {
-                    return((Number)val).longValue();
+                    return ((Number) val).longValue();
                 } else {
                     throw throwNullValueAtIndexException(index, WAS_NOT_A_NUMBER);
                 }
@@ -757,6 +788,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Function to obtain a value at the specified index as an int.
+     *
      * @param index The index of the item to retrieve.
      * @return int value.
      * @throws JSONException if the index is outside the range or if the type at the position was not Number.
@@ -766,7 +798,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
             Object val = this.get(index);
             if (val != null) {
                 if (Number.class.isAssignableFrom(val.getClass())) {
-                    return((Number)val).intValue();
+                    return ((Number) val).intValue();
                 } else {
                     throw throwNullValueAtIndexException(index, WAS_NOT_A_NUMBER);
                 }
@@ -783,6 +815,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Function to obtain a value at the specified index as a short.
+     *
      * @param index The index of the item to retrieve.
      * @return short value.
      * @throws JSONException if the index is outside the range or if the type at the position was not Number.
@@ -792,7 +825,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
             Object val = this.get(index);
             if (val != null) {
                 if (Number.class.isAssignableFrom(val.getClass())) {
-                    return((Number)val).shortValue();
+                    return ((Number) val).shortValue();
                 } else {
                     throw throwNullValueAtIndexException(index, WAS_NOT_A_NUMBER);
                 }
@@ -809,6 +842,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Function to obtain a value at the specified index as a string.
+     *
      * @param index The index of the item to retrieve.
      * @return string value.
      * @throws JSONException if the index is outside the range or if the type at the position was not an object with a toString() function..
@@ -831,16 +865,17 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     /**
      * Utility method to obtain the specified key as a JSONObject
      * Only values that are instances of JSONObject will be returned.  A null will generate an exception.
+     *
      * @param index The index to look up.
-     * throws JSONException Thrown when the type returned by get(key) is not a JSONObject instance.
+     *              throws JSONException Thrown when the type returned by get(key) is not a JSONObject instance.
      * @return A JSONObject value if the value stored for key is an instance or subclass of JSONObject.
-     */ 
+     */
     public JSONObject getJSONObject(int index) throws JSONException {
         try {
             Object val = this.get(index);
             if (val != null) {
                 if (JSONObject.class.isAssignableFrom(val.getClass())) {
-                    return(JSONObject)val;
+                    return (JSONObject) val;
                 } else {
                     throw throwNullValueAtIndexException(index, WAS_NOT_A_JSONOBJECT);
                 }
@@ -857,16 +892,17 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     /**
      * Utility method to obtain the specified index as a JSONArray
      * Only values that are instances of JSONArray will be returned.  A null will generate an exception.
+     *
      * @param index The index to look up.
-     * throws JSONException Thrown when the type returned by get(key) is not a Long instance, or cannot be converted to a long..
+     *              throws JSONException Thrown when the type returned by get(key) is not a Long instance, or cannot be converted to a long..
      * @return A JSONArray value if the value stored for key is an instance or subclass of JSONArray.
-     */ 
+     */
     public JSONArray getJSONArray(int index) throws JSONException {
         try {
             Object val = this.get(index);
             if (val != null) {
                 if (JSONArray.class.isAssignableFrom(val.getClass())) {
-                    return(JSONArray)val;
+                    return (JSONArray) val;
                 } else {
                     throw throwNullValueAtIndexException(index, WAS_NOT_A_JSONOBJECT);
                 }
@@ -886,23 +922,20 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Utility function for testing if an element at index 'idx' is null or not.
+     *
      * @return boolean indicating if an index is null or not.  Will also return true for indexes outside the size of the array.
      */
     public boolean isNull(int index) {
         try {
-            Object obj = this.get(index);
-            if (obj != null) {
-                return false;
-            } else {
-                return true;
-            }
+            return (null == this.get(index));
         } catch (java.lang.IndexOutOfBoundsException iobe) {
             return true;
         }
     }
 
     /**
-     * Utility function that maps ArrayList.size() to length, for compatibility to other JSON parsers.   
+     * Utility function that maps ArrayList.size() to length, for compatibility to other JSON parsers.
+     *
      * @return The number of elements in this JSONArray.
      */
     public int length() {
@@ -915,20 +948,20 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Convert this object into a stream of JSON text.  Same as calling write(os,false);
-     * @param os The output stream to write data to.
      *
+     * @param os The output stream to write data to.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public OutputStream write(OutputStream os) throws JSONException {
-        write(os,false);
+        write(os, false);
         return os;
     }
 
     /**
      * Convert this object into a stream of JSON text.  Same as calling write(writer,false);
-     * @param os The output stream to write data to.  Output stream characters will be serialized as UTF-8.
-     * @param verbose Whether or not to write the JSON text in a verbose format.
      *
+     * @param os      The output stream to write data to.  Output stream characters will be serialized as UTF-8.
+     * @param verbose Whether or not to write the JSON text in a verbose format.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public OutputStream write(OutputStream os, boolean verbose) throws JSONException {
@@ -947,9 +980,9 @@ public class JSONArray extends ArrayList implements JSONArtifact {
     /**
      * Convert this object into a String of JSON text, specifying how many spaces should
      * be used for each indent level.  Output stream characters will be serialized as UTF-8.
-     * @param indentDepth How many spaces to use for each indent level.  Should be one to eight.  
-     * Less than one means no intending, greater than 8 and it will just use tab.
      *
+     * @param indentDepth How many spaces to use for each indent level.  Should be one to eight.
+     *                    Less than one means no intending, greater than 8 and it will just use tab.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public OutputStream write(OutputStream os, int indentDepth) throws JSONException {
@@ -967,8 +1000,8 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Convert this object into a stream of JSON text.  Same as calling write(writer,false);
-     * @param writer The writer which to write the JSON text to.
      *
+     * @param writer The writer which to write the JSON text to.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public Writer write(Writer writer) throws JSONException {
@@ -978,8 +1011,8 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Convert this object into a stream of JSON text, specifying verbosity.
-     * @param writer The writer which to write the JSON text to.
      *
+     * @param writer The writer which to write the JSON text to.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public Writer write(Writer writer, boolean verbose) throws JSONException {
@@ -990,8 +1023,8 @@ public class JSONArray extends ArrayList implements JSONArtifact {
         Class writerClass = writer.getClass();
         boolean flushIt = false;
         if (!StringWriter.class.isAssignableFrom(writerClass) &&
-            !CharArrayWriter.class.isAssignableFrom(writerClass) &&
-            !BufferedWriter.class.isAssignableFrom(writerClass)) {
+                !CharArrayWriter.class.isAssignableFrom(writerClass) &&
+                !BufferedWriter.class.isAssignableFrom(writerClass)) {
             writer = new BufferedWriter(writer);
             flushIt = true;
         }
@@ -1012,7 +1045,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
         if (flushIt) {
             try {
                 writer.flush();
-            } catch (Exception ex) { 
+            } catch (Exception ex) {
                 JSONException jex = new JSONException("Error during buffer flush");
                 jex.initCause(ex);
                 throw jex;
@@ -1023,9 +1056,9 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Convert this array into a stream of JSON text, specifying verbosity.
-     * @param writer The writer which to write the JSON text to.
-     * @param indentDepth How many spaces to use for each indent level.  Should be one to eight.  
      *
+     * @param writer      The writer which to write the JSON text to.
+     * @param indentDepth How many spaces to use for each indent level.  Should be one to eight.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public Writer write(Writer writer, int indentDepth) throws JSONException {
@@ -1041,8 +1074,8 @@ public class JSONArray extends ArrayList implements JSONArtifact {
         //writers.
         Class writerClass = writer.getClass();
         if (!StringWriter.class.isAssignableFrom(writerClass) &&
-            !CharArrayWriter.class.isAssignableFrom(writerClass) &&
-            !BufferedWriter.class.isAssignableFrom(writerClass)) {
+                !CharArrayWriter.class.isAssignableFrom(writerClass) &&
+                !BufferedWriter.class.isAssignableFrom(writerClass)) {
             writer = new BufferedWriter(writer);
         }
 
@@ -1063,58 +1096,58 @@ public class JSONArray extends ArrayList implements JSONArtifact {
 
     /**
      * Convert this object into a String of JSON text, specifying verbosity.
-     * @param verbose Whether or not to write in compressed for formatted Strings.
      *
+     * @param verbose Whether or not to write in compressed for formatted Strings.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public String write(boolean verbose) throws JSONException {
-        Serializer serializer;
-        StringWriter writer = new StringWriter();
-
-        if (verbose) {
-            serializer = new SerializerVerbose(writer);
-        } else {
-            serializer = new Serializer(writer);
-        }
-        try {
+        try (final StringWriter writer = new StringWriter()) {
+            final Serializer serializer = (!verbose)
+                    ? new Serializer(writer)
+                    : new SerializerVerbose(writer);
             serializer.writeArray(this).flush();
+            return writer.toString();
         } catch (IOException iox) {
-            JSONException jex = new JSONException("Error occurred during input read.");
+            JSONException jex = new JSONException(ERROR_OCCURRED_DURING_WRITE);
             jex.initCause(iox);
             throw jex;
         }
-        return writer.toString();
     }
 
     /**
      * Convert this array into a String of JSON text, specifying verbosity.
-     * @param indentDepth How many spaces to use for each indent level.  Should be one to eight.  
      *
+     * @param indentDepth How many spaces to use for each indent level.  Should be one to eight.
      * @throws JSONException Thrown on IO errors during serialization.
      */
+    @Override
     public String write(int indentDepth) throws JSONException {
-        Serializer serializer;
-        StringWriter writer = new StringWriter();
-
-        if (indentDepth < 1) {
-            indentDepth = 0;
-        } else if (indentDepth > 8) {
-            indentDepth = 9;
-        }
-
-        if (indentDepth > 0) {
-            serializer = new SerializerVerbose(writer, indentDepth);
-        } else {
-            serializer = new Serializer(writer);
-        }
-        try {
+        try (final StringWriter writer = new StringWriter()) {
+            final Serializer serializer = (indentDepth < 0)
+                    ? new Serializer(writer)
+                    : new SerializerVerbose(writer, indentDepth);
             serializer.writeArray(this).flush();
+            return writer.toString();
         } catch (IOException iox) {
-            JSONException jex = new JSONException("Error occurred during input read.");
+            JSONException jex = new JSONException(ERROR_OCCURRED_DURING_WRITE);
             jex.initCause(iox);
             throw jex;
         }
-        return writer.toString();
+    }
+
+    @Override
+    public String write(FormatOptions formatOptions) throws JSONException {
+        try (final StringWriter writer = new StringWriter()) {
+            final Serializer serializer = (formatOptions.isCompact())
+                    ? new Serializer(writer, formatOptions)
+                    : new SerializerVerbose(writer, formatOptions);
+            serializer.writeArray(this).flush();
+            return writer.toString();
+        } catch (IOException iox) {
+            JSONException jex = new JSONException(ERROR_OCCURRED_DURING_WRITE);
+            jex.initCause(iox);
+            throw jex;
+        }
     }
 
     /**
@@ -1130,27 +1163,30 @@ public class JSONArray extends ArrayList implements JSONArtifact {
      * Over-ridden toString() method.  Returns the same value as write(), which is a compact JSON String.
      * If an error occurs in the serialization, the return will be of format: <pre>JSON Generation Error: [THE ERROR]</pre>
      */
+    @Override
     public String toString() {
-        String str = null;
         try {
-            str = write(false);    
+            return write(false);
         } catch (JSONException jex) {
-            str = "JSON Generation Error: [" + jex.toString() + "]";
+            return "JSON Generation Error: [" + jex.toString() + "]";
         }
-        return str;
     }
 
     /**
      * Function to return a string of JSON text with specified indention.  Returns the same value as write(indentDepth).
      * If an error occurs in the serialization, the return will be of format: <pre>JSON Generation Error: [THE ERROR]</pre>
+     *
+     * @param indentDepth intent depth in spaces
+     * @return - json string
      * @throws JSONException Thrown if an error occurs during JSON generation.
      */
     public String toString(int indentDepth) throws JSONException {
-        return write(indentDepth);    
+        return write(indentDepth);
     }
 
     /**
      * Method to mimic the behavior of the JavaScript array join function
+     *
      * @param str The string delimiter to place between joined array elements in the output string.
      * @return A string of all the elements joined together.
      */
@@ -1158,7 +1194,7 @@ public class JSONArray extends ArrayList implements JSONArtifact {
         if (str == null) {
             str = "";
         }
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         for (int i = 0; i < this.size(); i++) {
             if (i > 0) {
                 buf.append(str);
@@ -1173,200 +1209,214 @@ public class JSONArray extends ArrayList implements JSONArtifact {
         return buf.toString();
     }
 
-    /**
+    /*
      * Methods added for compatibility to other models.
      */
 
     /**
      * Method to get the object at that position, or null if outside the array range.
+     *
      * @param index the array index to get
      * @return - value or null
      */
     public Object opt(int index) {
-        try{
+        try {
             return get(index);
-        } catch (Throwable th){
+        } catch (Exception th) {
             return null;
         }
     }
 
     /**
      * Method to get the object at that position, or null if outside the array range.
-     * @param index the array index to get
+     *
+     * @param index        the array index to get
      * @param defaultValue the value to return if index is outside the array.
      * @return - value or defaultValue
      */
     public Object opt(int index, Object defaultValue) {
-        try{
+        try {
             return get(index);
-        } catch (Throwable th){
+        } catch (Exception e) {
             return defaultValue;
         }
     }
 
     /**
      * Method to obtain the value at index as an boolean, or 'false' if outside the array.
+     *
      * @param index the array index to get
      * @return - value or false
      */
     public boolean optBoolean(int index) {
-        try{
+        try {
             return getBoolean(index);
-        } catch (Throwable th){
+        } catch (Exception e) {
             return false;
         }
     }
 
     /**
      * Method to obtain the value at index as an boolean, or 'defaultValue' if outside the array.
-     * @param index The array index to get.
+     *
+     * @param index        The array index to get.
      * @param defaultValue the value to return if index is outside the array.
      * @return - value or false
      */
     public boolean optBoolean(int index, boolean defaultValue) {
-        try{
+        try {
             return getBoolean(index);
-        } catch (Throwable th){
+        } catch (Exception e) {
             return defaultValue;
         }
     }
 
     /**
      * Method to obtain the value at index as an int, or '0' if outside the array.
+     *
      * @param index the array index to get
      * @return - value or 0
      */
     public int optInt(int index) {
-        try{
+        try {
             return getInt(index);
-        } catch (Throwable th){
+        } catch (Exception e) {
             return 0;
         }
     }
 
     /**
      * Method to obtain the value at index as an int, or defaultValue if outside the array.
-     * @param index the array index to get
+     *
+     * @param index        the array index to get
      * @param defaultValue the value to return if index is outside the array.
      * @return - value or 0
      */
     public int optInt(int index, int defaultValue) {
-        try{
+        try {
             return getInt(index);
-        } catch (Throwable th){
+        } catch (Exception e) {
             return defaultValue;
         }
     }
 
     /**
      * Method to obtain the value at index as a long, or '0' if outside the array.
+     *
      * @param index the array index to get
      * @return - value or 0
      */
     public long optLong(int index) {
-        try{
+        try {
             return getLong(index);
-        } catch (Throwable th){
-            return (long)0;
+        } catch (Exception e) {
+            return (long) 0;
         }
     }
 
     /**
      * Method to obtain the value at index as a long, or defaultValue if outside the array.
-     * @param index the array index to get
+     *
+     * @param index        the array index to get
      * @param defaultValue the value to return if index is outside the array.
-     v* @return - value or defaultValue
+     *                     v* @return - value or defaultValue
      */
     public long optLong(int index, long defaultValue) {
-        try{
+        try {
             return getLong(index);
-        } catch (Throwable th){
+        } catch (Exception e) {
             return defaultValue;
         }
     }
 
     /**
      * Method to obtain the value at index as a short, or '0' if outside the array.
+     *
      * @param index the array index to get
      * @return - value or 0
      */
     public short optShort(int index) {
-        try{
+        try {
             return getShort(index);
-        } catch (Throwable th){
-            return (short)0;
+        } catch (Exception e) {
+            return (short) 0;
         }
     }
 
     /**
      * Method to obtain the value at index as a short, or '0' if outside the array.
-     * @param index the array index to get
+     *
+     * @param index        the array index to get
      * @param defaultValue the value to return if index is outside the array.
      * @return - value or defaultValue
      */
     public short optShort(int index, short defaultValue) {
-        try{
+        try {
             return getShort(index);
-        } catch (Throwable th){
+        } catch (Exception e) {
             return defaultValue;
         }
     }
 
     /**
      * Method to obtain the value at index as a double, or Double.NaN if outside the array.
+     *
      * @param index the array index to get
      * @return - value or Double.NaN
      */
     public double optDouble(int index) {
-        try{
+        try {
             return getDouble(index);
-        } catch (Throwable th){
+        } catch (Exception e) {
             return Double.NaN;
         }
     }
 
     /**
      * Method to obtain the value at index as a double, or Double.NaN if outside the array.
-     * @param index the array index to get
+     *
+     * @param index        the array index to get
      * @param defaultValue the value to return if index is outside the array.
      * @return - value or defaultValue
      */
     public double optDouble(int index, double defaultValue) {
-        try{
+        try {
             return getDouble(index);
-        } catch (Throwable th){
+        } catch (Exception e) {
             return Double.NaN;
         }
     }
 
     /**
      * Method to obtain the value at index as a String, or null if outside the array.
+     *
      * @param index the array index to get
      * @return - value or null
      */
     public String optString(int index) {
-        try{
+        try {
             return getString(index);
-        } catch (Throwable th){
+        } catch (Exception e) {
             return null;
         }
     }
 
     /**
      * Method to obtain the value at index as a String, or defaultValue if outside the array.
-     * @param index the array index to get
+     *
+     * @param index        the array index to get
      * @param defaultValue the value to return if index is outside the array.
      * @return - value or defaultValue
      */
     public String optString(int index, String defaultValue) {
-        try{
+        try {
             return getString(index);
-        } catch (Throwable th){
+        } catch (Exception e) {
             return defaultValue;
         }
     }
 
-    private static JSONException throwNullValueAtIndexException(int index, String msg) throws JSONException {
+    private static JSONException throwNullValueAtIndexException(int index, String msg) {
         return new JSONException(String.format("Value at index: [%d] %s", index, msg));
     }
 }

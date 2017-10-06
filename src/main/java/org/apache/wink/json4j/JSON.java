@@ -27,6 +27,7 @@ import java.io.InputStreamReader;
 import java.io.PushbackReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Helper class that does generic parsing of a JSON stream and returns the appropriate 
@@ -184,7 +185,7 @@ public class JSON {
         if (is != null) {
             BufferedReader reader = null;
             try {
-                reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+                reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             } catch (Exception ex) {
                 JSONException iox = new JSONException("Could not construct UTF-8 character reader for the InputStream");
                 iox.initCause(ex);

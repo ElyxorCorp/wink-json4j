@@ -110,13 +110,13 @@ public class XML {
     /**
      * Logger init.
      */
-    private static String  className              = "org.apache.commons.json.xml.transform.XML";
-    private static Logger logger                  = Logger.getLogger(className,null);
+    private static final String CLASS_NAME = "org.apache.commons.json.xml.transform.XML";
+    private static final Logger logger     = Logger.getLogger(CLASS_NAME,null);
 
     /**
      * Stylesheet for just doing indention.
      */
-    private static final String styleSheet= " <xsl:stylesheet version=\"1.0\"                                   \n" +
+    private static final String styleSheet = " <xsl:stylesheet version=\"1.0\"                                   \n" +
                                             "     xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">           \n" +
                                             "   <xsl:output method=\"xml\"/>                                    \n" +
                                             "   <xsl:param name=\"indent-increment\" select=\"'   '\" />        \n" +
@@ -163,12 +163,12 @@ public class XML {
      */
     public static void toJson(InputStream XMLStream, OutputStream JSONStream) throws SAXException, IOException {
         if (logger.isLoggable(Level.FINER)) {
-            logger.entering(className, "toJson(InputStream, OutputStream)");
+            logger.entering(CLASS_NAME, "toJson(InputStream, OutputStream)");
         }
         toJson(XMLStream,JSONStream,false);    
 
         if (logger.isLoggable(Level.FINER)) {
-            logger.entering(className, "toJson(InputStream, OutputStream)");
+            logger.entering(CLASS_NAME, "toJson(InputStream, OutputStream)");
         }
     }
 
@@ -185,7 +185,7 @@ public class XML {
      */
     public static void toJson(InputStream XMLStream, OutputStream JSONStream, boolean verbose) throws SAXException, IOException {
         if (logger.isLoggable(Level.FINER)) {
-            logger.entering(className, "toJson(InputStream, OutputStream)");
+            logger.entering(CLASS_NAME, "toJson(InputStream, OutputStream)");
         }
 
         if (XMLStream == null) {
@@ -195,7 +195,7 @@ public class XML {
         } else {
 
             if (logger.isLoggable(Level.FINEST)) {
-                logger.logp(Level.FINEST, className, "transform", "Fetching a SAX parser for use with JSONSAXHandler");
+                logger.logp(Level.FINEST, CLASS_NAME, "transform", "Fetching a SAX parser for use with JSONSAXHandler");
             }
 
             try {
@@ -212,7 +212,7 @@ public class XML {
                 InputSource source = new InputSource(new BufferedInputStream(XMLStream));
 
                 if (logger.isLoggable(Level.FINEST)) {
-                    logger.logp(Level.FINEST, className, "transform", "Parsing the XML content to JSON");
+                    logger.logp(Level.FINEST, CLASS_NAME, "transform", "Parsing the XML content to JSON");
                 }
 
                 /** 
@@ -227,7 +227,7 @@ public class XML {
         }
 
         if (logger.isLoggable(Level.FINER)) {
-            logger.exiting(className, "toJson(InputStream, OutputStream)");
+            logger.exiting(CLASS_NAME, "toJson(InputStream, OutputStream)");
         }
     }
 
@@ -258,7 +258,7 @@ public class XML {
      */                                                                    
     public static String toJson(InputStream xmlStream, boolean verbose)  throws SAXException, IOException {
         if (logger.isLoggable(Level.FINER)) {
-            logger.exiting(className, "toJson(InputStream, boolean)");
+            logger.exiting(CLASS_NAME, "toJson(InputStream, boolean)");
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -275,7 +275,7 @@ public class XML {
         }
 
         if (logger.isLoggable(Level.FINER)) {
-            logger.exiting(className, "toJson(InputStream, boolean)");
+            logger.exiting(CLASS_NAME, "toJson(InputStream, boolean)");
         }
 
         return result;
@@ -294,7 +294,7 @@ public class XML {
      */
     public static String toJson(File xmlFile, boolean verbose) throws SAXException, IOException {
         if (logger.isLoggable(Level.FINER)) {
-            logger.exiting(className, "toJson(InputStream, boolean)");
+            logger.exiting(CLASS_NAME, "toJson(InputStream, boolean)");
         }
 
         FileInputStream fis        = new FileInputStream(xmlFile);
@@ -304,7 +304,7 @@ public class XML {
         fis.close();
 
         if (logger.isLoggable(Level.FINER)) {
-            logger.exiting(className, "toJson(InputStream, boolean)");
+            logger.exiting(CLASS_NAME, "toJson(InputStream, boolean)");
         }
 
         return result;
@@ -337,12 +337,12 @@ public class XML {
     throws IOException
     {
         if (logger.isLoggable(Level.FINER)) {
-            logger.entering(className, "toXml(InputStream, OutputStream)");
+            logger.entering(CLASS_NAME, "toXml(InputStream, OutputStream)");
         }
         toXml(JSONStream,XMLStream,false);    
 
         if (logger.isLoggable(Level.FINER)) {
-            logger.entering(className, "toXml(InputStream, OutputStream)");
+            logger.entering(CLASS_NAME, "toXml(InputStream, OutputStream)");
         }
     }
 
@@ -360,7 +360,7 @@ public class XML {
     throws IOException
     {
         if (logger.isLoggable(Level.FINER)) {
-            logger.entering(className, "toXml(InputStream, OutputStream)");
+            logger.entering(CLASS_NAME, "toXml(InputStream, OutputStream)");
         }
 
         if (XMLStream == null) {
@@ -370,7 +370,7 @@ public class XML {
         } else {
 
             if (logger.isLoggable(Level.FINEST)) {
-                logger.logp(Level.FINEST, className, "transform", "Parsing the JSON and a DOM builder.");
+                logger.logp(Level.FINEST, CLASS_NAME, "transform", "Parsing the JSON and a DOM builder.");
             }
 
             try {
@@ -384,7 +384,7 @@ public class XML {
                 Document doc = dBuilder.newDocument();
 
                 if (logger.isLoggable(Level.FINEST)) {
-                    logger.logp(Level.FINEST, className, "transform", "Parsing the JSON content to XML");
+                    logger.logp(Level.FINEST, CLASS_NAME, "transform", "Parsing the JSON content to XML");
                 }
 
                 convertJSONObject(doc, doc.getDocumentElement(), jObject, "jsonObject");
@@ -413,7 +413,7 @@ public class XML {
         }
 
         if (logger.isLoggable(Level.FINER)) {
-            logger.exiting(className, "toXml(InputStream, OutputStream)");
+            logger.exiting(CLASS_NAME, "toXml(InputStream, OutputStream)");
         }
     }
 
@@ -446,7 +446,7 @@ public class XML {
     throws IOException
     {
         if (logger.isLoggable(Level.FINER)) {
-            logger.exiting(className, "toXml(InputStream, boolean)");
+            logger.exiting(CLASS_NAME, "toXml(InputStream, boolean)");
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -463,7 +463,7 @@ public class XML {
         }
 
         if (logger.isLoggable(Level.FINER)) {
-            logger.exiting(className, "toXml(InputStream, boolean)");
+            logger.exiting(CLASS_NAME, "toXml(InputStream, boolean)");
         }
 
         return result;
@@ -483,7 +483,7 @@ public class XML {
     throws IOException
     {
         if (logger.isLoggable(Level.FINER)) {
-            logger.exiting(className, "toXml(InputStream, boolean)");
+            logger.exiting(CLASS_NAME, "toXml(InputStream, boolean)");
         }
 
         FileInputStream fis        = new FileInputStream(jsonFile);
@@ -493,7 +493,7 @@ public class XML {
         fis.close();
 
         if (logger.isLoggable(Level.FINER)) {
-            logger.exiting(className, "toXml(InputStream, boolean)");
+            logger.exiting(CLASS_NAME, "toXml(InputStream, boolean)");
         }
 
         return result;

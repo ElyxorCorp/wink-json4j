@@ -27,75 +27,75 @@ import java.util.Map;
  *
  */
 public interface JSONArray {
-	
-	// ------- data accessor methods -------
-	public Object get(int index) throws JSONException;
-	
-	public boolean getBoolean(int index) throws JSONException;
-	
-	public double getDouble(int index) throws JSONException;
-	
-	public int getInt(int index) throws JSONException;
-	
-	public long getLong(int index) throws JSONException;
 
-        public short getShort(int index) throws JSONException;
-	
-	public String getString(int index) throws JSONException;
-	
-	public JSONArray getJSONArray(int index) throws JSONException;
-	
-	public JSONObject getJSONObject(int index) throws JSONException;
-	
-	// ------- modifier methods -------	
-	
-	public String join(String separator);
-	
-	public JSONArray put(boolean value);
-	
-	public JSONArray put(Collection value) throws JSONException ;
-	
-	public JSONArray put(double value);
-	
-	public JSONArray put(int value);
-	
-	public JSONArray put(int index, boolean value) throws JSONException;
+    // ------- data accessor methods -------
+    Object get(int index) throws JSONException;
 
-	public JSONArray put(int index, Collection value) throws JSONException;
-	
-	public JSONArray put(int index, double value) throws JSONException;	
-	
-	public JSONArray put(int index, int value) throws JSONException;
-	
-	public JSONArray put(int index, long value) throws JSONException;
-        
-        public JSONArray put(int index, short value) throws JSONException;
-	
-	public JSONArray put(int index, Map value) throws JSONException;
-	
-	public JSONArray put(int index, Object value) throws JSONException;
-		
-	public JSONArray put(long value);
-        
-        public JSONArray put(short value);
-	
-	public JSONArray put(Map value) throws JSONException ;
-	
-	public JSONArray put(Object value) throws JSONException ;
-	
-	public Object remove(int index);
-	
-	// ------- utility methods -------	
-	
-	public boolean isNull(int index);
-	
-	public int length();
-	
-	// ------- output methods -------
-	
-	public String toString();
-	
-	public String toString(int indent);
-	
-	public Writer write(Writer w) throws JSONException;
+    boolean getBoolean(int index) throws JSONException;
+
+    double getDouble(int index) throws JSONException;
+
+    int getInt(int index) throws JSONException;
+
+    long getLong(int index) throws JSONException;
+
+    short getShort(int index) throws JSONException;
+
+    String getString(int index) throws JSONException;
+
+    JSONArray getJSONArray(int index) throws JSONException;
+
+    JSONObject getJSONObject(int index) throws JSONException;
+
+    // ------- modifier methods -------
+
+    String join(String separator);
+
+    JSONArray put(boolean value);
+
+    JSONArray put(Collection value) throws JSONException;
+
+    JSONArray put(double value);
+
+    JSONArray put(int value);
+
+    JSONArray put(int index, boolean value) throws JSONException;
+
+    JSONArray put(int index, Collection value) throws JSONException;
+
+    JSONArray put(int index, double value) throws JSONException;
+
+    JSONArray put(int index, int value) throws JSONException;
+
+    JSONArray put(int index, long value) throws JSONException;
+
+    JSONArray put(int index, short value) throws JSONException;
+
+    JSONArray put(int index, Map value) throws JSONException;
+
+    JSONArray put(int index, Object value) throws JSONException;
+
+    JSONArray put(long value);
+
+    JSONArray put(short value);
+
+    JSONArray put(Map value) throws JSONException;
+
+    JSONArray put(Object value) throws JSONException;
+
+    Object remove(int index);
+
+    // ------- utility methods -------
+
+    boolean isNull(int index);
+
+    int length();
+
+    // ------- output methods -------
+
+    String toString();
+
+    String toString(int indent);
+
+    Writer write(Writer w) throws JSONException;
 }

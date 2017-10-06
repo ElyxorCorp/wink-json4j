@@ -22,6 +22,8 @@ package org.apache.wink.json4j.tests;
 import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.JSONObject;
+import org.apache.wink.json4j.formatter.FormatOptions;
+import org.apache.wink.json4j.formatter.FormatOptionsBuilderImpl;
 import org.apache.wink.json4j.tests.utils.CauseCauseMatcher;
 import org.apache.wink.json4j.tests.utils.VerifyUtils;
 import org.junit.Before;
@@ -206,7 +208,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test parsing a value which ia a number bigger than <code>Long.MAX_VALUE</code>
+     * Test parsing a value which ia a number bigger than <tt>Long.MAX_VALUE</tt>
      */
     @Test
     public void test_parseNumberGreaterThanMaxLong_throwsException() throws JSONException {
@@ -216,7 +218,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test parsing a value which ia a number smaller than <code>Long.MIN_VALUE</code>
+     * Test parsing a value which ia a number smaller than <tt>Long.MIN_VALUE</tt>
      */
     @Test
     public void test_parseNumberLessThanMinLong_throwsException() throws JSONException {
@@ -250,7 +252,6 @@ public class JSONObjectTest {
     /**
      * Test toString(). Because JSONObject is non-ordered, we could have
      * two possible outcomes for a 2 attribute json object.
-     * TODO: This needs to move to an output formatter
      */
     @Test
     public void test_toStringVerboseWithDepthTo3Spaces() throws Exception {
@@ -279,6 +280,20 @@ public class JSONObjectTest {
         assertTrue(jObject.has("bool"));
         assertTrue(jObject.has("null"));
         assertFalse(jObject.has("noKey"));
+    }
+
+    @Test
+    public void test_putNullKey_throwsException() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("key must not be null");
+        new JSONObject().put(null, 311);
+    }
+
+    @Test
+    public void test_putKeyIsNotAString_throwsException() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("key must be a String");
+        new JSONObject().put(Integer.valueOf(311), 311);
     }
 
     @Test
@@ -444,7 +459,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getLong</code> with Long.MAX_VALUE
+     * Test <tt>getLong</tt> with Long.MAX_VALUE
      */
     @Test
     public void test_getMaxLongPositive() throws JSONException {
@@ -452,7 +467,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getLong</code> with Long.MIN_VALUE
+     * Test <tt>getLong</tt> with Long.MIN_VALUE
      */
     @Test
     public void test_getMaxLongNegative() throws JSONException {
@@ -461,7 +476,7 @@ public class JSONObjectTest {
 
 
     /**
-     * Test <code>getInt</code> with <code>Integer.MAX_VALUE</code>
+     * Test <tt>getInt</tt> with <tt>Integer.MAX_VALUE</tt>
      */
     @Test
     public void test_getMaxIntegerPositive() throws JSONException {
@@ -469,7 +484,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getInt</code> with <code>Integer.MIN_VALUE</code>
+     * Test <tt>getInt</tt> with <tt>Integer.MIN_VALUE</tt>
      */
     @Test
     public void test_getMaxIntegerNegative() throws JSONException {
@@ -477,7 +492,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with <code>Double.MAX_VALUE</code>
+     * Test <tt>getDouble</tt> with <tt>Double.MAX_VALUE</tt>
      */
     @Test
     public void test_getMaxDoublePositive() throws JSONException {
@@ -485,7 +500,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with <code>Double.MIN_VALUE</code>
+     * Test <tt>getDouble</tt> with <tt>Double.MIN_VALUE</tt>
      */
     @Test
     public void test_getMaxDoubleNegative() throws JSONException {
@@ -493,7 +508,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with double decimal
+     * Test <tt>getDouble</tt> with double decimal
      */
     @Test
     public void test_getPositiveDoubleWithDecimal() throws JSONException {
@@ -501,7 +516,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with negative double decimal
+     * Test <tt>getDouble</tt> with negative double decimal
      */
     @Test
     public void test_getNegativeDoubleWithDecimal() throws JSONException {
@@ -509,7 +524,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with double decimal with an exponent (eg. e-3)
+     * Test <tt>getDouble</tt> with double decimal with an exponent (eg. e-3)
      */
     @Test
     public void test_getPositiveDoubleWithExponential() throws JSONException {
@@ -518,7 +533,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with negative double decimal with an exponent (eg. e-3)
+     * Test <tt>getDouble</tt> with negative double decimal with an exponent (eg. e-3)
      */
     @Test
     public void test_getNegativeDoubleWithExponential() throws JSONException {
@@ -527,7 +542,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with double decimal with an exponent (eg. e+3)
+     * Test <tt>getDouble</tt> with double decimal with an exponent (eg. e+3)
      */
     @Test
     public void test_getPositiveDoubleWithPlusExponential() throws JSONException {
@@ -536,7 +551,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with negative double decimal with an exponent (eg. e+3)
+     * Test <tt>getDouble</tt> with negative double decimal with an exponent (eg. e+3)
      */
     @Test
     public void test_getNegativeDoubleWithPlusExponential() throws JSONException {
@@ -636,7 +651,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with double decimal with an exponent (eg. e-3)
+     * Test <tt>getDouble</tt> with double decimal with an exponent (eg. e-3)
      */
     @Test
     public void test_optPositiveDoubleWithExponential() throws JSONException {
@@ -645,7 +660,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with negative double decimal with an exponent (eg. e-3)
+     * Test <tt>getDouble</tt> with negative double decimal with an exponent (eg. e-3)
      */
     @Test
     public void test_optNegativeDoubleWithExponential() throws JSONException {
@@ -654,7 +669,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with double decimal with an exponent (eg. e+3)
+     * Test <tt>getDouble</tt> with double decimal with an exponent (eg. e+3)
      */
     @Test
     public void test_optPositiveDoubleWithPlusExponential() throws JSONException {
@@ -663,7 +678,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> with negative double decimal with an exponent (eg. e+3)
+     * Test <tt>getDouble</tt> with negative double decimal with an exponent (eg. e+3)
      */
     @Test
     public void test_optNegativeDoubleWithPlusExponential() throws JSONException {
@@ -812,7 +827,7 @@ public class JSONObjectTest {
     /* *********************************************************************** */
 
     /**
-     * Test <code>getLong</code> function failure due to type mismatch
+     * Test <tt>getLong</tt> function failure due to type mismatch
      */
     @Test
     public void test_getLong_typeMisMatchString_throwsJSONException() throws JSONException {
@@ -822,7 +837,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> function failure due to type mismatch
+     * Test <tt>getDouble</tt> function failure due to type mismatch
      */
     @Test
     public void test_getDouble_typeMisMatchString_throwsJSONException() throws JSONException {
@@ -832,7 +847,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getInt</code> function failure due to type mismatch
+     * Test <tt>getInt</tt> function failure due to type mismatch
      */
     @Test
     public void test_getInt_typeMisMatchString_throwsJSONException() throws JSONException {
@@ -842,7 +857,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getShort</code> function failure due to type mismatch
+     * Test <tt>getShort</tt> function failure due to type mismatch
      */
     @Test
     public void test_getShort_typeMisMatchString_throwsJSONException() throws JSONException {
@@ -852,7 +867,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getShort</code> function failure due to type mismatch
+     * Test <tt>getShort</tt> function failure due to type mismatch
      */
     @Test
     public void test_getString_typeMisMatchNull_throwsJSONException() throws JSONException {
@@ -862,7 +877,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getString</code> function returns string representation of number
+     * Test <tt>getString</tt> function returns string representation of number
      */
     @Test
     public void test_getString_returnsIntegerToString() throws JSONException {
@@ -870,7 +885,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getBoolean</code> function failure due to type mismatch
+     * Test <tt>getBoolean</tt> function failure due to type mismatch
      */
     @Test
     public void test_getBoolean_typeMisMatchNumber_throwsJSONException() throws JSONException {
@@ -880,7 +895,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getLong</code> function failure due to value null
+     * Test <tt>getLong</tt> function failure due to value null
      */
     @Test
     public void test_getLong_typeMisMatchNull_throwsJSONException() throws JSONException {
@@ -890,7 +905,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getInt</code> function failure due to value null
+     * Test <tt>getInt</tt> function failure due to value null
      */
     @Test
     public void test_getInt_typeMisMatchNull_throwsJSONException() throws JSONException {
@@ -900,7 +915,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getDouble</code> function failure due to value null
+     * Test <tt>getDouble</tt> function failure due to value null
      */
     @Test
     public void test_getDouble_typeMisMatchNull_throwsJSONException() throws JSONException {
@@ -910,7 +925,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getShort</code> function failure due to value null
+     * Test <tt>getShort</tt> function failure due to value null
      */
     @Test
     public void test_getShort_typeMisMatchNull_throwsJSONException() throws JSONException {
@@ -920,7 +935,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Test <code>getBoolean</code> function failure due to value null
+     * Test <tt>getBoolean</tt> function failure due to value null
      */
     @Test
     public void test_getBoolean_typeMisMatchNull_throwsJSONException() throws JSONException {
@@ -993,13 +1008,14 @@ public class JSONObjectTest {
         assertEquals("val3", testObj.opt("key3"));
     }
 
-    /***********************************************************/
-    /* The following tests checks UTF-8 encoded DBCS characters*/
-    /***********************************************************/
+    /* ******************************************************** */
+    /* The following tests checks UTF-8 encoded DBCS characters */
+    /* ******************************************************** */
 
     /**
      * Verify a standard UTF-8 file with high character codes (Korean), can be read via a reader and parsed.
      */
+    @SuppressWarnings("EmptyFinallyBlock")
     @Test
     public void test_utf8_korean() throws Exception {
         final String expectedKoreanStr = "\uc548\ub155 \uc138\uc0c1\uc544";
@@ -1016,8 +1032,9 @@ public class JSONObjectTest {
      * serialize correctly in escaped unicode format (which is valid JSON and easier
      * to debug)
      * <p>
-     * TODO: Address this when the toggle for excapted vs unescaped is allowed during outputting
+     * TODO: Address this when the toggle for escaped vs unescaped is allowed during outputting
      */
+    @SuppressWarnings("EmptyFinallyBlock")
     @Test
     public void test_utf8_lowerchar_toStringEscapesCodes() throws Exception {
         try (Reader reader = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("utf8_lowerchar.json"), "UTF-8")) {
@@ -1029,6 +1046,33 @@ public class JSONObjectTest {
         }
     }
 
+    @Test
+    public void test_toString_doesNotEscapeForwardSlashes_whenOptionDisabled() throws Exception {
+        final String jsonStr = "{\"special_string\":\"1 > ../log/file-1234.log 2>&1&\"}";
+        assertEquals(jsonStr, new JSONObject(jsonStr).toString(new FormatOptionsBuilderImpl().setEscapeForwardSlashes(false).build()));
+    }
+
+    @Test
+    public void test_toString_putsEmptyArraysBracketsOnSameLine_whenVerboseAndOptionEnabled() throws Exception {
+        final String jsonStr = "{\n\t\"empty_array\": []\n}";
+        assertEquals(jsonStr, new JSONObject(jsonStr).toString(
+                new FormatOptionsBuilderImpl()
+                        .setFormat(FormatOptions.Format.Verbose)
+                        .setNewlineString("\n")
+                        .setEmptyArrayOnSameLine(true)
+                        .build()));
+    }
+
+    @Test
+    public void test_toString_putsEmptyObjectBracesOnSameLine_whenVerboseAndOptionEnabled() throws Exception {
+        final String jsonStr = "{\n\t\"empty_object\": {}\n}";
+        assertEquals(jsonStr, new JSONObject(jsonStr).toString(
+                new FormatOptionsBuilderImpl()
+                        .setFormat(FormatOptions.Format.Verbose)
+                        .setNewlineString("\n")
+                        .setEmptyArrayOnSameLine(true)
+                        .build()));
+    }
 
     /* ************************************************************************************* */
     /* These tests check for specific 'behaviors' so that the parser is compatible to others */

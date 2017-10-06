@@ -22,6 +22,7 @@ package org.apache.wink.json4j.utils.internal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.Stack;
 import java.util.logging.Level;
@@ -33,19 +34,19 @@ import org.xml.sax.helpers.DefaultHandler;
 
 
 /**
- * This class is a SAX entension to do conversion of XML to JSON.
+ * This class is a SAX extension to do conversion of XML to JSON.
  */
 public class JSONSAXHandler extends DefaultHandler {
     /**
      * Logger code
      */
-    private static String  className              = "org.apache.commons.json.utils.xml.transform.impl.JSONSAXHandler";
-    private static Logger logger                  = Logger.getLogger(className,null);
+    private static final String CLASS_NAME = "org.apache.commons.json.utils.xml.transform.impl.JSONSAXHandler";
+    private static final Logger logger                  = Logger.getLogger(CLASS_NAME,null);
 
     /**
      * The writer to stream the JSON text out to.
      */
-    private OutputStreamWriter osWriter           = null;
+    private final OutputStreamWriter osWriter;
 
     /**
      * The current JSON object being constructed from the current TAG being parsed.
@@ -70,38 +71,42 @@ public class JSONSAXHandler extends DefaultHandler {
     /**
      * Constructor.
      * @param os The outputStream to write the resulting JSON to.  Same as JSONSAXHander(os,false);
-     * @throws IOException Thrown if an error occurs during streaming out, or XML read.
      */
-    public JSONSAXHandler(OutputStream os) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "JSONHander(OutputStream) <constructor>");
+    public JSONSAXHandler(OutputStream os)  {
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "JSONSAXHandler(OutputStream) <constructor>");
 
-        this.osWriter = new OutputStreamWriter(os,"UTF-8");
+        this.osWriter = new OutputStreamWriter(os, StandardCharsets.UTF_8);
         this.compact  = true;
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "JSONHander(OutputStream) <constructor>");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "JSONSAXHandler(OutputStream) <constructor>");
     }
 
     /**
      * Constructor.
      * @param os The outputStream to write the resulting JSON to
-     * @param verbose Whenther or not to render the stream in a verbose (formatted), or compact form.
-     * @throws IOException Thrown if an error occurs during streaming out, or XML read.
+     * @param verbose Whether or not to render the stream in a verbose (formatted), or compact form.
      */
-    public JSONSAXHandler(OutputStream os, boolean verbose) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "JSONHander(OutputStream, boolean) <constructor>");
+    public JSONSAXHandler(OutputStream os, boolean verbose) {
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "JSONSAXHandler(OutputStream, boolean) <constructor>");
 
-        this.osWriter = new OutputStreamWriter(os,"UTF-8");
+        this.osWriter = new OutputStreamWriter(os,StandardCharsets.UTF_8);
         this.compact  = !verbose;
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "JSONHander(OutputStream, boolean) <constructor>");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "JSONSAXHandler(OutputStream, boolean) <constructor>");
     }
 
 
     /**
-     * This function parses an IFix top level element and all its children.
+     * This function parses an iFix top level element and all its children.
+     *
+     * @param namespaceURI namespace
+     * @param localName local name
+     * @param qName q name
+     * @param attrs attributes
+     * @throws SAXException
      */
     public void startElement(String namespaceURI, String localName, String qName, Attributes attrs) throws SAXException {
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "startElement(String,String,String,org.xml.sax.Attributes)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "startElement(String,String,String,org.xml.sax.Attributes)");
 
         Properties props = new Properties();
         int attrLength = attrs.getLength();
@@ -121,14 +126,14 @@ public class JSONSAXHandler extends DefaultHandler {
             this.current  = obj;
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "startElement(String,String,String,org.xml.sax.Attributes)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "startElement(String,String,String,org.xml.sax.Attributes)");
     }
 
     /**
      * Function ends a tag in this iFix parser.
      */
     public void endElement(String uri, String localName, String qName) throws SAXException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "endElement(String,String,String)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "endElement(String,String,String)");
 
         if (!previousObjects.isEmpty()) {
             this.current = (JSONObject)this.previousObjects.pop();
@@ -136,14 +141,14 @@ public class JSONSAXHandler extends DefaultHandler {
             this.current = null;
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "endElement(String,String,String)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "endElement(String,String,String)");
     }
 
     public void characters(char[] ch,
                            int start,
                            int length)
     throws SAXException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "characters(char[], int, int)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "characters(char[], int, int)");
 
         String str = new String(ch,start,length);
         if (this.current.getTagText() != null) {
@@ -151,23 +156,23 @@ public class JSONSAXHandler extends DefaultHandler {
         }
         this.current.setTagText(str);
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "characters(char[], int, int)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "characters(char[], int, int)");
     }
 
     public void startDocument() throws SAXException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "startDocument()");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "startDocument()");
 
         startJSON();
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "startDocument()");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "startDocument()");
     }
 
     public void endDocument() throws SAXException {
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "endDocument()");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "endDocument()");
 
         endJSON();
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "endDocument()");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "endDocument()");
     }
 
     /**
@@ -175,25 +180,39 @@ public class JSONSAXHandler extends DefaultHandler {
      * @throws IOException Thrown if there is an error while flushing buffer
      */
     public void flushBuffer() throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "flushBuffer()");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "flushBuffer()");
 
         if (this.osWriter != null) {
             this.osWriter.flush();
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "flushBuffer()");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "flushBuffer()");
+    }
+
+    /**
+     * Close all buffers
+     * @throws IOException
+     */
+    public void close() throws IOException {
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "close()");
+
+        if (this.osWriter != null) {
+            this.osWriter.close();
+        }
+
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "close()");
     }
 
     /**
      * Internal method to start JSON generation.
      */
     private void startJSON() {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "startJSON()");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "startJSON()");
 
         this.head    = new JSONObject("",null);
         this.current = head;
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "startJSON()");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "startJSON()");
     }
 
     /**
@@ -201,7 +220,7 @@ public class JSONSAXHandler extends DefaultHandler {
      * and reset the internal state of the hander.
      */
     private void endJSON() throws SAXException {   
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "endJSON()");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "endJSON()");
 
         try {
             this.head.writeObject(this.osWriter, 0, true, this.compact);
@@ -214,7 +233,7 @@ public class JSONSAXHandler extends DefaultHandler {
             throw saxEx;
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "endJSON()");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "endJSON()");
     }
 
 }

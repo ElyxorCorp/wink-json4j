@@ -304,7 +304,7 @@ public class ApacheJSONArrayTest extends TestCase {
             JSONArray obj = (JSONArray)jArray.get(0);
             assertTrue(obj != null);
             assertTrue(obj instanceof JSONArray);
-            assertTrue(((JSONArray)jArray.get(0)).toString().equals("[]"));
+            assertEquals("[]", jArray.get(0).toString());
         } catch (Exception ex1) {
             ex = ex1;
             ex.printStackTrace();
@@ -725,7 +725,7 @@ public class ApacheJSONArrayTest extends TestCase {
             JSONFactory factory = JSONFactory.newInstance();
             JSONArray jArray = factory.createJSONArray("[1, true, false, null, \"My String\", [1,2,3], {\"foo\":\"bar\"}]");
             String joined = jArray.join("");
-            assertTrue(joined.equals("1truefalsenullMy String[1,2,3]{\"foo\":\"bar\"}"));
+            assertEquals("1truefalsenullMy String[1,2,3]{\"foo\":\"bar\"}", joined);
         } catch (Exception ex1) {
             ex = ex1;
             ex.printStackTrace();
@@ -743,7 +743,7 @@ public class ApacheJSONArrayTest extends TestCase {
             JSONFactory factory = JSONFactory.newInstance();
             JSONArray jArray = factory.createJSONArray("[1, true, false, null, \"My String\", [1,2,3], {\"foo\":\"bar\"}]");
             String joined = jArray.join("|");
-            assertTrue(joined.equals("1|true|false|null|My String|[1,2,3]|{\"foo\":\"bar\"}"));
+            assertEquals("1|true|false|null|My String|[1,2,3]|{\"foo\":\"bar\"}", joined);
         } catch (Exception ex1) {
             ex = ex1;
             ex.printStackTrace();

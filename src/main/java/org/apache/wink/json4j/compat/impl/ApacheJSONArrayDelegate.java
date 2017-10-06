@@ -384,7 +384,7 @@ public class ApacheJSONArrayDelegate implements JSONArray {
         try {
             return delegate.toString(indent);
         } catch (Exception ex) {
-            return "JSON Serializarion error: [" + ex.getMessage() + "]";
+            return "JSON Serialization error: [" + ex.getMessage() + "]";
         }
     }
 
