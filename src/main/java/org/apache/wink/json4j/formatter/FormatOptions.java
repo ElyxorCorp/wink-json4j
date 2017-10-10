@@ -49,6 +49,7 @@ public interface FormatOptions {
     }
 
     boolean emptyObjectsAndArrayClosuresOnSameLine();
+    boolean spaceBetweenKeyAndColon();
     boolean escapeForwardSlashes();
     String indentString();
     boolean isCompact();

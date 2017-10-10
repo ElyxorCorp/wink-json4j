@@ -22,8 +22,9 @@ package org.apache.wink.json4j.formatter;
 class FormatOptionsImpl implements FormatOptions {
 
     private Format format = Format.Compact;
-    private boolean escapeForwardSlashes = true;
     private boolean emptyObjectsAndArrayClosuresOnSameLine = false;
+    private boolean escapeForwardSlashes = true;
+    private boolean spaceBetweenKeyAndColon = false;
     private String newlineStr = System.lineSeparator();
     private String indentStr = "\t";
 
@@ -44,6 +45,16 @@ class FormatOptionsImpl implements FormatOptions {
 
     public FormatOptionsImpl setEscapeForwardSlashes(boolean flag) {
         escapeForwardSlashes = flag;
+        return this;
+    }
+
+    @Override
+    public boolean spaceBetweenKeyAndColon() {
+        return spaceBetweenKeyAndColon;
+    }
+
+    public FormatOptionsImpl setSpaceBetweenKeyAndColon(boolean flag) {
+        spaceBetweenKeyAndColon = flag;
         return this;
     }
 

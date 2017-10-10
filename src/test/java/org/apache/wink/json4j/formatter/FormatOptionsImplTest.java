@@ -40,8 +40,9 @@ public class FormatOptionsImplTest {
 
     @Test
     public void testFormatOptionDefaults() throws Exception {
-        assertTrue(target.escapeForwardSlashes());
         assertFalse(target.emptyObjectsAndArrayClosuresOnSameLine());
+        assertTrue(target.escapeForwardSlashes());
+        assertFalse(target.spaceBetweenKeyAndColon());
         assertTrue(target.isCompact());
         assertFalse(target.isVerbose());
         assertEquals("\t", target.indentString());
@@ -58,6 +59,12 @@ public class FormatOptionsImplTest {
     public void setEscapeForwardSlashes_returnsObject() throws Exception {
         assertEquals(target, target.setEscapeForwardSlashes(false));
         assertFalse(target.escapeForwardSlashes());
+    }
+
+    @Test
+    public void setSpaceBetweenKeyAndColon_returnsObject() throws Exception {
+        assertEquals(target, target.setSpaceBetweenKeyAndColon(false));
+        assertFalse(target.spaceBetweenKeyAndColon());
     }
 
     @Test

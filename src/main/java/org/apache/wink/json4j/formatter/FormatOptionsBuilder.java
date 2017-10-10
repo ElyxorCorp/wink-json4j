@@ -26,8 +26,9 @@ public interface FormatOptionsBuilder {
     FormatOptions build();
 
     FormatOptionsBuilder setFormat(FormatOptions.Format format);
-    FormatOptionsBuilder setEscapeForwardSlashes(boolean flag);
     FormatOptionsBuilder setEmptyArrayOnSameLine(boolean flag);
+    FormatOptionsBuilder setEscapeForwardSlashes(boolean flag);
+    FormatOptionsBuilder setSpaceBetweenKeyAndColon(boolean flag);
     FormatOptionsBuilder setNewlineString(String newline);
     FormatOptionsBuilder setIndentString(String indent);
 

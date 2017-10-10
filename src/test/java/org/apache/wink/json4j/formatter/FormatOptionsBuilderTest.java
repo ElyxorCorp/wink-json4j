@@ -34,6 +34,7 @@ public class FormatOptionsBuilderTest {
                 .setFormat(FormatOptions.Format.Verbose)
                 .setEmptyArrayOnSameLine(true)
                 .setEscapeForwardSlashes(false)
+                .setSpaceBetweenKeyAndColon(true)
                 .setIndentString("  ")
                 .setNewlineString("\t")
                 .build();
@@ -41,7 +42,18 @@ public class FormatOptionsBuilderTest {
         assertTrue(formatOptions.isVerbose());
         assertTrue(formatOptions.emptyObjectsAndArrayClosuresOnSameLine());
         assertFalse(formatOptions.escapeForwardSlashes());
+        assertTrue(formatOptions.spaceBetweenKeyAndColon());
         assertEquals("  ", formatOptions.indentString());
         assertEquals("\t", formatOptions.newline());
+    }
+    @Test
+    public void testBasic_returnsDefaults() throws Exception {
+        final FormatOptions formatOptions = FormatOptionsBuilder.basic();
+        assertTrue(formatOptions.isCompact());
+        assertFalse(formatOptions.emptyObjectsAndArrayClosuresOnSameLine());
+        assertTrue(formatOptions.escapeForwardSlashes());
+        assertFalse(formatOptions.spaceBetweenKeyAndColon());
+        assertEquals("\t", formatOptions.indentString());
+        assertEquals(System.lineSeparator(), formatOptions.newline());
     }
 }

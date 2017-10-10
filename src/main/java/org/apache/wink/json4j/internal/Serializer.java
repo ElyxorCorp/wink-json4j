@@ -297,6 +297,7 @@ public class Serializer {
                     newLine();
                     indent();
                     writeString(key);
+                    if (formatOptions.spaceBetweenKeyAndColon()) { space(); }
                     writeRawString(":");
                     space();
                     write(value);

@@ -16,14 +16,20 @@ public class FormatOptionsBuilderImpl implements FormatOptionsBuilder {
     }
 
     @Override
+    public FormatOptionsBuilder setEmptyArrayOnSameLine(final boolean flag) {
+        formatOptions.setEmptyObjectsAndArrayClosuresOnSameLine(flag);
+        return this;
+    }
+
+    @Override
     public FormatOptionsBuilder setEscapeForwardSlashes(final boolean flag) {
         formatOptions.setEscapeForwardSlashes(flag);
         return this;
     }
 
     @Override
-    public FormatOptionsBuilder setEmptyArrayOnSameLine(final boolean flag) {
-        formatOptions.setEmptyObjectsAndArrayClosuresOnSameLine(flag);
+    public FormatOptionsBuilder setSpaceBetweenKeyAndColon(final boolean flag) {
+        formatOptions.setSpaceBetweenKeyAndColon(flag);
         return this;
     }
 
