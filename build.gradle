@@ -1,9 +1,9 @@
 plugins {
-  id 'idea'
-  id 'java'
-  id 'maven'
-  id 'maven-publish'
-  id 'org.ajoberstar.grgit' version '2.0.1'
+    id 'idea'
+    id 'java'
+    id 'maven'
+    id 'maven-publish'
+    id 'org.ajoberstar.grgit' version '2.0.1'
 }
 
 import org.ajoberstar.grgit.Grgit
@@ -17,118 +17,129 @@ group = 'org.apache.wink.json4j'
 project.version = getVersionCode()
 
 configurations {
-  all {
-    resolutionStrategy {
-      // Uncomment to see if there are dependency issues
-      // failOnVersionConflict()
+    all {
+        resolutionStrategy {
+            // Uncomment to see if there are dependency issues
+            // failOnVersionConflict()
 
-      // Any dependencies with .+ or  build.latest will always be checked for latest
-      cacheDynamicVersionsFor 0, 'seconds'
+            // Any dependencies with .+ or  build.latest will always be checked for latest
+            cacheDynamicVersionsFor 0, 'seconds'
+        }
     }
-  }
 }
 
 repositories {
-  mavenLocal()
-  mavenCentral()
-  jcenter()
+    mavenLocal()
+    mavenCentral()
+    jcenter()
 }
 
 dependencies {
 
-  testCompile 'junit:junit:4.12'
+    testCompile 'junit:junit:4.12'
 
 }
 
 compileJava {
-  options.encoding = 'UTF-8'
-  options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    options.encoding = 'UTF-8'
+    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '4.2'
+    gradleVersion = '4.2'
 }
 
 sourceSets {
-  main {
-    java {
-      srcDirs = ['src/main/java']
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
     }
-  }
-  test {
-    java {
-      srcDirs = ['src/test/java']
+    test {
+        java {
+            srcDirs = ['src/test/java']
+        }
     }
-  }
 }
 
 ext {
-  startTime = new Date().format("yyy-MM-dd'T'HH:mm:ssZ")
-  applicationTitle = 'Apache Wink :: JSON4J'
-  implementationVendor = 'Elyxor, Inc.'
-  specVendor = 'The Apache Software Foundation'
+    startTime = new Date().format("yyy-MM-dd'T'HH:mm:ssZ")
+    applicationTitle = 'Apache Wink :: JSON4J'
+    implementationVendor = 'Elyxor, Inc.'
+    specVendor = 'The Apache Software Foundation'
 
-  // init local mavenUser/pwd
+    // init local mavenUser/pwd
 
-  def gitRepo = Grgit.open(dir: '.')
-  gitHash = gitRepo.head().id
-  gitBranch = gitRepo.branch.current.name
-  gitRepo.close()
+    def gitRepo = Grgit.open(dir: '.')
+    gitHash = gitRepo.head().id
+    gitBranch = gitRepo.branch.current.name
+    gitRepo.close()
 
-  currentJvm = org.gradle.internal.jvm.Jvm.current()
+    currentJvm = org.gradle.internal.jvm.Jvm.current()
 }
 
 jar {
-  baseName = project.name
-  manifest {
-    attributes(
-      "Manifest-Version": "1.0",
-      "Vendor": project.implementationVendor,
-      "Created-By": project.currentJvm,
-      "Implementation-Title": project.applicationTitle,
-      "Implementation-Version": project.version,
-      "Implementation-Vendor": project.implementationVendor,
-      "Specification-Title": project.applicationTitle,
-      "Specification-Version": project.version,
-      "specification-Vendor": project.specVendor,
-      "Build-Hash": project.gitHash,
-      "Build-Branch":  project.gitBranch,
-      "Build-Time": project.startTime,
-      "Class-Path": configurations.runtime.collect { it.getName() }.join(' ')
-    )
-  }
+    baseName = project.name
+    manifest {
+        attributes(
+                "Manifest-Version": "1.0",
+                "Vendor": project.implementationVendor,
+                "Created-By": project.currentJvm,
+                "Implementation-Title": project.applicationTitle,
+                "Implementation-Version": project.version,
+                "Implementation-Vendor": project.implementationVendor,
+                "Specification-Title": project.applicationTitle,
+                "Specification-Version": project.version,
+                "specification-Vendor": project.specVendor,
+                "Build-Hash": project.gitHash,
+                "Build-Branch": project.gitBranch,
+                "Build-Time": project.startTime,
+                "Class-Path": configurations.runtime.collect { it.getName() }.join(' ')
+        )
+    }
 }
 
 task sourceJar(type: Jar, dependsOn: classes) {
-  classifier = 'sources'
-  baseName = project.name
-  from sourceSets.main.allSource
+    classifier = 'sources'
+    baseName = project.name
+    from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-  classifier = 'javadoc'
-  baseName = project.name
-  from javadoc.destinationDir
+    classifier = 'javadoc'
+    baseName = project.name
+    from javadoc.destinationDir
 }
 
-task testjar(type: Jar) {
-  classifier = 'tests'
-  baseName = project.name
-  from sourceSets.test.output
+task testsJar(type: Jar, dependsOn: classes ) {
+    classifier = 'tests'
+    baseName = project.name
+    from sourceSets.test.output
 }
 
+publishing {
+    publications {
+        build(MavenPublication) {
+            version project.version
+            artifact sourceJar
+            artifact javadocJar
+            artifact jar
+            artifact testsJar
+        }
+    }
+}
 test {
-  doFirst {
-    println('RunningTests on ' + maxParallelForks + ' Cores')
-  }
+    doFirst {
+        println('RunningTests on ' + maxParallelForks + ' Cores')
+    }
 
-  maxParallelForks Runtime.runtime.availableProcessors()
+    maxParallelForks Runtime.runtime.availableProcessors()
 
-  jvmArgs '-da', '-Xmx4g'
+    jvmArgs '-da', '-Xmx4g'
 
-  include 'org/apache/wink/**/*Test.class'
+    include 'org/apache/wink/**/*Test*.class'
 
-  testLogging  {
-    events 'passed', 'skipped', 'failed'
-  }
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
 }
