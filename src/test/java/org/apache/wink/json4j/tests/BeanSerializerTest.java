@@ -35,9 +35,9 @@ import static org.junit.Assert.*;
 /**
  * Tests for the basic Java Bean serializer
  * <p>
- * Note: Using the java Date class is a bad example because the <code>BeanSerializer</code>
+ * Note: Using the java Date class is a bad example because the <tt>BeanSerializer</tt>
  * looks at the getXXXX methods, then stick the value in a map with a key of XXXX.
- * <code>java.util.Date</code> has deprecated get methods making this difficult
+ * <tt>java.util.Date</tt> has deprecated get methods making this difficult
  * and confusing to test with this object.
  */
 public class BeanSerializerTest {

@@ -22,20 +22,25 @@ package org.apache.wink.json4j.tests;
 import org.apache.wink.json4j.JSONException;
 import org.apache.wink.json4j.JSONObject;
 import org.apache.wink.json4j.OrderedJSONObject;
+import org.hamcrest.core.Is;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Objects;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for the basic Java OrderedJSONObject model
  */
 @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 public class OrderedJSONObjectTest {
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void test_OrderedJson() throws Exception {
@@ -57,7 +62,7 @@ public class OrderedJSONObjectTest {
         String attribute = (String) obj.remove("attribute");
         obj.put("attribute", attribute);
 
-        Iterator order = obj.getOrder();
+        Iterator<String> order = obj.orderedKeys();
 
         String[] expectedOrder = new String[]{"number", "boolean", "attribute"};
         for (int i = 0; i < expectedOrder.length; i++) {
@@ -108,16 +113,30 @@ public class OrderedJSONObjectTest {
         obj.put("Entry3", "Value3");
         obj.put("Entry2", "ReplacedValue2");
 
-        final Iterator order = obj.getOrder();
-        String key = order.next().toString();
+        final Iterator<String> order = obj.orderedKeys();
+        String key = order.next();
         assertEquals("Entry1", key);
         assertEquals("Value1", obj.getString(key));
-        key = order.next().toString();
+        key = order.next();
         assertEquals("Entry2", key);
         assertEquals("ReplacedValue2", obj.getString(key));
-        key = order.next().toString();
+        key = order.next();
         assertEquals("Entry3", key);
         assertEquals("Value3", obj.getString(key));
+    }
+
+    @Test
+    public void test_putNullKey_throwsException() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("key must not be null");
+        new OrderedJSONObject().put(null, 311);
+    }
+
+    @Test
+    public void test_OrderedPutKeyIsNotAString_throwsException() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("key must be a String");
+        new OrderedJSONObject().put(Integer.valueOf(311), 311);
     }
 
     /**
@@ -135,10 +154,15 @@ public class OrderedJSONObjectTest {
 
         final OrderedJSONObject clone = (OrderedJSONObject) obj.clone();
 
-        final Iterator order = clone.getOrder();
+        final Iterator<String> order = clone.orderedKeys();
         verifyNextAttribute(order, clone, "Entry1", "Value1");
         verifyNextAttribute(order, clone, "Entry2", "ReplacedValue2");
         verifyNextAttribute(order, clone, "Entry3", "Value3");
+
+        obj.put("3", "foo");
+        assertTrue(obj.has("3"));
+        assertFalse(clone.has("3"));
+        clone.orderedKeys().forEachRemaining(key->assertNotEquals("3", key));
     }
 
     /**
@@ -151,21 +175,20 @@ public class OrderedJSONObjectTest {
         try (InputStream is  = this.getClass().getClassLoader().getResourceAsStream("utf8_ordered.json")) {
 
             final OrderedJSONObject obj = new OrderedJSONObject(is);
-
-            final Iterator order = obj.getOrder();
             assertEquals(3, obj.length());
 
-            verifyNextAttribute(order, obj, "First_Entry", "Entry One");
+            final Iterator<String> orderIter = obj.orderedKeys();
+            verifyNextAttribute(orderIter, obj, "First_Entry", "Entry One");
             final Object entryValue2 = obj.get("Second_Entry");
-            verifyNextAttribute(order, obj, "Second_Entry", entryValue2);
-            verifyNextAttribute(order, obj, "Third_Entry", 3);
+            verifyNextAttribute(orderIter, obj, "Second_Entry", entryValue2);
+            verifyNextAttribute(orderIter, obj, "Third_Entry", 3);
 
             //Validate the nested JSONObject was also constructed in an ordered manner.
             final OrderedJSONObject subObj = (OrderedJSONObject) entryValue2;
-            final Iterator subOrder = subObj.getOrder();
-            verifyNextAttribute(subOrder, subObj, "name", "Demo Object");
+            final Iterator<String> subOrderIter = subObj.orderedKeys();
+            verifyNextAttribute(subOrderIter, subObj, "name", "Demo Object");
             final Object demosArray = subObj.get("demos");
-            verifyNextAttribute(subOrder, subObj, "demos", demosArray);
+            verifyNextAttribute(subOrderIter, subObj, "demos", demosArray);
 
         } finally {
             /* */
@@ -183,9 +206,9 @@ public class OrderedJSONObjectTest {
             assertEquals(jsonStr, jsonStr2);
     }
 
-    private void verifyNextAttribute(Iterator iter, JSONObject obj, String expectedKey, Object expectedValue) throws JSONException {
+    private void verifyNextAttribute(Iterator<String> iter, JSONObject obj, String expectedKey, Object expectedValue) throws JSONException {
         Objects.requireNonNull(iter);
-        final String key = iter.next().toString();
+        final String key = iter.next();
         assertEquals(expectedKey, key);
         assertEquals(expectedValue, obj.get(key));
     }

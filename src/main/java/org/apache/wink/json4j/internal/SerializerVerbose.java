@@ -19,6 +19,9 @@
 
 package org.apache.wink.json4j.internal;
 
+import org.apache.wink.json4j.formatter.FormatOptions;
+import org.apache.wink.json4j.formatter.FormatOptionsBuilderImpl;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
@@ -36,90 +39,103 @@ public class SerializerVerbose extends Serializer {
      */
     private int indent = 0;
 
-    /**
-     * The indent string to use when serializing.
-     */
-    private String indentStr = "\t";
-
-    static final private String eol;
-
-    static {
-        eol = System.lineSeparator();
+    private SerializerVerbose() {
+        super(null);
     }
 
     /**
-     * Constructor.
+     * Constructor
+     *
+     * @param writer The writer to serialize JSON to.
      */
     public SerializerVerbose(Writer writer) {
-        super(writer);
+        super(writer, new FormatOptionsBuilderImpl().setFormat(FormatOptions.Format.Verbose).build());
+    }
+
+    /**
+     * Constructor
+     *
+     * @param writer        The writer to serialize JSON to.
+     * @param formatOptions format options to use.
+     */
+    public SerializerVerbose(Writer writer, FormatOptions formatOptions) {
+        super(writer, formatOptions);
     }
 
     /**
      * Constructor.
-     * @param writer The writer to serialize JSON to.
-     * @param indentSpaces How many spaces to indent by (0 to 8).
-     * The default indent is the TAB character. 
+     *
+     * @param writer       The writer to serialize JSON to.
+     * @param indentSpaces How many spaces to indent by.
+     *                     The default indent is the TAB (<tt>\t</tt>) character.
      */
     public SerializerVerbose(Writer writer, int indentSpaces) {
         super(writer);
-        if(indentSpaces > 0 && indentSpaces < 8){
-            this.indentStr = "";
-            for(int i = 0; i < indentSpaces; i++){
-                this.indentStr += " ";
-            }
+        if (indentSpaces < 0) {
+            throw new IllegalArgumentException();
         }
+
+        StringBuilder sb = new StringBuilder("");
+        for (int i = 0; i < indentSpaces; i++) {
+            sb.append(" ");
+        }
+
+        setFormatOptions(new FormatOptionsBuilderImpl()
+                .setFormat(FormatOptions.Format.Verbose)
+                .setIndentString(sb.toString())
+                .build());
     }
 
     /**
      * Method to write a space to the output writer.
+     *
      * @throws IOException Thrown if an error occurs during write.
      */
+    @Override
     public void space() throws IOException {
         writeRawString(" ");
     }
 
     /**
      * Method to write a newline to the output writer.
+     *
      * @throws IOException Thrown if an error occurs during write.
      */
+    @Override
     public void newLine() throws IOException {
-        writeRawString(eol);
+        writeRawString(formatOptions().newline());
     }
 
     /**
      * Method to write an indent to the output writer.
+     *
      * @throws IOException Thrown if an error occurs during write.
      */
+    @Override
     public void indent() throws IOException {
-        for (int i=0; i<indent; i++) writeRawString(this.indentStr);
+        for (int i = 0; i < indent; i++) {
+            writeRawString(formatOptions().indentString());
+        }
     }
 
     /**
      * Method to increase the indent depth of the output writer.
      */
+    @Override
     public void indentPush() {
         indent++;
     }
 
     /**
      * Method to reduce the indent depth of the output writer.
+     *
      * @throws IllegalStateException if the ident tries to pop below 0
      */
+    @Override
     public void indentPop() {
         indent--;
-        if (indent < 0) throw new IllegalStateException();
+        if (indent < 0) {
+            throw new IllegalStateException();
+        }
     }
-
-    /**
-     * Method to get a sorted list of all the property names stored in a map.
-     * @param map
-     */
-    public List getPropertyNames(Map map) {
-        List propertyNames = super.getPropertyNames(map);
-
-        Collections.sort(propertyNames);
-
-        return propertyNames;
-    }
-
 }

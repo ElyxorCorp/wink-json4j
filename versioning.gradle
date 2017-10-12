@@ -17,13 +17,14 @@ ext {
       print '##teamcity[buildNumber \'' + major + '.' + minor + '.' + patch + '\']'
     } else {
       ext.env = System.getenv()
-      ext.buildNumber = env.BUILD_NUMBER?.toInteger()
-      if (env.hasProperty('BUILD_NUMBER')) {
-        patch = env.BUILD_NUMBER?.toInteger()
-        print '##jenkins[buildNumber \'' + major + '.' + minor + '.' + patch + '\']'
+      def buildNumber = env.BUILD_NUMBER?.toInteger()
+      if (buildNumber) {
+        patch = buildNumber
+        println '##jenkins[buildNumber \'' + major + '.' + minor + '.' + patch + '\']'
       }
     }
 
     return major + '.' + minor + '.' + patch
   }
+
 }

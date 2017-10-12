@@ -19,39 +19,77 @@
 
 package org.apache.wink.json4j.internal;
 
+import org.apache.wink.json4j.*;
+import org.apache.wink.json4j.formatter.FormatOptions;
+import org.apache.wink.json4j.formatter.FormatOptionsBuilder;
+
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.wink.json4j.JSONArray;
-import org.apache.wink.json4j.JSONObject;
-import org.apache.wink.json4j.JSONString;
-import org.apache.wink.json4j.OrderedJSONObject;
 
 /**
  * Class to handle serialization of a JSON object to a JSON string.
  */
 public class Serializer {
 
+    private static final String OPEN_BRACE = "{";
+    private static final String CLOSE_BRACE = "}";
+    private static final String OPEN_BRACKET = "[";
+    private static final String CLOSE_BRACKET = "]";
+    private FormatOptions formatOptions;
+
     /**
      * The writer to use when writing this JSON object.
      */
-    private Writer writer;
+    private final Writer writer;
 
     /**
      * Create a serializer on the specified output stream writer.
+     *
+     * @param writer destination
      */
     public Serializer(Writer writer) {
         super();
-
         this.writer = writer;
+        this.formatOptions = FormatOptionsBuilder.basic();
+    }
+
+    /**
+     * Create a seraializers on the specified output stream writer with
+     * the passed format options
+     *
+     * @param writer        destination
+     * @param formatOptions format options
+     */
+    public Serializer(Writer writer, FormatOptions formatOptions) {
+        super();
+        this.writer = writer;
+        this.formatOptions = formatOptions;
+    }
+
+    /**
+     * This is only here because we needed to support the old constructors for
+     * SerializerVerbose and we couldn't construct the FormatOptions and call
+     * suuper() or this(writer, formatoptions).
+     *
+     * @param fo format options
+     */
+    protected void setFormatOptions(FormatOptions fo) {
+        this.formatOptions = fo;
+    }
+
+    /**
+     * Gets the currently configured <tt>FormatOptions</tt>
+     *
+     * @return - format options
+     */
+    protected FormatOptions formatOptions() {
+        return formatOptions;
     }
 
     /**
      * Method to flush the current writer.
+     *
      * @throws IOException Thrown if an error occurs during writer flush.
      */
     public void flush() throws IOException {
@@ -60,6 +98,7 @@ public class Serializer {
 
     /**
      * Method to close the current writer.
+     *
      * @throws IOException Thrown if an error occurs during writer close.
      */
     public void close() throws IOException {
@@ -68,6 +107,7 @@ public class Serializer {
 
     /**
      * Method to write a raw string to the writer.
+     *
      * @param s The String to write.
      * @throws IOException Thrown if an error occurs during write.
      */
@@ -79,6 +119,7 @@ public class Serializer {
 
     /**
      * Method to write the text string 'null' to the output stream (null JSON object).
+     *
      * @throws IOException Thrown if an error occurs during write.
      */
     public Serializer writeNull() throws IOException {
@@ -88,6 +129,7 @@ public class Serializer {
 
     /**
      * Method to write a number to the current writer.
+     *
      * @param value The Boolean object to write out as a JSON boolean.
      * @return Serializer
      * @throws IOException Thrown if an error occurs during write.
@@ -96,13 +138,13 @@ public class Serializer {
         if (null == value) return writeNull();
 
         if (value instanceof Float) {
-            if (((Float)value).isNaN()) return writeNull();
+            if (((Float) value).isNaN()) return writeNull();
             if (Float.NEGATIVE_INFINITY == value.floatValue()) return writeNull();
             if (Float.POSITIVE_INFINITY == value.floatValue()) return writeNull();
         }
 
         if (value instanceof Double) {
-            if (((Double)value).isNaN()) return writeNull();
+            if (((Double) value).isNaN()) return writeNull();
             if (Double.NEGATIVE_INFINITY == value.doubleValue()) return writeNull();
             if (Double.POSITIVE_INFINITY == value.doubleValue()) return writeNull();
         }
@@ -114,6 +156,7 @@ public class Serializer {
 
     /**
      * Method to write a boolean value to the output stream.
+     *
      * @param value The Boolean object to write out as a JSON boolean.
      * @throws IOException Thrown if an error occurs during write.
      */
@@ -127,14 +170,15 @@ public class Serializer {
 
     /**
      * Method to generate a string with a particular width.  Alignment is done using zeroes if it does not meet the width requirements.
-     * @param s The string to write
+     *
+     * @param s   The string to write
      * @param len The minimum length it should be, and to align with zeroes if length is smaller.
      * @return A string properly aligned/correct width.
      */
     private String rightAlignedZero(String s, int len) {
         if (len == s.length()) return s;
 
-        StringBuffer sb = new StringBuffer(s);
+        StringBuilder sb = new StringBuilder(s);
 
         while (sb.length() < len) {
             sb.insert(0, '0');
@@ -145,6 +189,7 @@ public class Serializer {
 
     /**
      * Method to write a String out to the writer, encoding special characters and unicode characters properly.
+     *
      * @param value The string to write out.
      * @throws IOException Thrown if an error occurs during write.
      */
@@ -155,24 +200,46 @@ public class Serializer {
 
         char[] chars = value.toCharArray();
 
-        for (int i=0; i<chars.length; i++) {
+        for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
             switch (c) {
-                case  '"': writer.write("\\\""); break;
-                case '\\': writer.write("\\\\"); break;
-                case    0: writer.write("\\0"); break;
-                case '\b': writer.write("\\b"); break;
-                case '\t': writer.write("\\t"); break;
-                case '\n': writer.write("\\n"); break;
-                case '\f': writer.write("\\f"); break;
-                case '\r': writer.write("\\r"); break;
-                case '/': writer.write("\\/"); break;
+                case '"':
+                    writer.write("\\\"");
+                    break;
+                case '\\':
+                    writer.write("\\\\");
+                    break;
+                case 0:
+                    writer.write("\\0");
+                    break;
+                case '\b':
+                    writer.write("\\b");
+                    break;
+                case '\t':
+                    writer.write("\\t");
+                    break;
+                case '\n':
+                    writer.write("\\n");
+                    break;
+                case '\f':
+                    writer.write("\\f");
+                    break;
+                case '\r':
+                    writer.write("\\r");
+                    break;
+                case '/':
+                    if (formatOptions.escapeForwardSlashes()) {
+                        writer.write("\\/");
+                    } else {
+                        writer.write(c);
+                    }
+                    break;
                 default:
                     if ((c >= 32) && (c <= 126)) {
                         writer.write(c);
                     } else {
                         writer.write("\\u");
-                        writer.write(rightAlignedZero(Integer.toHexString(c),4));
+                        writer.write(rightAlignedZero(Integer.toHexString(c), 4));
                     }
             }
         }
@@ -184,26 +251,29 @@ public class Serializer {
 
     /**
      * Method to write out a generic JSON type.
+     *
      * @param object The JSON compatible object to serialize.
+     * @return <tt>Serializer</tt> <pre>this</pre> object
      * @throws IOException Thrown if an error occurs during write, or if a nonJSON compatible Java object is passed..
      */
     private Serializer write(Object object) throws IOException {
         if (null == object) return writeNull();
-        
+
         // Serialize the various types!
         Class clazz = object.getClass();
+        if (String.class.isAssignableFrom(clazz)) return writeString((String) object);
+        if (JSONObject.class.isAssignableFrom(clazz)) return writeObject((JSONObject) object);
         if (Number.class.isAssignableFrom(clazz)) return writeNumber((Number) object);
         if (Boolean.class.isAssignableFrom(clazz)) return writeBoolean((Boolean) object);
-        if (JSONObject.class.isAssignableFrom(clazz)) return writeObject((JSONObject) object);
         if (JSONArray.class.isAssignableFrom(clazz)) return writeArray((JSONArray) object);
         if (JSONString.class.isAssignableFrom(clazz)) return writeRawString(((JSONString) object).toJSONString());
-        if (String.class.isAssignableFrom(clazz)) return writeString((String) object);
 
         throw new IOException("Attempting to serialize unserializable object: '" + object + "'");
     }
 
     /**
      * Method to write a complete JSON object to the stream.
+     *
      * @param object The JSON object to write out.
      * @throws IOException Thrown if an error occurs during write.
      */
@@ -211,45 +281,46 @@ public class Serializer {
         if (null == object) return writeNull();
 
         // write header
-        writeRawString("{");
-        indentPush();
+        writeRawString(OPEN_BRACE);
 
-        Iterator iter = null;
-        if (object instanceof OrderedJSONObject) {
-            iter = ((OrderedJSONObject)object).getOrder();
-        } else {
-            List propertyNames = getPropertyNames(object);
-            iter = propertyNames.iterator();
-        }
+        if (!formatOptions.emptyObjectsAndArrayClosuresOnSameLine() || !object.isEmpty()) {
 
-        while ( iter.hasNext() ) {
-            Object key = iter.next();
-            if (!(key instanceof String)) throw new IOException("attempting to serialize object with an invalid property name: '" + key + "'" );
+            indentPush();
 
-            Object value = object.get(key);
-            if (!JSONObject.isValidObject(value)) throw new IOException("attempting to serialize object with an invalid property value: '" + value + "'");
+            for (Iterator<String> iter = object.orderedKeys(); iter.hasNext(); ) {
+                String key = iter.next();
+                try {
+                    Object value = object.get(key);
+                    if (!JSONObject.isValidObject(value)) {
+                        throw new IOException("attempting to serialize object with an invalid property value: '" + value + "'");
+                    }
+                    newLine();
+                    indent();
+                    writeString(key);
+                    if (formatOptions.spaceBetweenKeyAndColon()) { space(); }
+                    writeRawString(":");
+                    space();
+                    write(value);
+                } catch (JSONException jEx) {
+                    throw new IOException(jEx);
+                }
 
+                if (iter.hasNext()) writeRawString(",");
+            }
+
+            // write trailer
+            indentPop();
             newLine();
             indent();
-            writeString((String)key);
-            writeRawString(":");
-            space();
-            write(value);
-
-            if (iter.hasNext()) writeRawString(",");
         }
-
-        // write trailer
-        indentPop();
-        newLine();
-        indent();
-        writeRawString("}");
+        writeRawString(CLOSE_BRACE);
 
         return this;
     }
 
     /**
      * Method to write a JSON array out to the stream.
+     *
      * @param value The JSON array to write out.
      * @throws IOException Thrown if an error occurs during write.
      */
@@ -257,25 +328,29 @@ public class Serializer {
         if (null == value) return writeNull();
 
         // write header
-        writeRawString("[");
-        indentPush();
+        writeRawString(OPEN_BRACKET);
+        if (!formatOptions.emptyObjectsAndArrayClosuresOnSameLine() || !value.isEmpty()) {
 
-        for (Iterator iter=value.iterator(); iter.hasNext(); ) {
-            Object element = iter.next();
-            if (!JSONObject.isValidObject(element)) throw new IOException("attempting to serialize array with an invalid element: '" + value + "'");
+            indentPush();
 
+            for (Iterator iter = value.iterator(); iter.hasNext(); ) {
+                Object element = iter.next();
+                if (!JSONObject.isValidObject(element))
+                    throw new IOException("attempting to serialize array with an invalid element: '" + value + "'");
+
+                newLine();
+                indent();
+                write(element);
+
+                if (iter.hasNext()) writeRawString(",");
+            }
+
+            // write trailer
+            indentPop();
             newLine();
             indent();
-            write(element);
-
-            if (iter.hasNext()) writeRawString(",");
         }
-
-        // write trailer
-        indentPop();
-        newLine();
-        indent();
-        writeRawString("]");
+        writeRawString(CLOSE_BRACKET);
 
         return this;
     }
@@ -286,6 +361,7 @@ public class Serializer {
 
     /**
      * Method to write a space to the output writer.
+     *
      * @throws IOException Thrown if an error occurs during write.
      */
     public void space() throws IOException {
@@ -293,6 +369,7 @@ public class Serializer {
 
     /**
      * Method to write a newline to the output writer.
+     *
      * @throws IOException Thrown if an error occurs during write.
      */
     public void newLine() throws IOException {
@@ -300,6 +377,7 @@ public class Serializer {
 
     /**
      * Method to write an indent to the output writer.
+     *
      * @throws IOException Thrown if an error occurs during write.
      */
     public void indent() throws IOException {
@@ -316,13 +394,4 @@ public class Serializer {
      */
     public void indentPop() {
     }
-
-    /**
-     * Method to get a list of all the property names stored in a map.
-     * @param map source map
-     */
-    public List getPropertyNames(Map map) {
-        return new ArrayList(map.keySet());
-    }
-
 }

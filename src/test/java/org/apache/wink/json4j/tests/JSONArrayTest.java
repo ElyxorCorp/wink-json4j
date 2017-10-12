@@ -220,7 +220,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test parsing a value which ia a number bigger than <code>Long.MAX_VALUE</code>
+     * Test parsing a value which ia a number bigger than <tt>Long.MAX_VALUE</tt>
      */
     @Test
     public void test_parseNumberGreaterThanMaxLong_throwsException() throws JSONException {
@@ -230,7 +230,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test parsing a value which ia a number smaller than <code>Long.MIN_VALUE</code>
+     * Test parsing a value which ia a number smaller than <tt>Long.MIN_VALUE</tt>
      */
     @Test
     public void test_parseNumberLessThanMinLong_throwsException() throws JSONException {
@@ -279,7 +279,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getLong</code> with <code>Long.MAX_VALUE</code>
+     * Test <tt>getLong</tt> with <tt>Long.MAX_VALUE</tt>
      */
     @Test
     public void test_getMaxLongPositive() throws JSONException {
@@ -287,7 +287,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getLong</code> with <code>Long.MIN_VALUE</code>
+     * Test <tt>getLong</tt> with <tt>Long.MIN_VALUE</tt>
      */
     @Test
     public void test_getMaxLongNegative() throws JSONException {
@@ -295,7 +295,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getInt</code> with <code>Integer.MAX_VALUE</code>
+     * Test <tt>getInt</tt> with <tt>Integer.MAX_VALUE</tt>
      */
     @Test
     public void test_getMaxIntPositive() throws JSONException {
@@ -303,7 +303,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getInt</code> with <code>Integer.MIN_VALUE</code>
+     * Test <tt>getInt</tt> with <tt>Integer.MIN_VALUE</tt>
      */
     @Test
     public void test_getMaxIntNegative() throws JSONException {
@@ -311,7 +311,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getInt</code> with number bigger than <code>Integer.MAX_VALUE</code>
+     * Test <tt>getInt</tt> with number bigger than <tt>Integer.MAX_VALUE</tt>
      */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @Test
@@ -323,7 +323,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getDouble</code> with double decimal
+     * Test <tt>getDouble</tt> with double decimal
      */
     @Test
     public void test_getPositiveDoubleWithDecimal() throws JSONException {
@@ -331,7 +331,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getDouble</code> with negative double decimal
+     * Test <tt>getDouble</tt> with negative double decimal
      */
     @Test
     public void test_getNegativeDoubleWithDecimal() throws JSONException {
@@ -339,7 +339,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getDouble</code> with double decimal with an exponent (eg. e-3)
+     * Test <tt>getDouble</tt> with double decimal with an exponent (eg. e-3)
      */
     @Test
     public void test_getPositiveDoubleWithExponential() throws JSONException {
@@ -348,7 +348,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getDouble</code> with negative double decimal with an exponent (eg. e-3)
+     * Test <tt>getDouble</tt> with negative double decimal with an exponent (eg. e-3)
      */
     @Test
     public void test_getNegativeDoubleWithExponential() throws JSONException {
@@ -357,7 +357,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getDouble</code> with double decimal with an exponent (eg. e+3)
+     * Test <tt>getDouble</tt> with double decimal with an exponent (eg. e+3)
      */
     @Test
     public void test_getPositiveDoubleWithPlusExponential() throws JSONException {
@@ -366,7 +366,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getDouble</code> with negative double decimal with an exponent (eg. e+3)
+     * Test <tt>getDouble</tt> with negative double decimal with an exponent (eg. e+3)
      */
     @Test
     public void test_getNegativeDoubleWithPlusExponential() throws JSONException {
@@ -375,7 +375,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getBoolean</code>
+     * Test <tt>getBoolean</tt>
      */
     @Test
     public void test_getBoolean() throws JSONException {
@@ -384,7 +384,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getBoolean</code> with strings <code>"true"</code> and  <code>"false"</code>
+     * Test <tt>getBoolean</tt> with strings <tt>"true"</tt> and  <tt>"false"</tt>
      */
     @Test
     public void test_getBoolean_StringValue() throws JSONException {
@@ -393,7 +393,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getBoolean</code> with string <code>"True"</code> throws exception
+     * Test <tt>getBoolean</tt> with string <tt>"True"</tt> throws exception
      */
     @Test
     public void test_getBoolean_IllegalStringValue_True_throwsJSONException() throws Exception {
@@ -403,7 +403,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getBoolean</code> with string <code>"False"</code> throws exception
+     * Test <tt>getBoolean</tt> with string <tt>"False"</tt> throws exception
      *
      * @throws Exception shouldn't be thrown
      */
@@ -415,7 +415,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getBoolean</code> with string <code>"False"</code> throws exception
+     * Test <tt>getBoolean</tt> with string <tt>"False"</tt> throws exception
      *
      * @throws Exception shouldn't be thrown
      */
@@ -427,7 +427,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>get</code> with a null member
+     * Test <tt>get</tt> with a null member
      */
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     @Test
@@ -468,7 +468,7 @@ public class JSONArrayTest {
     /* *********************************************************************** */
 
     /**
-     * Test <code>getLong</code> function failure due to type mismatch
+     * Test <tt>getLong</tt> function failure due to type mismatch
      */
     @Test
     public void test_getLong_typeMisMatchString_throwsJSONException() throws JSONException {
@@ -478,7 +478,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getDouble</code> function failure due to type mismatch
+     * Test <tt>getDouble</tt> function failure due to type mismatch
      */
     @Test
     public void test_getDouble_typeMisMatchString_throwsJSONException() throws JSONException {
@@ -488,7 +488,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getInt</code> function failure due to type mismatch
+     * Test <tt>getInt</tt> function failure due to type mismatch
      */
     @Test
     public void test_getInt_typeMisMatchString_throwsJSONException() throws JSONException {
@@ -498,7 +498,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getShort</code> function failure due to type mismatch
+     * Test <tt>getShort</tt> function failure due to type mismatch
      */
     @Test
     public void test_getShort_typeMisMatchString_throwsJSONException() throws JSONException {
@@ -508,7 +508,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getShort</code> function failure due to type mismatch
+     * Test <tt>getShort</tt> function failure due to type mismatch
      */
     @Test
     public void test_getString_typeMisMatchNull_throwsJSONException() throws JSONException {
@@ -518,7 +518,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getString</code> function returns string representation of number
+     * Test <tt>getString</tt> function returns string representation of number
      */
     @Test
     public void test_getString_returnsIntegerToString() throws JSONException {
@@ -526,7 +526,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getBoolean</code> function failure due to type mismatch
+     * Test <tt>getBoolean</tt> function failure due to type mismatch
      */
     @Test
     public void test_getBoolean_typeMisMatchNumber_throwsJSONException() throws JSONException {
@@ -536,7 +536,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getLong</code> function failure due to value null
+     * Test <tt>getLong</tt> function failure due to value null
      */
     @Test
     public void test_getLong_typeMisMatchNull_throwsJSONException() throws JSONException {
@@ -546,7 +546,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getInt</code> function failure due to value null
+     * Test <tt>getInt</tt> function failure due to value null
      */
     @Test
     public void test_getInt_typeMisMatchNull_throwsJSONException() throws JSONException {
@@ -556,7 +556,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getDouble</code> function failure due to value null
+     * Test <tt>getDouble</tt> function failure due to value null
      */
     @Test
     public void test_getDouble_typeMisMatchNull_throwsJSONException() throws JSONException {
@@ -566,7 +566,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getShort</code> function failure due to value null
+     * Test <tt>getShort</tt> function failure due to value null
      */
     @Test
     public void test_getShort_typeMisMatchNull_throwsJSONException() throws JSONException {
@@ -576,7 +576,7 @@ public class JSONArrayTest {
     }
 
     /**
-     * Test <code>getBoolean</code> function failure due to value null
+     * Test <tt>getBoolean</tt> function failure due to value null
      */
     @Test
     public void test_getBoolean_typeMisMatchNull_throwsJSONException() throws JSONException {

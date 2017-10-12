@@ -19,76 +19,61 @@
 
 package org.apache.wink.json4j;
 
-import java.io.BufferedWriter;
-import java.io.CharArrayWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
+import org.apache.wink.json4j.formatter.FormatOptions;
+import org.apache.wink.json4j.internal.*;
 
-import org.apache.wink.json4j.internal.BeanSerializer;
-import org.apache.wink.json4j.internal.Null;
-import org.apache.wink.json4j.internal.Parser;
-import org.apache.wink.json4j.internal.Serializer;
-import org.apache.wink.json4j.internal.SerializerVerbose;
+import java.io.*;
+import java.util.*;
 
 /**
  * Models a JSON Object.
- * 
- * Extension of <code>HashMap</code> that only allows <code>String</code> keys,
+ * <p>
+ * Extension of <tt>HashMap</tt> that only allows <tt>String</tt> keys,
  * and values which are JSON-able (such as a Java Bean).
- * <br/><br/>
- * JSON-able values are: <code>null</code>, and instances of <code>String</code>,
- * <code>Boolean</code>, <code>Number</code>, <code>JSONObject</code> and
- * <code>JSONArray</code>.
- * <br/><br/>
+ * </p>
+ * <p>
+ * JSON-able values are: <tt>null</tt>, and instances of <tt>String</tt>,
+ * <tt>Boolean</tt>, <tt>Number</tt>, <tt>JSONObject</tt> and
+ * <tt>JSONArray</tt>.
+ * </p>
+ * <p>
  * Constructors that fill this object from a string will parse json formatted strings
- *   with keys that are unquoted.. e.g.
- *   <pre>
+ * with keys that are unquoted.. e.g.
+ * <pre>
  *   {
  *       some_key: "This is a String",
  *       other_key: 12345
  *   }
  *   </pre>
- * <br/>
- * Constructors will also parse objects when there are <code>C-style</code> and
- * <code>CPP-style</code> comments, however, it does not retain the comments, so saving
+ * <p>
+ * Constructors will also parse objects when there are <tt>C-style</tt> and
+ * <tt>CPP-style</tt> comments, however, it does not retain the comments, so saving
  * the JSON after parsing it will lose the comments. For now.
- *
- * <br/><br/>
+ * </p>
+ * <p>
  * Instances of this class are not thread-safe.
- * <br/><br/>
- * This code does not handle the parsing of <code>Double</code> values using
+ * </p>
+ * <p>
+ * This code does not handle the parsing of <tt>Double</tt> values using
  * <strong>Hexadecimal Floating-point Constants</strong> which are of the format
- * <code>0x1.0p64</code>.  For more info on this number representation, please
- * visit <a href="">this page</a>
- * <br/>
- * There is a commented out test for this in <code>JSONObjectTest::test_opt_ReturnsDoubleClass_whenValueOutOfLongRange()</code>
+ * <tt>0x1.0p64</tt>.  For more info on this number representation, please
+ * visit <a href="http://www.exploringbinary.com/hexadecimal-floating-point-constants/">this page</a>
+ * </p>
+ * There is a commented out test for this in <tt>JSONObjectTest::test_opt_ReturnsDoubleClass_whenValueOutOfLongRange()</tt>
  */
-public class JSONObject extends HashMap  implements JSONArtifact {
+public class JSONObject extends HashMap implements JSONArtifact {
 
     private static final long serialVersionUID = -3269263069889337298L;
 
     /**
-     * A constant definition reference to Java null.  
+     * A constant definition reference to Java null.
      * Provided for API compatibility with other JSON parsers.
      */
     public static final Object NULL = new Null();
 
     /**
      * Return whether the object is a valid value for a property.
+     *
      * @param object The object to check for validity as a JSON property value.
      * @return boolean indicating if the provided object is directly convertable to JSON.
      */
@@ -99,13 +84,14 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
     /**
      * Return whether the class is a valid type of value for a property.
+     *
      * @param clazz The class type to check for validity as a JSON object type.
      * @return boolean indicating if the provided class is directly convertable to JSON.
      */
     public static boolean isValidType(Class clazz) {
         if (null == clazz) throw new IllegalArgumentException();
 
-        if (String.class  == clazz) return true;
+        if (String.class == clazz) return true;
         if (Boolean.class == clazz) return true;
         if (JSONObject.class.isAssignableFrom(clazz)) return true;
         if (JSONArray.class == clazz) return true;
@@ -116,7 +102,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     }
 
     /**
-     * Create a new instance of this class. 
+     * Create a new instance of this class.
      */
     public JSONObject() {
         super();
@@ -125,11 +111,12 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Create a new instance of this class taking selected values from the underlying one.  If a key is not
      * found, then it will be copied into the new JSONObject.
-     * @param obj The JSONObject to extract values from.
+     *
+     * @param obj  The JSONObject to extract values from.
      * @param keys The keys to take from the JSONObject and apply to this instance.
      * @throws JSONException Thrown if a key is duplicated in the string[] keys
      */
-    public JSONObject(JSONObject obj, String[] keys) throws JSONException{
+    public JSONObject(JSONObject obj, String[] keys) throws JSONException {
         super();
         if (keys != null && keys.length > 0) {
             for (int i = 0; i < keys.length; i++) {
@@ -137,7 +124,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
                     throw new JSONException("Duplicate key: " + keys[i]);
                 }
                 try {
-                	Object item = obj.opt(keys[i]);
+                    Object item = obj.opt(keys[i]);
                     if (item != null) {
                         this.put(keys[i], item);
                     }
@@ -153,32 +140,36 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Create a new instance of this class from the provided JSON object string.
      * Note:  This is the same as new JSONObject(str, false);  Parsing in non-strict mode.
-     * @param str The JSON string to parse.  
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     *
+     * @param str The JSON string to parse.
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
     public JSONObject(String str) throws JSONException {
-        super();
-        StringReader reader = new StringReader(str);
-        (new Parser(reader)).parse(this);
+        this(str, false);
     }
 
     /**
      * Create a new instance of this class from the provided JSON object string.
-     * @param str The JSON string to parse.  
+     *
+     * @param str    The JSON string to parse.
      * @param strict Whether or not to parse in 'strict' mode, meaning all strings must be quoted (including identifiers), and comments are not allowed.
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
+    @SuppressWarnings("EmptyFinallyBlock")
     public JSONObject(String str, boolean strict) throws JSONException {
         super();
-        StringReader reader = new StringReader(str);
-        (new Parser(reader, strict)).parse(this);
+        try (StringReader reader = new StringReader(str)) {
+            (new Parser(reader, strict)).parse(this);
+        } finally {
+        }
     }
 
     /**
      * Create a new instance of this class from the data provided from the reader.  The reader content must be a JSON object string.
      * Note:  The reader will not be closed, that is left to the caller.
      * Note:  This is the same as new JSONObject(rdr, false);  Parsing in non-strict mode.
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     *
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
     public JSONObject(Reader rdr) throws JSONException {
         (new Parser(rdr)).parse(this);
@@ -187,9 +178,10 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Create a new instance of this class from the data provided from the reader.  The reader content must be a JSON object string.
      * Note:  The reader will not be closed, that is left to the caller.
-     * @param rdr The reader from which to read the JSON.
+     *
+     * @param rdr    The reader from which to read the JSON.
      * @param strict Whether or not to parse in 'strict' mode, meaning all strings must be quoted (including identifiers), and comments are not allowed.
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
     public JSONObject(Reader rdr, boolean strict) throws JSONException {
         (new Parser(rdr, strict)).parse(this);
@@ -200,10 +192,11 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Note:  The input stream content is assumed to be UTF-8 encoded.
      * Note:  The InputStream will not be closed, that is left to the caller.
      * Note:  This is the same as new JSONObject(is, false);  Parsing in non-strict mode.
+     *
      * @param is The InputStream from which to read the JSON.
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
-    public JSONObject (InputStream is) throws JSONException {
+    public JSONObject(InputStream is) throws JSONException {
         InputStreamReader isr = null;
         if (is != null) {
             try {
@@ -221,11 +214,12 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Create a new instance of this class from the data provided from the input stream.  The stream content must be a JSON object string.
      * Note:  The input stream content is assumed to be UTF-8 encoded.
      * Note:  The InputStream will not be closed, that is left to the caller.
-     * @param is The InputStream from which to read the JSON.
+     *
+     * @param is     The InputStream from which to read the JSON.
      * @param strict Whether or not to parse in 'strict' mode, meaning all strings must be quoted (including identifiers), and comments are not allowed.
-     * @throws JSONException Thrown when the string passed is null, or malformed JSON.. 
+     * @throws JSONException Thrown when the string passed is null, or malformed JSON..
      */
-    public JSONObject (InputStream is, boolean strict) throws JSONException {
+    public JSONObject(InputStream is, boolean strict) throws JSONException {
         InputStreamReader isr = null;
         if (is != null) {
             try {
@@ -240,9 +234,10 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     }
 
     /**
-     * Create a new instance of this class using the contents of the provided map.  
-     * The contents of the map should be values considered JSONable.  
+     * Create a new instance of this class using the contents of the provided map.
+     * The contents of the map should be values considered JSONable.
      * It will try to convert JavaBeans in the map to JSONObjects if possible.
+     *
      * @param map The map of key/value pairs to insert into this JSON object
      */
     public JSONObject(Map map) {
@@ -268,40 +263,43 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Create a new instance of this class using the properties of the provided JavaBean.
      * The bean is converted to a JSONObject via reflection of getter methods.
+     *
      * @param javaBean A java bean with getters for properties.
-     * @throws JSONException Thrown when contents in the map cannot be made JSONable.
+     * @throws JSONException        Thrown when contents in the map cannot be made JSONable.
      * @throws NullPointerException Thrown if the map is null, or a key in the map is null..
      */
     public JSONObject(Object javaBean) throws JSONException {
         super();
         if (javaBean != null) {
-            JSONObject map = (JSONObject)BeanSerializer.toJson(javaBean, true);
+            JSONObject map = (JSONObject) BeanSerializer.toJson(javaBean, true);
             this.putAll(map);
         }
     }
 
     /**
-    * Create a new instance of this class using the properties of the provided JavaBean.
-    * The bean is converted to a JSONObject via reflection of getter methods.
-     * @param javaBean A java bean with getters for properties.
+     * Create a new instance of this class using the properties of the provided JavaBean.
+     * The bean is converted to a JSONObject via reflection of getter methods.
+     *
+     * @param javaBean          A java bean with getters for properties.
      * @param includeSuperclass Boolean indicating that if the object is a JavaBean, include superclass getter properties.
-     * @throws JSONException Thrown when contents in the map cannot be made JSONable.
+     * @throws JSONException        Thrown when contents in the map cannot be made JSONable.
      * @throws NullPointerException Thrown if the map is null, or a key in the map is null..
      */
     public JSONObject(Object javaBean, boolean includeSuperclass) throws JSONException {
         super();
         if (javaBean != null) {
-            JSONObject map = (JSONObject)BeanSerializer.toJson(javaBean, includeSuperclass);
+            JSONObject map = (JSONObject) BeanSerializer.toJson(javaBean, includeSuperclass);
             this.putAll(map);
         }
     }
 
     /**
-     * Create a new instance of this class using the contents of the provided map.  
+     * Create a new instance of this class using the contents of the provided map.
      * The contents of the map should be values considered JSONable.
-     * @param map The map of key/value pairs to insert into this JSON object
+     *
+     * @param map               The map of key/value pairs to insert into this JSON object
      * @param includeSuperclass For values of the map which are JavaBeans, include superclass getter properties.
-     * @throws JSONException Thrown when contents in the map cannot be made JSONable.
+     * @throws JSONException        Thrown when contents in the map cannot be made JSONable.
      * @throws NullPointerException Thrown if the map is null, or a key in the map is null..
      */
     public JSONObject(Map map, boolean includeSuperclass) throws JSONException {
@@ -322,21 +320,21 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Write this object to the stream as JSON text in UTF-8 encoding.  Same as calling write(os,false);
      * Note that encoding is always written as UTF-8, as per JSON spec.
-     * @param os The output stream to write data to.
      *
+     * @param os The output stream to write data to.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public OutputStream write(OutputStream os) throws JSONException {
-        write(os,false);
+        write(os, false);
         return os;
     }
 
     /**
      * Convert this object into a stream of JSON text.  Same as calling write(writer,false);
      * Note that encoding is always written as UTF-8, as per JSON spec.
-     * @param os The output stream to write data to.
-     * @param verbose Whether or not to write the JSON text in a verbose format.
      *
+     * @param os      The output stream to write data to.
+     * @param verbose Whether or not to write the JSON text in a verbose format.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public OutputStream write(OutputStream os, boolean verbose) throws JSONException {
@@ -351,7 +349,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         write(writer, verbose);
         try {
             writer.flush();
-        } catch (Exception ex) { 
+        } catch (Exception ex) {
             JSONException jex = new JSONException("Error during buffer flush");
             jex.initCause(ex);
             throw jex;
@@ -361,9 +359,9 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
     /**
      * Write this object to the stream as JSON text in UTF-8 encoding, specifying how many spaces should be used for each indent.
-     * @param indentDepth How many spaces to use for each indent level.  Should be one to eight.  
-     * Less than one means no intending, greater than 8 and it will just use tab.
      *
+     * @param indentDepth How many spaces to use for each indent level.  Should be one to eight.
+     *                    Less than one means no intending, greater than 8 and it will just use tab.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public OutputStream write(OutputStream os, int indentDepth) throws JSONException {
@@ -378,7 +376,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         write(writer, indentDepth);
         try {
             writer.flush();
-        } catch (Exception ex) { 
+        } catch (Exception ex) {
             JSONException jex = new JSONException("Error during buffer flush");
             jex.initCause(ex);
             throw jex;
@@ -388,8 +386,8 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
     /**
      * Write this object to the writer as JSON text. Same as calling write(writer,false);
-     * @param writer The writer which to write the JSON text to.
      *
+     * @param writer The writer which to write the JSON text to.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public Writer write(Writer writer) throws JSONException {
@@ -399,8 +397,8 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
     /**
      * Write this object to the writer as JSON text in UTF-8 encoding, specifying whether to use verbose (tab-indented) output or not.
-     * @param writer The writer which to write the JSON text to.
      *
+     * @param writer The writer which to write the JSON text to.
      * @throws JSONException Thrown on IO errors during serialization.
      */
     public Writer write(Writer writer, boolean verbose) throws JSONException {
@@ -411,8 +409,8 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         Class writerClass = writer.getClass();
         boolean flushIt = false;
         if (!StringWriter.class.isAssignableFrom(writerClass) &&
-            !CharArrayWriter.class.isAssignableFrom(writerClass) &&
-            !BufferedWriter.class.isAssignableFrom(writerClass)) {
+                !CharArrayWriter.class.isAssignableFrom(writerClass) &&
+                !BufferedWriter.class.isAssignableFrom(writerClass)) {
             writer = new BufferedWriter(writer);
             flushIt = true;
         }
@@ -433,7 +431,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         if (flushIt) {
             try {
                 writer.flush();
-            } catch (Exception ex) { 
+            } catch (Exception ex) {
                 JSONException jex = new JSONException("Error during buffer flush");
                 jex.initCause(ex);
                 throw jex;
@@ -443,9 +441,10 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     }
 
     /**
-     * Write this object to the writer as JSON text, specifying how many spaces should be used for each indent.  
+     * Write this object to the writer as JSON text, specifying how many spaces should be used for each indent.
      * This is an alternate indent style to using tabs.
-     * @param writer The writer which to write the JSON text to.
+     *
+     * @param writer      The writer which to write the JSON text to.
      * @param indentDepth How many spaces to use for each indent.  The value should be between one to eight.
      */
     public Writer write(Writer writer, int indentDepth) throws JSONException {
@@ -462,8 +461,8 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         Class writerClass = writer.getClass();
         boolean flushIt = false;
         if (!StringWriter.class.isAssignableFrom(writerClass) &&
-            !CharArrayWriter.class.isAssignableFrom(writerClass) &&
-            !BufferedWriter.class.isAssignableFrom(writerClass)) {
+                !CharArrayWriter.class.isAssignableFrom(writerClass) &&
+                !BufferedWriter.class.isAssignableFrom(writerClass)) {
             writer = new BufferedWriter(writer);
             flushIt = true;
         }
@@ -483,7 +482,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         if (flushIt) {
             try {
                 writer.flush();
-            } catch (Exception ex) { 
+            } catch (Exception ex) {
                 JSONException jex = new JSONException("Error during buffer flush");
                 jex.initCause(ex);
                 throw jex;
@@ -494,61 +493,67 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
 
     /**
-     * Convert this object into a String of JSON text, specifying how many spaces should be used for each indent.  
+     * Convert this object into a String of JSON text, specifying how many spaces should be used for each indent.
      * This is an alternate indent style to using tabs.
-     * @param indentDepth How many spaces to use for each indent.  The value should be between one to eight.  
-     * Less than one means no indenting, greater than 8 and it will just use tab.
      *
+     * @param indentDepth How many spaces to use for each indent.  The value should be between one to eight.
+     *                    Less than one means no indenting, greater than 8 and it will just use tab.
      * @throws JSONException Thrown on errors during serialization.
      */
     public String write(int indentDepth) throws JSONException {
-        Serializer serializer;
-        StringWriter writer = new StringWriter();
-
-        if (indentDepth < 1) {
-            indentDepth = 0;
-        } else if (indentDepth > 8) {
-            indentDepth = 9;
-        }
-
-        if (indentDepth > 0) {
-            serializer = new SerializerVerbose(writer, indentDepth);
-        } else {
-            serializer = new Serializer(writer);
-        }
-        try {
+        try (final StringWriter writer = new StringWriter()) {
+            final Serializer serializer = (indentDepth < 0)
+                    ? new Serializer(writer)
+                    : new SerializerVerbose(writer, indentDepth);
             serializer.writeObject(this).flush();
+            return writer.toString();
         } catch (IOException iox) {
             JSONException jex = new JSONException("Error occurred during write.");
             jex.initCause(iox);
             throw jex;
         }
-        return writer.toString();
+    }
+
+    /**
+     * Convert this object into a String of JSON text, specifying how many spaces should be used for each indent.
+     * This is an alternate indent style to using tabs.
+     *
+     * @param formatOptions format options
+     * @return the JSON string
+     * @throws JSONException Thrown on errors during serialization.
+     */
+    public String write(FormatOptions formatOptions) throws JSONException {
+        try (final StringWriter writer = new StringWriter()) {
+            final Serializer serializer = (formatOptions.isCompact())
+                    ? new Serializer(writer, formatOptions)
+                    : new SerializerVerbose(writer, formatOptions);
+            serializer.writeObject(this).flush();
+            return writer.toString();
+        } catch (IOException iox) {
+            JSONException jex = new JSONException("Error occurred during write.");
+            jex.initCause(iox);
+            throw jex;
+        }
     }
 
     /**
      * Convert this object into a String of JSON text, specifying whether to use verbose (tab-indented) output or not.
-     * @param verbose Whether or not to write in compressed format.
      *
+     * @param verbose Whether or not to write in compressed format.
      * @throws JSONException Thrown on errors during serialization.
      */
     public String write(boolean verbose) throws JSONException {
-        Serializer serializer;
-        StringWriter writer = new StringWriter();
-
-        if (verbose) {
-            serializer = new SerializerVerbose(writer);
-        } else {
-            serializer = new Serializer(writer);
-        }
-        try {
+        try (final StringWriter writer = new StringWriter()) {
+            final Serializer serializer = (!verbose)
+                    ? new Serializer(writer)
+                    : new SerializerVerbose(writer);
             serializer.writeObject(this).flush();
+            return writer.toString();
         } catch (IOException iox) {
             JSONException jex = new JSONException("Error occurred during write.");
             jex.initCause(iox);
             throw jex;
         }
-        return writer.toString();
     }
 
     /**
@@ -561,13 +566,14 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     }
 
     /**
-     * Method to obtain the object value for a key.  
+     * Method to obtain the object value for a key.
      * This string-based method is provided for API compatibility to other JSON models.
+     *
      * @param key The key  (attribute) name to obtain the value for.
      * @throws JSONException Thrown if the noted key is not in the map of key/value pairs.
      */
     public Object get(String key) throws JSONException {
-        Object val = this.get((Object)key);
+        Object val = this.get((Object) key);
         if (val == null) {
             if (!this.containsKey(key)) {
                 throw new JSONException("The key [" + key + "] was not in the map");
@@ -577,30 +583,32 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     }
 
     /**
-     * Method to obtain the object value for a key.  If the key is not in the map, null is returned.  
+     * Method to obtain the object value for a key.  If the key is not in the map, null is returned.
      * This string-based method is provided for API compatibility to other JSON models.
+     *
      * @param key The key  (attribute) name to obtain the value for.
      */
     public Object opt(String key) {
-        return this.get((Object)key);
+        return this.get((Object) key);
     }
 
     /**
      * (non-Javadoc)
-     * @see java.util.HashMap#put(java.lang.Object, java.lang.Object)
-     * @param key The key to put in the JSONObject
-     * @param value The value to put in the JSONObject
+     *
+     * @param key               The key to put in the JSONObject
+     * @param value             The value to put in the JSONObject
      * @param includeSuperclass Boolean indicating that if the object is a JavaBean, include superclass getter properties.
      * @throws JSONException Thrown if key is null, not a string, or the value could not be converted.
+     * @see java.util.HashMap#put(java.lang.Object, java.lang.Object)
      */
     public Object put(Object key, Object value, boolean includeSuperclass) throws JSONException {
-        if (null == key) throw new JSONException("key must not be null");
-        if (!(key instanceof String)) throw new JSONException("key must be a String");
+        if (null == key) throw new IllegalArgumentException("key must not be null");
+        if (!(key instanceof String)) throw new IllegalArgumentException("key must be a String");
         if (!isValidObject(value)) {
             // Try to convert the unknown type to a JSONObject
-            if (value != null ) {
+            if (value != null) {
                 try {
-                    value = BeanSerializer.toJson(value, includeSuperclass); 
+                    value = BeanSerializer.toJson(value, includeSuperclass);
                 } catch (Exception ex) {
                     throw new JSONException("Invalid type of value.  Could not convert type: [" + value.getClass().getName() + "]");
                 }
@@ -611,13 +619,20 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
     /**
      * (non-Javadoc)
+     *
      * @see java.util.HashMap#put(java.lang.Object, java.lang.Object)
      * This is the same as calling put(key, value, true);
      */
+    @Override
     public Object put(Object key, Object value) {
         try {
             return put(key, value, true);
+        } catch (JSONException jex) {
+            throw new RuntimeException(jex);
         } catch (Exception e) {
+            if (e instanceof IllegalArgumentException) {
+                throw e;
+            }
             IllegalArgumentException iae = new IllegalArgumentException("Error occurred during JSON conversion");
             iae.initCause(e);
             throw iae;
@@ -630,35 +645,38 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
     /**
      * Similar to default HashMap put, except it returns JSONObject instead of Object.
-     * @see java.util.HashMap#put(java.lang.Object, java.lang.Object)
+     *
      * @return A reference to this object instance.
      * @throws JSONException Thrown if key is null, not a string, or the value could not be converted to JSON.
+     * @see java.util.HashMap#put(java.lang.Object, java.lang.Object)
      */
-    public JSONObject put(String key, Object value) throws JSONException{
-        this.put((Object)key, value);
+    public JSONObject put(String key, Object value) throws JSONException {
+        this.put((Object) key, value);
         return this;
     }
 
     /**
      * Method to add an atomic boolean to the JSONObject.
      * param key The key/attribute name to set the boolean at.
+     *
      * @param value The boolean value.
-     * @throws JSONException Thrown if key is null or not a string.
      * @return A reference to this object instance.
+     * @throws JSONException Thrown if key is null or not a string.
      */
-    public JSONObject put(String key, boolean value) throws JSONException{
-        this.put(key,new Boolean(value));
+    public JSONObject put(String key, boolean value) throws JSONException {
+        this.put(key, new Boolean(value));
         return this;
     }
 
     /**
      * Method to add an atomic double to the JSONObject.
      * param key The key/attribute name to set the double at.
+     *
      * @param value The double value.
-     * @throws JSONException Thrown if key is null or not a string.
      * @return A reference to this object instance.
+     * @throws JSONException Thrown if key is null or not a string.
      */
-    public JSONObject put(String key, double value) throws JSONException{
+    public JSONObject put(String key, double value) throws JSONException {
         this.put(key, new Double(value));
         return this;
     }
@@ -666,11 +684,12 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Method to add an atomic integer to the JSONObject.
      * param key The key/attribute name to set the integer at.
+     *
      * @param value The integer value.
-     * @throws JSONException Thrown if key is null or not a string.
      * @return A reference to this object instance.
+     * @throws JSONException Thrown if key is null or not a string.
      */
-    public JSONObject put(String key, int value) throws JSONException{
+    public JSONObject put(String key, int value) throws JSONException {
         this.put(key, new Integer(value));
         return this;
     }
@@ -678,41 +697,44 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Method to add an atomic short to the JSONObject.
      * param key The key/attribute name to set the integer at.
+     *
      * @param value The integer value.
-     * @throws JSONException Thrown if key is null or not a string.
      * @return A reference to this object instance.
+     * @throws JSONException Thrown if key is null or not a string.
      */
-    public JSONObject put(String key, short value) throws JSONException{
+    public JSONObject put(String key, short value) throws JSONException {
         this.put(key, new Short(value));
         return this;
     }
 
     /**
      * Method to add an atomic long to the JSONObject.
-     * @param key The key/attribute name to set the long to.
+     *
+     * @param key   The key/attribute name to set the long to.
      * @param value The long value.
-     * @throws JSONException Thrown if key is null or not a string.
      * @return A reference to this object instance.
+     * @throws JSONException Thrown if key is null or not a string.
      */
-    public JSONObject put(String key, long value) throws JSONException{
+    public JSONObject put(String key, long value) throws JSONException {
         this.put(key, new Long(value));
         return this;
     }
 
     /**
      * Method to add a Map as a new JSONObject contained in this JSONObject
-     * @param key The key/attribute name to set the new JSONObject to.
-     * @param value The Map object to convert to a JSONObject and store.
+     *
+     * @param key               The key/attribute name to set the new JSONObject to.
+     * @param value             The Map object to convert to a JSONObject and store.
      * @param includeSuperclass For values of the map which are JavaBeans and are converted, include superclass getter properties.
-     * @throws JSONException Thrown when contents in the map cannot be converted to something JSONable.
      * @return A reference to this object instance.
+     * @throws JSONException Thrown when contents in the map cannot be converted to something JSONable.
      */
     public JSONObject put(String key, Map value, boolean includeSuperclass) throws JSONException {
         if (value == null) {
-            this.put(key, (Object)null);
+            this.put(key, (Object) null);
         } else {
             if (JSONObject.class.isAssignableFrom(value.getClass())) {
-                this.put(key, (Object)value);
+                this.put(key, (Object) value);
             } else {
                 this.put(key, new JSONObject(value, includeSuperclass));
             }
@@ -723,29 +745,31 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Method to add a Map as a new JSONObject contained in this JSONObject
      * Same as calling put(String, Map, true);
-     * @param key The key/attribute name to set the new JSONObject to.
+     *
+     * @param key   The key/attribute name to set the new JSONObject to.
      * @param value The Map object to convert to a JSONObject and store.
-     * @throws JSONException Thrown when contents in the map cannot be converted to something JSONable.
      * @return A reference to this object instance.
+     * @throws JSONException Thrown when contents in the map cannot be converted to something JSONable.
      */
     public JSONObject put(String key, Map value) throws JSONException {
-        return put(key,value,true);
+        return put(key, value, true);
     }
 
     /**
      * Method to add a Collection as a new JSONArray contained in this JSONObject
-     * @param key The key/attribute name to set the collection to.
-     * @param value The Map object to convert to a JSONObject and store.
+     *
+     * @param key               The key/attribute name to set the collection to.
+     * @param value             The Map object to convert to a JSONObject and store.
      * @param includeSuperclass For values of the map which are JavaBeans and are converted, include superclass getter properties.
-     * @throws JSONException Thrown when contents in the Collection cannot be converted to something JSONable.
      * @return A reference to this object instance.
+     * @throws JSONException Thrown when contents in the Collection cannot be converted to something JSONable.
      */
     public JSONObject put(String key, Collection value, boolean includeSuperclass) throws JSONException {
         if (value == null) {
-            this.put(key, (Object)null);
+            this.put(key, (Object) null);
         } else {
             if (JSONArray.class.isAssignableFrom(value.getClass())) {
-                this.put(key, (Object)value);
+                this.put(key, (Object) value);
             } else {
                 this.put(key, new JSONArray(value, includeSuperclass));
             }
@@ -755,62 +779,66 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
     /**
      * Method to add a Collection as a new JSONArray contained in this JSONObject
-     * @param key The key/attribute name to set the collection to.
+     *
+     * @param key   The key/attribute name to set the collection to.
      * @param value The Map object to convert to a JSONObject and store.
-     * @throws JSONException Thrown when contents in the Collection cannot be converted to something JSONable.
      * @return A reference to this object instance.
+     * @throws JSONException Thrown when contents in the Collection cannot be converted to something JSONable.
      */
     public JSONObject put(String key, Collection value) throws JSONException {
-        return put(key,value,true);
+        return put(key, value, true);
     }
-    
+
     /**
      * Method to add an Object array as a new JSONArray contained in this JSONObject
-     * @param key The key/attribute name to set the collection to.
+     *
+     * @param key   The key/attribute name to set the collection to.
      * @param value The Object array to convert to a JSONArray and store.
-     * @throws JSONException Thrown when contents in the Collection cannot be converted to something JSONable.
      * @return A reference to this object instance.
+     * @throws JSONException Thrown when contents in the Collection cannot be converted to something JSONable.
      */
-     public JSONObject put(String key, Object[] value) throws JSONException {
-     	 return put (key, new JSONArray(value), true);
-     }
-     
-     /**
-      * Method to add an Object array as a new JSONArray contained in this JSONObject
-      * @param key The key/attribute name to set the collection to.
-      * @param value The Object array to convert to a JSONArray and store.
-      * @param includeSuperclass For values of the Object array which are JavaBeans and are converted, include superclass getter properties.
-      * @throws JSONException Thrown when contents in the Collection cannot be converted to something JSONable.
-      * @return A reference to this object instance.
-      */
-      public JSONObject put(String key, Object[] value, boolean includeSuperclass) throws JSONException {
-   	      return put (key, new JSONArray(value), includeSuperclass);
-      }
+    public JSONObject put(String key, Object[] value) throws JSONException {
+        return put(key, new JSONArray(value), true);
+    }
+
+    /**
+     * Method to add an Object array as a new JSONArray contained in this JSONObject
+     *
+     * @param key               The key/attribute name to set the collection to.
+     * @param value             The Object array to convert to a JSONArray and store.
+     * @param includeSuperclass For values of the Object array which are JavaBeans and are converted, include superclass getter properties.
+     * @return A reference to this object instance.
+     * @throws JSONException Thrown when contents in the Collection cannot be converted to something JSONable.
+     */
+    public JSONObject put(String key, Object[] value, boolean includeSuperclass) throws JSONException {
+        return put(key, new JSONArray(value), includeSuperclass);
+    }
 
     /**
      * Utility method to obtain the specified key as a 'boolean' value
      * Only boolean true, false, and the String true and false will return.  In this case null, the number 0, and empty string should be treated as false.
      * everything else is true.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
-     * throws JSONException Thrown when the type returned by get(key) is not a boolean instance, or the strings 'true' or 'false'.
+     *            throws JSONException Thrown when the type returned by get(key) is not a boolean instance, or the strings 'true' or 'false'.
      * @return A boolean value (true or false), if the value stored for key is a Boolean, or the strings 'true' or 'false'.
-     */ 
+     */
     public boolean getBoolean(String key) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
             if (val instanceof Boolean) {
-                return((Boolean)val).booleanValue();
+                return ((Boolean) val).booleanValue();
             } else if (Number.class.isAssignableFrom(val.getClass())) {
                 throw new JSONException("Value at key: [" + key + "] was not a boolean or string value of 'true' or 'false'.");
             } else if (String.class.isAssignableFrom(val.getClass())) {
-                String str = (String)val;
+                String str = (String) val;
                 if (str.equals("true")) {
                     return true;
                 } else if (str.equals("false")) {
                     return false;
                 } else {
-                    throw new JSONException("The value for key: [" + key + "]: [" + str + "] was not 'true' or 'false'");    
+                    throw new JSONException("The value for key: [" + key + "]: [" + str + "] was not 'true' or 'false'");
                 }
             } else {
                 throw new JSONException("The value for key: [" + key + "] was not a type that can be converted to boolean");
@@ -824,18 +852,19 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'boolean' value
      * Only returns true if the value is boolean true or the string 'true'.  All other values return false.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
      * @return A boolean value (true or false), if the value stored for key is a Boolean, or the strings 'true' or 'false'.
-     */ 
+     */
     public boolean optBoolean(String key) {
         Object val = this.opt(key);
         if (val != null) {
             if (val instanceof Boolean) {
-                return((Boolean)val).booleanValue();
+                return ((Boolean) val).booleanValue();
             } else if (Number.class.isAssignableFrom(val.getClass())) {
                 return false;
             } else if (String.class.isAssignableFrom(val.getClass())) {
-                String str = (String)val;
+                String str = (String) val;
                 if (str.equals("true")) {
                     return true;
                 } else {
@@ -853,19 +882,20 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'boolean' value
      * Only returns true if the value is boolean true or the string 'true'.  All other values return false.
      * Provided for compatibility to other JSON models.
-     * @param key The key to look up.
+     *
+     * @param key          The key to look up.
      * @param defaultValue The default value to return.
      * @return A boolean value (true or false), if the value stored for key is a Boolean, or the strings 'true' or 'false'.
-     */ 
+     */
     public boolean optBoolean(String key, boolean defaultValue) {
         Object val = this.opt(key);
         if (val != null) {
             if (val instanceof Boolean) {
-                return((Boolean)val).booleanValue();
+                return ((Boolean) val).booleanValue();
             } else if (Number.class.isAssignableFrom(val.getClass())) {
                 return false;
             } else if (String.class.isAssignableFrom(val.getClass())) {
-                String str = (String)val;
+                String str = (String) val;
                 if (str.equals("true")) {
                     return true;
                 } else if (str.equals("false")) {
@@ -886,15 +916,16 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'double' value
      * Only values of Number will be converted to double, all other types will generate an exception
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
-     * throws JSONException Thrown when the type returned by get(key) is not a Double instance, or cannot be converted to a double.
+     *            throws JSONException Thrown when the type returned by get(key) is not a Double instance, or cannot be converted to a double.
      * @return A double value if the value stored for key is an instance of Number.
-     */ 
+     */
     public double getDouble(String key) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).doubleValue();
+                return ((Number) val).doubleValue();
             } else {
                 throw new JSONException("The value for key: [" + key + "] was not a type that can be converted to double");
             }
@@ -906,16 +937,17 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Utility method to obtain the specified key as a 'double' value
      * Only values of Number will be converted to double.  all other values
-     * will return <code>Double.NaN.</code>
+     * will return <tt>Double.NaN.</tt>
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
      * @return A double value if the value stored for key is an instance of Number
-     */ 
+     */
     public double optDouble(String key) {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).doubleValue();
+                return ((Number) val).doubleValue();
             }
         }
         return Double.NaN;
@@ -924,17 +956,18 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Utility method to obtain the specified key as a 'double' value
      * Only values of Number will be converted to double.  all other
-     * values will return <code></code>Double.NaN.
+     * values will return <tt></tt>Double.NaN.
      * Provided for compatibility to other JSON models.
-     * @param key The key to look up.
+     *
+     * @param key          The key to look up.
      * @param defaultValue The default double value to return in case of NaN/null values in map.
      * @return A double value if the value stored for key is an instance of Number.
-     */ 
+     */
     public double optDouble(String key, double defaultValue) {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).doubleValue();
+                return ((Number) val).doubleValue();
             }
         }
         return defaultValue;
@@ -944,15 +977,16 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'short' value
      * Only values of Number will be converted to short, all other types will generate an exception.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
-     * throws JSONException Thrown when the type returned by get(key) is not a Short instance, or cannot be converted to a short.
+     *            throws JSONException Thrown when the type returned by get(key) is not a Short instance, or cannot be converted to a short.
      * @return A short value if the value stored for key is an instance of Number.
-     */ 
+     */
     public short getShort(String key) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).shortValue();
+                return ((Number) val).shortValue();
             } else {
                 throw new JSONException("The value for key: [" + key + "] was not a type that can be converted to short");
             }
@@ -965,32 +999,34 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'short' value
      * Only values of Number will be converted to short.  All other types return 0.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
      * @return A short value if the value stored for key is an instance of Number.  0 otherwise.
-     */ 
+     */
     public short optShort(String key) {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).shortValue();
+                return ((Number) val).shortValue();
             }
         }
-        return(short)0;
+        return (short) 0;
     }
 
     /**
      * Utility method to obtain the specified key as a 'short' value
-     * Only values of Number will be converted to short.  
+     * Only values of Number will be converted to short.
      * Provided for compatibility to other JSON models.
-     * @param key The key to look up.
+     *
+     * @param key          The key to look up.
      * @param defaultValue The default value to return in the case of null/nonNumber values in the map.
      * @return A short value if the value stored for key is an instance of Number.  0 otherwise.
-     */ 
+     */
     public short optShort(String key, short defaultValue) {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).shortValue();
+                return ((Number) val).shortValue();
             }
         }
         return defaultValue;
@@ -1000,15 +1036,16 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'int' value
      * Only values of Number will be converted to integer, all other types will generate an exception.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
-     * throws JSONException Thrown when the type returned by get(key) is not a Double instance, or cannot be converted to a double.
+     *            throws JSONException Thrown when the type returned by get(key) is not a Double instance, or cannot be converted to a double.
      * @return A int value if the value stored for key is an instance of Number.
-     */ 
+     */
     public int getInt(String key) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).intValue();
+                return ((Number) val).intValue();
             } else {
                 throw new JSONException("The value for key: [" + key + "] was not a type that can be converted to integer");
             }
@@ -1021,14 +1058,15 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'int' value
      * Provided for compatibility to other JSON models.
      * Only values of Number will be converted to integer, all other types will return 0.
+     *
      * @param key The key to look up.
      * @return A int value if the value stored for key is an instance of Number.  0 otherwise.
-     */ 
+     */
     public int optInt(String key) {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).intValue();
+                return ((Number) val).intValue();
             }
         }
         return 0;
@@ -1038,15 +1076,16 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'int' value
      * Provided for compatibility to other JSON models.
      * Only values of Number will be converted to integer
-     * @param key The key to look up.
+     *
+     * @param key          The key to look up.
      * @param defaultValue The default int value to return in case of null/non-number values in the map.
      * @return A int value if the value stored for key is an instance of Number.
-     */ 
+     */
     public int optInt(String key, int defaultValue) {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).intValue();
+                return ((Number) val).intValue();
             }
         }
         return defaultValue;
@@ -1056,15 +1095,16 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'long' value
      * Only values of Number will be converted to long, all other types will generate an exception.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
-     * throws JSONException Thrown when the type returned by get(key) is not a Long instance, or cannot be converted to a long..
+     *            throws JSONException Thrown when the type returned by get(key) is not a Long instance, or cannot be converted to a long..
      * @return A long value if the value stored for key is an instance of Number.
-     */ 
+     */
     public long getLong(String key) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).longValue();
+                return ((Number) val).longValue();
             } else {
                 throw new JSONException("The value for key: [" + key + "] was not a type that can be converted to long");
             }
@@ -1077,32 +1117,34 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'long' value
      * Only values of Number will be converted to long.  all other types return 0.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
      * @return A long value if the value stored for key is an instance of Number, 0 otherwise.
-     */ 
+     */
     public long optLong(String key) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).longValue();
+                return ((Number) val).longValue();
             }
         }
-        return(long)0;
+        return (long) 0;
     }
 
     /**
      * Utility method to obtain the specified key as a 'long' value
      * Only values of Number will be converted to long.  all other types return 0.
      * Provided for compatibility to other JSON models.
-     * @param key The key to look up.
+     *
+     * @param key          The key to look up.
      * @param defaultValue The default long value to return in case of null/non Number values in the map.
      * @return A long value if the value stored for key is an instance of Number, defaultValue otherwise.
-     */ 
+     */
     public long optLong(String key, long defaultValue) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
             if (Number.class.isAssignableFrom(val.getClass())) {
-                return((Number)val).intValue();
+                return ((Number) val).intValue();
             }
         }
         return defaultValue;
@@ -1112,10 +1154,11 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'string' value
      * Only values that can be easily converted to string will be returned.  A null will generate an exception.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
-     * throws JSONException Thrown when the type returned by get(key) is null.
+     *            throws JSONException Thrown when the type returned by get(key) is null.
      * @return A string value if the value if the value stored for key is not null.
-     */ 
+     */
     public String getString(String key) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
@@ -1129,10 +1172,11 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'string' value
      * Only values that can be easily converted to string will be returned.  A null will generate an exception.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
-     * throws JSONException Thrown when the type returned by get(key) is null.
+     *            throws JSONException Thrown when the type returned by get(key) is null.
      * @return A string value if the value if the value stored for key is not null.
-     */ 
+     */
     public String optString(String key) {
         Object val = this.opt(key);
         if (val != null) {
@@ -1145,10 +1189,11 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a 'string' value
      * Only values that can be easily converted to string will be returned.  A null will generate an exception.
      * Provided for compatibility to other JSON models.
-     * @param key The key to look up.
+     *
+     * @param key          The key to look up.
      * @param defaultValue The default String value to return in the case of null values in the map.
      * @return A string value if the value if the value stored for key is not null, defaultValue otherwise.
-     */ 
+     */
     public String optString(String key, String defaultValue) {
         Object val = this.opt(key);
         if (val != null) {
@@ -1161,15 +1206,16 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a JSONObject
      * Only values that are instances of JSONObject will be returned.  A null will generate an exception.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
-     * throws JSONException Thrown when the type returned by get(key) is not a JSONObject instance.
+     *            throws JSONException Thrown when the type returned by get(key) is not a JSONObject instance.
      * @return A JSONObject value if the value stored for key is an instance or subclass of JSONObject.
-     */ 
+     */
     public JSONObject getJSONObject(String key) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
             if (JSONObject.class.isAssignableFrom(val.getClass())) {
-                return(JSONObject)val;
+                return (JSONObject) val;
             } else {
                 throw new JSONException("The value for key: [" + key + "] was not a JSONObject");
             }
@@ -1182,14 +1228,15 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a JSONObject
      * Only values that are instances of JSONObject will be returned.  A null will generate an exception.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
      * @return A JSONObject value if the value stored for key is an instance or subclass of JSONObject, null otherwise.
-     */ 
+     */
     public JSONObject optJSONObject(String key) {
         Object val = this.opt(key);
         if (val != null) {
             if (JSONObject.class.isAssignableFrom(val.getClass())) {
-                return(JSONObject)val;
+                return (JSONObject) val;
             }
         }
         return null;
@@ -1199,15 +1246,16 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a JSONObject
      * Only values that are instances of JSONObject will be returned.  A null will generate an exception.
      * Provided for compatibility to other JSON models.
-     * @param key The key to look up.
+     *
+     * @param key          The key to look up.
      * @param defaultValue The default JSONObject to return in the case of null/non JSONObject values in the map.
      * @return A JSONObject value if the value stored for key is an instance or subclass of JSONObject, defaultValue otherwise.
-     */ 
+     */
     public JSONObject optJSONObject(String key, JSONObject defaultValue) {
         Object val = this.opt(key);
         if (val != null) {
             if (JSONObject.class.isAssignableFrom(val.getClass())) {
-                return(JSONObject)val;
+                return (JSONObject) val;
             }
         }
         return defaultValue;
@@ -1217,15 +1265,16 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a JSONArray
      * Only values that are instances of JSONArray will be returned.  A null will generate an exception.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
-     * throws JSONException Thrown when the type returned by get(key) is not a Long instance, or cannot be converted to a long..
+     *            throws JSONException Thrown when the type returned by get(key) is not a Long instance, or cannot be converted to a long..
      * @return A JSONArray value if the value stored for key is an instance or subclass of JSONArray.
-     */ 
+     */
     public JSONArray getJSONArray(String key) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
             if (JSONArray.class.isAssignableFrom(val.getClass())) {
-                return(JSONArray)val;
+                return (JSONArray) val;
             } else {
                 throw new JSONException("The value for key: [" + key + "] was not a JSONObject");
             }
@@ -1238,14 +1287,15 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a JSONArray
      * Only values that are instances of JSONArray will be returned.  A null will generate an exception.
      * Provided for compatibility to other JSON models.
+     *
      * @param key The key to look up.
      * @return A JSONArray value if the value stored for key is an instance or subclass of JSONArray, null otherwise.
-     */ 
+     */
     public JSONArray optJSONArray(String key) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
             if (JSONArray.class.isAssignableFrom(val.getClass())) {
-                return(JSONArray)val;
+                return (JSONArray) val;
             }
         }
         return null;
@@ -1255,15 +1305,16 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Utility method to obtain the specified key as a JSONArray
      * Only values that are instances of JSONArray will be returned.  A null will generate an exception.
      * Provided for compatibility to other JSON models.
-     * @param key The key to look up.
+     *
+     * @param key          The key to look up.
      * @param defaultValue The default value to return if the value in the map is null/not a JSONArray.
      * @return A JSONArray value if the value stored for key is an instance or subclass of JSONArray, defaultValue otherwise.
-     */ 
+     */
     public JSONArray optJSONArray(String key, JSONArray defaultValue) throws JSONException {
         Object val = this.opt(key);
         if (val != null) {
             if (JSONArray.class.isAssignableFrom(val.getClass())) {
-                return(JSONArray)val;
+                return (JSONArray) val;
             }
         }
         return defaultValue;
@@ -1273,7 +1324,8 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     /**
      * Put a key/value pair into the JSONObject, but only if key/value are both not null, and only if the key is not present already.
      * Provided for compatibility to existing models.
-     * @param key The ket to place in the array
+     *
+     * @param key   The ket to place in the array
      * @param value The value to place in the array
      * @return Reference to the current JSONObject.
      * @throws JSONException - Thrown if the key already exists or if key or value is null
@@ -1288,16 +1340,17 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         if (this.containsKey(key)) {
             throw new JSONException("Key [" + key + "] already exists in the map");
         }
-        this.put(key,value);
+        this.put(key, value);
         return this;
     }
 
     /**
      * Put a key/value pair into the JSONObject, but only if the key and value are non-null.
-     * @param key The keey (attribute) name to assign to the value.
+     *
+     * @param key   The keey (attribute) name to assign to the value.
      * @param value The value to put into the JSONObject.
      * @return Reference to the current JSONObject.
-     * @throws JSONException - if the value is a non-finite number 
+     * @throws JSONException - if the value is a non-finite number
      */
     public JSONObject putOpt(String key, Object value) throws JSONException {
         if (key == null) {
@@ -1306,14 +1359,15 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         if (value == null) {
             throw new JSONException("Value cannot be null");
         }
-        this.put(key,value);
+        this.put(key, value);
         return this;
     }
 
 
-    /** 
+    /**
      * Method to return the number of keys in this JSONObject.
      * This function merely maps to HashMap.size().  Provided for API compatibility.
+     *
      * @return returns the number of keys in the JSONObject.
      */
     public int length() {
@@ -1324,44 +1378,42 @@ public class JSONObject extends HashMap  implements JSONArtifact {
      * Method to append the 'value' object to the element at entry 'key'.
      * If JSONObject.has(key) returns false, a new array is created and the value is appended to it.
      * If the object at position key is not an array, then a new JSONArray is created
-     * and both current and new values are appended to it, then the value of the attribute is set to the new 
+     * and both current and new values are appended to it, then the value of the attribute is set to the new
      * array.  If the current value is already an array, then 'value' is added to it.
      *
-     * @param key The key/attribute name to append to.
+     * @param key   The key/attribute name to append to.
      * @param value The value to append to it.
-     *
-     * @throws JSONException Thrown if the value to append is not JSONAble.
      * @return A reference to this object instance.
+     * @throws JSONException Thrown if the value to append is not JSONAble.
      */
     public JSONObject append(String key, Object value) throws JSONException {
-    	JSONArray array = null;
-    	if (!this.has(key)) {
-    		  array = new JSONArray();
-    	}
-    	else {
+        JSONArray array = null;
+        if (!this.has(key)) {
+            array = new JSONArray();
+        } else {
             Object oldVal = this.get(key);
-            array = new JSONArray();   
+            array = new JSONArray();
             if (oldVal == null) {
                 // Add a null if the key was actually there, but just
                 // had value of null.
-      		           
+
                 array.add(null);
-        	}
-            else  if (JSONArray.class.isAssignableFrom(oldVal.getClass())) {
-	            array = (JSONArray)oldVal;
-	        } else {
-	            array = new JSONArray();
-	            array.add(oldVal);
-	            
+            } else if (JSONArray.class.isAssignableFrom(oldVal.getClass())) {
+                array = (JSONArray) oldVal;
+            } else {
+                array = new JSONArray();
+                array.add(oldVal);
+
             }
-          
-    	}
+
+        }
         array.add(value);
-        return put(key,array);
+        return put(key, array);
     }
 
     /**
      * Produce a JSONArray containing the values of the members of this JSONObject
+     *
      * @param names - A JSONArray containing the a list of key strings.  This determines the sequence of values in the result.
      * @return A JSONArray of the values found for the names provided.
      * @throws JSONException - if errors occur during storing the values in a JSONArray
@@ -1376,8 +1428,9 @@ public class JSONObject extends HashMap  implements JSONArtifact {
     }
 
 
-    /** 
+    /**
      * Method to test if a key exists in the JSONObject.
+     *
      * @param key The key to test.
      * @return true if the key is defined in the JSONObject (regardless of value), or false if the key is not in the JSONObject
      */
@@ -1388,33 +1441,50 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         return false;
     }
 
-    /** 
-     * Method to test if a key is mapped to null.  
+    /**
+     * Method to test if a key is mapped to null.
      * This method will also return true if the key has not been put in the JSONObject yet.
+     *
      * @param key The key to test for null.
      * @return true if the key is not in the map or if the value referenced by the key is null.
      */
     public boolean isNull(String key) {
-        if ( (this.opt(key) == null) || (NULL == this.opt(key)) ) {
+        if ((this.opt(key) == null) || (NULL == this.opt(key))) {
             return true;
         }
         return false;
     }
 
-    /** 
+    /**
      * Utility function that returns an iterator of all the keys (attributes) of this JSONObject
+     *
      * @return An iterator of all keys in the object.
      */
-    public Iterator keys() {
-        Set set = this.keySet();
-        if (set != null) {
-            return set.iterator();
+    public Iterator<String> keys() {
+        Set<String> set = this.keySet();
+        if (null == set) {
+            return null;
         }
-        return null;
+        return set.iterator();
     }
 
-    /** 
+    /**
+     * Sorts the keys using default string ordering
+     * @return - iterator
+     */
+    public Iterator<String> orderedKeys() {
+        Set<String> set = this.keySet();
+        if (null == set) {
+            return null;
+        }
+        ArrayList<String> keys = new ArrayList<>(set);
+        keys.sort(String::compareTo);
+        return keys.iterator();
+    }
+
+    /**
      * Utility function that returns a JSONArray of all the names of the keys (attributes) of this JSONObject
+     *
      * @return All the keys in the JSONObject as a JSONArray.
      */
     public JSONArray names() {
@@ -1429,8 +1499,9 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         return null;
     }
 
-    /** 
+    /**
      * Utility function that returns a String[] of all the names of the keys (attributes) of this JSONObject
+     *
      * @return All the keys in the JSONObject as a String[].
      */
     public static String[] getNames(JSONObject obj) {
@@ -1442,7 +1513,7 @@ public class JSONObject extends HashMap  implements JSONArtifact {
                 Iterator itr = obj.keys();
                 if (itr != null) {
                     while (itr.hasNext()) {
-                        array[pos] = (String)itr.next();
+                        array[pos] = (String) itr.next();
                         pos++;
                     }
                 }
@@ -1451,8 +1522,9 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         return array;
     }
 
-    /** 
+    /**
      * Utility function that returns an iterator of all the keys (attributes) of this JSONObject sorted in lexicographic manner (String.compareTo).
+     *
      * @return An iterator of all keys in the object in lexicographic (character code) sorted order.
      */
     public Iterator sortedKeys() {
@@ -1474,14 +1546,16 @@ public class JSONObject extends HashMap  implements JSONArtifact {
         return null;
     }
 
-    /**
-     * End of convenience methods.
-     */
+    /* *************************** */
+    /* End of convenience methods. */
+    /* *************************** */
 
     /**
      * Over-ridden toString() method.  Returns the same value as write(), which is a compact JSON String.
-     * If an error occurs in the serialization, the return will be of format: JSON Generation Error: [<some error>]
+     * If an error occurs in the serialization, the return will be of format: JSON Generation Error: [&lt;some error$gt;]
+     *
      * @return A string of JSON text, if possible.
+     * @see #write()
      */
     public String toString() {
         return toString(false);
@@ -1489,26 +1563,44 @@ public class JSONObject extends HashMap  implements JSONArtifact {
 
     /**
      * Verbose capable toString method.
-     * If an error occurs in the serialization, the return will be of format: JSON Generation Error: [<some error>]
+     * If an error occurs in the serialization, the return will be of format: JSON Generation Error: [&lt;some error$gt;]
+     *
      * @param verbose Whether or not to tab-indent the output.
      * @return A string of JSON text, if possible.
+     * @see #write(boolean)
      */
     public String toString(boolean verbose) {
-        String str = null;
         try {
-            str = write(verbose);    
+            return write(verbose);
         } catch (JSONException jex) {
-            str = "JSON Generation Error: [" + jex.toString() + "]";
+            return "JSON Generation Error: [" + jex.toString() + "]";
         }
-        return str;
     }
 
     /**
      * Function to return a string of JSON text with specified indention.  Returns the same value as write(indentDepth).
-     * If an error occurs in the serialization, a JSONException is thrown.
+     * If an error occurs in the serialization, a <tt>JSONException</tt> is thrown.
+     *
      * @return A string of JSON text, if possible.
+     * @see #write(int)
      */
     public String toString(int indentDepth) throws JSONException {
         return write(indentDepth);
+    }
+
+    /**
+     * Function to return a string of JSON text using the passed format options.
+     * If an error occurs in the serialization, a <tt>JSONException</tt> is thrown.
+     *
+     * @param formatOptions format options
+     * @return A string of JSON test, if  possible
+     * @see #write(FormatOptions)
+     */
+    public String toString(FormatOptions formatOptions) {
+        try {
+            return write(formatOptions);
+        } catch (JSONException jex) {
+            return "JSON Generation Error: [" + jex.toString() + "]";
+        }
     }
 }

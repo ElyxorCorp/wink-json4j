@@ -46,7 +46,7 @@ public class VerifyUtils {
     }
 
     /**
-     * Verifies the rules described in the Javadoc for <code>XML</code>
+     * Verifies the rules described in the Javadoc for <tt>XML</tt>
      * @param obj The object to verify
      * @throws JSONException
      * @see org.apache.wink.json4j.utils.XML

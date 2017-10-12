@@ -19,37 +19,33 @@
 
 package org.apache.wink.json4j.internal;
 
-import java.io.BufferedReader;
-import java.io.CharArrayReader;
-import java.io.IOException;
-import java.io.PushbackReader;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 
 /**
  * Tokenizes a stream into JSON tokens.
  */
 public class Tokenizer {
 
+    public static final String NON_HEX_DIGIT = "non-hex digit ";
     /**
      * The reader from which the JSON string is being read.
      */
     private Reader reader;
 
-    /** 
+    /**
      * The current line position in the JSON string.
      */
-    private int     lineNo;
+    private int lineNo;
 
     /**
      * The current column position in the JSON string.
      */
-    private int     colNo;
+    private int colNo;
 
-    /** 
+    /**
      * The last character read from the JSON string.
      */
-    private int     lastChar;
+    private int lastChar;
 
     /**
      * Whether or not the parser should be spec strict, or allow unquoted strings and comments
@@ -58,83 +54,98 @@ public class Tokenizer {
 
     /**
      * Constructor.
+     *
      * @param reader The reader from which the JSON string is read.  Same as Tokenizer(reader, false);
-     * 
      * @throws IOException Thrown on IOErrors such as invalid JSON or sudden reader closures.
      */
-    public Tokenizer(Reader reader) throws IOException {
+    public Tokenizer(final Reader reader) throws IOException {
         super();
 
-        Class readerClass= reader.getClass();
+        Class readerClass = reader.getClass();
         //In-memory readers don't need to be buffered.  Also, skip PushbackReaders
         //because they probably already wrap a buffered stream.  And lastly, anything
         //that extends from a BufferedReader also doesn't need buffering!
-        if (!StringReader.class.isAssignableFrom(readerClass) && 
-            !CharArrayReader.class.isAssignableFrom(readerClass) &&
-            !PushbackReader.class.isAssignableFrom(readerClass) &&
-            !BufferedReader.class.isAssignableFrom(readerClass)) {
-            reader = new BufferedReader(reader);
+        if (!StringReader.class.isAssignableFrom(readerClass) &&
+                !CharArrayReader.class.isAssignableFrom(readerClass) &&
+                !PushbackReader.class.isAssignableFrom(readerClass) &&
+                !BufferedReader.class.isAssignableFrom(readerClass)) {
+            this.reader = new BufferedReader(reader);
+        } else {
+            this.reader = reader;
         }
-        this.reader    = reader;
-        this.lineNo    = 0;
-        this.colNo     = 0;
-        this.lastChar  = '\n';
+        this.lineNo = 0;
+        this.colNo = 0;
+        this.lastChar = '\n';
         readChar();
     }
 
     /**
      * Constructor.
+     *
      * @param reader The reader from which the JSON string is read.
      * @param strict Whether or not the parser should be spec strict, or allow unquoted strings and comments.
-     * 
      * @throws IOException Thrown on IOErrors such as invalid JSON or sudden reader closures.
      */
-    public Tokenizer(Reader reader, boolean strict) throws IOException {
+    public Tokenizer(final Reader reader, boolean strict) throws IOException {
         super();
 
-        Class readerClass= reader.getClass();
+        Class readerClass = reader.getClass();
         //In-memory readers don't need to be buffered.  Also, skip PushbackReaders
         //because they probably already wrap a buffered stream.  And lastly, anything
         //that extends from a BufferedReader also doesn't need buffering!
-        if (!StringReader.class.isAssignableFrom(readerClass) && 
-            !CharArrayReader.class.isAssignableFrom(readerClass) &&
-            !PushbackReader.class.isAssignableFrom(readerClass) &&
-            !BufferedReader.class.isAssignableFrom(readerClass)) {
-            reader = new BufferedReader(reader);
+        if (!StringReader.class.isAssignableFrom(readerClass) &&
+                !CharArrayReader.class.isAssignableFrom(readerClass) &&
+                !PushbackReader.class.isAssignableFrom(readerClass) &&
+                !BufferedReader.class.isAssignableFrom(readerClass)) {
+            this.reader = new BufferedReader(reader);
+        } else {
+            this.reader = reader;
         }
-        this.reader    = reader;
-        this.lineNo    = 0;
-        this.colNo     = 0;
-        this.lastChar  = '\n';
-        this.strict    = strict;
+        this.lineNo = 0;
+        this.colNo = 0;
+        this.lastChar = '\n';
+        this.strict = strict;
 
         readChar();
     }
 
     /**
      * Method to get the next JSON token from the JSON String
-     * @return The next token in the stream, returning Token.TokenEOF when finished.
      *
+     * @return The next token in the stream, returning Token.TokenEOF when finished.
      * @throws IOException Thrown if unexpected read error occurs or invalid character encountered in JSON string.
      */
     public Token next() throws IOException {
 
         // skip whitespace, use our own checker, it seems
         // a bit faster than Java's default.
-        //while (Character.isWhitespace((char)lastChar)) {
-        while (isWhitespace((char)lastChar)) {
+        while (isWhitespace((char) lastChar)) {
             readChar();
         }
 
         // handle punctuation
         switch (lastChar) {
-            case -1:  readChar(); return Token.TokenEOF;
-            case '{': readChar(); return Token.TokenBraceL;
-            case '}': readChar(); return Token.TokenBraceR;
-            case '[': readChar(); return Token.TokenBrackL;
-            case ']': readChar(); return Token.TokenBrackR;
-            case ':': readChar(); return Token.TokenColon;
-            case ',': readChar(); return Token.TokenComma;
+            case -1:
+                readChar();
+                return Token.TokenEOF;
+            case '{':
+                readChar();
+                return Token.TokenBraceL;
+            case '}':
+                readChar();
+                return Token.TokenBraceR;
+            case '[':
+                readChar();
+                return Token.TokenBrackL;
+            case ']':
+                readChar();
+                return Token.TokenBrackR;
+            case ':':
+                readChar();
+                return Token.TokenColon;
+            case ',':
+                readChar();
+                return Token.TokenComma;
 
             case '"':
             case '\'':
@@ -156,14 +167,20 @@ public class Tokenizer {
                 Number numberValue = readNumber();
                 return new Token(numberValue);
 
-            case 'n': 
+            case 'n':
             case 't':
             case 'f':
                 String ident = readIdentifier();
 
-                if (ident.equals("null"))  return Token.TokenNull;
-                if (ident.equals("true"))  return Token.TokenTrue;
-                if (ident.equals("false")) return Token.TokenFalse;
+                if (ident.equals("null")) {
+                    return Token.TokenNull;
+                }
+                if (ident.equals("true")) {
+                    return Token.TokenTrue;
+                }
+                if (ident.equals("false")) {
+                    return Token.TokenFalse;
+                }
 
                 // Okay, this was some sort of unquoted string, may be okay
                 if (!this.strict) {
@@ -183,16 +200,16 @@ public class Tokenizer {
                 }
 
             default:
-                if (!this.strict && isValidUnquotedChar((char)lastChar)) {
+                if (!this.strict && isValidUnquotedChar((char) lastChar)) {
                     // Unquoted string.  Bad form, but ... okay, lets accept it.
                     // some other parsers do.
                     String unquotedStr = readIdentifier();
                     return new Token(unquotedStr);
                 } else {
                     if (this.strict) {
-                        throw new IOException("Unexpected character '" + (char)lastChar + "' " + onLineCol() + ".  Unquoted strings are not allowed in strict mode.");
+                        throw new IOException("Unexpected character '" + (char) lastChar + "' " + onLineCol() + ".  Unquoted strings are not allowed in strict mode.");
                     } else {
-                        throw new IOException("Unexpected character '" + (char)lastChar + "' " + onLineCol());
+                        throw new IOException("Unexpected character '" + (char) lastChar + "' " + onLineCol());
                     }
                 }
         }
@@ -206,23 +223,23 @@ public class Tokenizer {
      */
     private void readComment() throws IOException {
         readChar();
-        if ((char)lastChar == '/') {
+        if ((char) lastChar == '/') {
             // Okay, // comment,so just read to \n or end of line
-            while ((char)lastChar != '\n' && lastChar != -1) {
+            while ((char) lastChar != '\n' && lastChar != -1) {
                 readChar();
             }
-        } else if ((char)lastChar == '*') {
+        } else if ((char) lastChar == '*') {
             // /* comment, so read past it.
             char[] chars = new char[2];
             readChar();
             if (lastChar != -1) {
-                chars[0] = (char)lastChar;
+                chars[0] = (char) lastChar;
             } else {
                 return;
             }
             readChar();
             if (lastChar != -1) {
-                chars[1] = (char)lastChar;
+                chars[1] = (char) lastChar;
             } else {
                 return;
             }
@@ -231,8 +248,8 @@ public class Tokenizer {
                 readChar();
                 if (lastChar != -1) {
                     chars[0] = chars[1];
-                    chars[1] = (char)lastChar;
-                 
+                    chars[1] = (char) lastChar;
+
                 } else {
                     return;
                 }
@@ -242,22 +259,21 @@ public class Tokenizer {
 
     /**
      * Method to read a string from the JSON string, converting escapes accordingly.
-     * @return The parsed JSON string with all escapes properly converyed.
      *
+     * @return The parsed JSON string with all escapes properly converyed.
      * @throws IOException Thrown on unterminated strings, invalid characters, bad escapes, and so on.  Basically, invalid JSON.
      */
     private String readString() throws IOException {
-        StringBuffer sb    = new StringBuffer();
-        int          delim = lastChar;
-        int          l = lineNo;
-        int          c = colNo;
+        StringBuilder sb = new StringBuilder();
+        int delim = lastChar;
+        int l = lineNo;
+        int c = colNo;
 
         readChar();
         while ((-1 != lastChar) && (delim != lastChar)) {
-            StringBuffer digitBuffer;
 
             if (lastChar != '\\') {
-                sb.append((char)lastChar);
+                sb.append((char) lastChar);
                 readChar();
                 continue;
             }
@@ -265,28 +281,55 @@ public class Tokenizer {
             readChar();
 
             switch (lastChar) {
-                case 'b':  readChar(); sb.append('\b'); continue; 
-                case 'f':  readChar(); sb.append('\f'); continue; 
-                case 'n':  readChar(); sb.append('\n'); continue; 
-                case 'r':  readChar(); sb.append('\r'); continue; 
-                case 't':  readChar(); sb.append('\t'); continue; 
-                case '\'': readChar(); sb.append('\''); continue; 
-                case '"':  readChar(); sb.append('"');  continue; 
-                case '\\': readChar(); sb.append('\\'); continue;
-                case '/': readChar();  sb.append('/'); continue;
+                case 'b':
+                    readChar();
+                    sb.append('\b');
+                    continue;
+                case 'f':
+                    readChar();
+                    sb.append('\f');
+                    continue;
+                case 'n':
+                    readChar();
+                    sb.append('\n');
+                    continue;
+                case 'r':
+                    readChar();
+                    sb.append('\r');
+                    continue;
+                case 't':
+                    readChar();
+                    sb.append('\t');
+                    continue;
+                case '\'':
+                    readChar();
+                    sb.append('\'');
+                    continue;
+                case '"':
+                    readChar();
+                    sb.append('"');
+                    continue;
+                case '\\':
+                    readChar();
+                    sb.append('\\');
+                    continue;
+                case '/':
+                    readChar();
+                    sb.append('/');
+                    continue;
 
                     // hex constant
                     // unicode constant
                 case 'x':
                 case 'u':
-                    digitBuffer = new StringBuffer();
+                    final StringBuilder digitBuffer = new StringBuilder();
 
                     int toRead = 2;
                     if (lastChar == 'u') toRead = 4;
 
-                    for (int i=0; i<toRead; i++) {
+                    for (int i = 0; i < toRead; i++) {
                         readChar();
-                        if (!isHexDigit(lastChar)) throw new IOException("non-hex digit " + onLineCol());
+                        if (!isHexDigit(lastChar)) throw new IOException(NON_HEX_DIGIT + onLineCol());
                         digitBuffer.append((char) lastChar);
                     }
                     readChar();
@@ -295,36 +338,36 @@ public class Tokenizer {
                         int digitValue = Integer.parseInt(digitBuffer.toString(), 16);
                         sb.append((char) digitValue);
                     } catch (NumberFormatException e) {
-                        throw new IOException("non-hex digit " + onLineCol());
+                        throw new IOException(NON_HEX_DIGIT + onLineCol());
                     }
 
                     break;
 
-                    // octal constant
+                // octal constant
                 default:
-                    if (!isOctalDigit(lastChar)) throw new IOException("non-hex digit " + onLineCol());
+                    if (!isOctalDigit(lastChar)) throw new IOException(NON_HEX_DIGIT + onLineCol());
 
-                    digitBuffer = new StringBuffer();
-                    digitBuffer.append((char) lastChar);
+                    final StringBuilder octalBuffer = new StringBuilder();
+                    octalBuffer.append((char) lastChar);
 
-                    for (int i=0; i<2; i++) {
+                    for (int i = 0; i < 2; i++) {
                         readChar();
                         if (!isOctalDigit(lastChar)) break;
 
-                        digitBuffer.append((char) lastChar);
+                        octalBuffer.append((char) lastChar);
                     }
 
                     try {
-                        int digitValue = Integer.parseInt(digitBuffer.toString(), 8);
-                        sb.append((char) digitValue);
+                        final int octalValue = Integer.parseInt(octalBuffer.toString(), 8);
+                        sb.append((char) octalValue);
                     } catch (NumberFormatException e) {
-                        throw new IOException("non-hex digit " + onLineCol());
+                        throw new IOException(NON_HEX_DIGIT + onLineCol());
                     }
             }
         }
 
         if (-1 == lastChar) {
-            throw new IOException("String not terminated " + onLineCol(l,c));
+            throw new IOException("String not terminated " + onLineCol(l, c));
         }
 
         readChar();
@@ -334,49 +377,47 @@ public class Tokenizer {
 
     /**
      * Method to read a number from the JSON string.
-     * 
+     * <p>
      * (-)(1-9)(0-9)*            : decimal
      * (-)0(0-7)*               : octal
      * (-)0(x|X)(0-9|a-f|A-F)*  : hex
-     * [digits][.digits][(E|e)[(+|-)]digits]         
+     * [digits][.digits][(E|e)[(+|-)]digits]
      *
-     * @returns The number as the wrapper Java Number type.
-     * 
+     * @return The number as the wrapper Java Number type.
      * @throws IOException Thrown in invalid numbers or unexpected end of JSON string
-     * */
+     */
     private Number readNumber() throws IOException {
-        StringBuffer sb = new StringBuffer();
-        int          l    = lineNo;
-        int          c    = colNo;
+        final StringBuilder sb = new StringBuilder();
+        int l = lineNo;
+        int c = colNo;
 
 
         boolean isHex = false;
-        
+
         if (lastChar == '-') {
-        	sb.append((char)lastChar);
+            sb.append((char) lastChar);
             readChar();
         }
         if (lastChar == '0') {
-        	sb.append((char)lastChar);
+            sb.append((char) lastChar);
             readChar();
-        	if (lastChar == 'x' || lastChar == 'X') {
-        		sb.append((char)lastChar);
+            if (lastChar == 'x' || lastChar == 'X') {
+                sb.append((char) lastChar);
                 readChar();
-        		isHex = true;
-        	}
+                isHex = true;
+            }
         }
-        
+
         if (isHex) {
-        	while (isDigitChar(lastChar) || isHexDigit(lastChar)) {
-                sb.append((char)lastChar);
+            while (isDigitChar(lastChar) || isHexDigit(lastChar)) {
+                sb.append((char) lastChar);
                 readChar();
-            }  	   
-        }
-        else {
+            }
+        } else {
             while (isDigitChar(lastChar)) {
-                sb.append((char)lastChar);
+                sb.append((char) lastChar);
                 readChar();
-            } 
+            }
         }
 
         // convert it!
@@ -394,51 +435,47 @@ public class Tokenizer {
             }
 
             if (isHex) {
-            	Long value = Long.valueOf(sign + string.substring(2),16);
-                if (value.longValue() <= Integer.MAX_VALUE  && (value.longValue() >= Integer.MIN_VALUE)) {
-                	return new Integer(value.intValue());
-                }
-                else {
-                	return value;
+                Long value = Long.valueOf(sign + string.substring(2), 16);
+                if (value <= Integer.MAX_VALUE && value >= Integer.MIN_VALUE) {
+                    return Integer.valueOf(value.intValue());
+                } else {
+                    return value;
                 }
             }
 
             if (string.equals("0")) {
-                return new Integer(0);
+                return Integer.valueOf(0);
             } else if (string.startsWith("0") && string.length() > 1) {
-            	Long value = Long.valueOf(sign + string.substring(1),8);
-                if (value.longValue() <= Integer.MAX_VALUE  && (value.longValue() >= Integer.MIN_VALUE)) {
-                	return new Integer(value.intValue());
-                }
-                else {
-                	return value;
+                Long value = Long.valueOf(sign + string.substring(1), 8);
+                if (value <= Integer.MAX_VALUE && value >= Integer.MIN_VALUE) {
+                    return Integer.valueOf(value.intValue());
+                } else {
+                    return value;
                 }
             }
 
-            /**
+            /*
              * We have to check for the exponential and treat appropriately
-             * Exponentials should be treated as Doubles.
+             * Exponential values should be treated as Doubles.
              */
-            if (string.indexOf("e") != -1 || string.indexOf("E") != -1) {
+            if (string.indexOf('e') != -1 || string.indexOf('E') != -1) {
                 return Double.valueOf(sign + string);
             } else {
-            	Long value = Long.valueOf(sign + string,10);
-                if (value.longValue() <= Integer.MAX_VALUE  && (value.longValue() >= Integer.MIN_VALUE)) {
-                	return new Integer(value.intValue());
-                }
-                else {
-                	return value;
+                Long value = Long.valueOf(sign + string, 10);
+                if (value <= Integer.MAX_VALUE && value >= Integer.MIN_VALUE) {
+                    return Integer.valueOf(value.intValue());
+                } else {
+                    return value;
                 }
             }
         } catch (NumberFormatException e) {
-            IOException iox = new IOException("Invalid number literal " + onLineCol(l,c));
-            iox.initCause(e);
-            throw iox;
+            throw new IOException("Invalid number literal " + onLineCol(l, c), e);
         }
     }
 
     /**
-     * Method to indicate if the character read is a HEX digit or not. 
+     * Method to indicate if the character read is a HEX digit or not.
+     *
      * @param c The character to check for being a HEX digit.
      */
     private boolean isHexDigit(int c) {
@@ -447,7 +484,7 @@ public class Tokenizer {
             case '1':
             case '2':
             case '3':
-            case '4': 
+            case '4':
             case '5':
             case '6':
             case '7':
@@ -466,13 +503,14 @@ public class Tokenizer {
             case 'e':
             case 'f':
                 return true;
+            default:
+                return false;
         }
-
-        return false;
     }
 
     /**
-     * Method to indicate if the character read is an OCTAL digit or not. 
+     * Method to indicate if the character read is an OCTAL digit or not.
+     *
      * @param c The character to check for being a OCTAL digit.
      */
     private boolean isOctalDigit(int c) {
@@ -481,18 +519,19 @@ public class Tokenizer {
             case '1':
             case '2':
             case '3':
-            case '4': 
+            case '4':
             case '5':
             case '6':
-            case '7': 
+            case '7':
                 return true;
+            default:
+                return false;
         }
-
-        return false;
     }
 
     /**
-     * Method to indicate if the character read is a digit or not.  
+     * Method to indicate if the character read is a digit or not.
+     *
      * @param c The character to check for being a digit.
      */
     private boolean isDigitChar(int c) {
@@ -501,7 +540,7 @@ public class Tokenizer {
             case '1':
             case '2':
             case '3':
-            case '4': 
+            case '4':
             case '5':
             case '6':
             case '7':
@@ -515,29 +554,28 @@ public class Tokenizer {
             case '+':
             case '-':
                 return true;
+            default:
+                return false;
         }
-
-        return false;
     }
 
     /**
-     * Method to read a partular character string.
-     * only really need to handle 'null', 'true', and 'false' 
+     * Method to read a particular character string.
+     * only really need to handle 'null', 'true', and 'false'
      */
     private String readIdentifier() throws IOException {
-        StringBuffer sb = new StringBuffer();
-        
+        final StringBuilder sb = new StringBuilder();
+
         if (this.strict) {
-        	while ((-1 != lastChar) && (Character.isLetter((char)lastChar))) {
-                sb.append((char)lastChar);
+            while ((-1 != lastChar) && (Character.isLetter((char) lastChar))) {
+                sb.append((char) lastChar);
                 readChar();
             }
-        }
-        else {
-            while ((-1 != lastChar) && isValidUnquotedChar((char)lastChar)) {
-               sb.append((char)lastChar);
-               readChar();
-           }
+        } else {
+            while ((-1 != lastChar) && isValidUnquotedChar((char) lastChar)) {
+                sb.append((char) lastChar);
+                readChar();
+            }
         }
 
         return sb.toString();
@@ -545,8 +583,8 @@ public class Tokenizer {
 
     /**
      * Method to read the next character from the string, keeping track of line/column position.
-     * 
-     * @throws IOEXception Thrown when underlying reader throws an error.
+     *
+     * @throws IOException Thrown when underlying reader throws an error.
      */
     private void readChar() throws IOException {
         if ('\n' == lastChar) {
@@ -554,7 +592,7 @@ public class Tokenizer {
             this.lineNo++;
         }
         lastChar = reader.read();
-        if (-1 == lastChar) return ;
+        if (-1 == lastChar) return;
         colNo++;
     }
 
@@ -569,11 +607,12 @@ public class Tokenizer {
      * Method to generate a String indicationg the current line and column position in the JSON string.
      */
     public String onLineCol() {
-        return onLineCol(lineNo,colNo);
+        return onLineCol(lineNo, colNo);
     }
 
     /**
      * High speed test for whitespace!  Faster than the java one (from some testing).
+     *
      * @return if the indicated character is whitespace.
      */
     public boolean isWhitespace(char c) {
@@ -592,31 +631,34 @@ public class Tokenizer {
                 //case Character.LINE_SEPARATOR:
             case Character.PARAGRAPH_SEPARATOR:
                 return true;
+            default:
+                return false;
         }
-        return false;
     }
-    
+
     /**
      * For non strict mode, check if char is valid when not quoted.
-     * @param c
+     *
+     * @param c char to evaluate
      * @return if character is valid unquoted character.
      */
     public boolean isValidUnquotedChar(char c) {
-    	
-    	if (Character.isLetterOrDigit(c)) {
-    		return true;
-    	}
-    	
-    	switch (c) {
-          case '@':  
-          case '-':  
-          case '.':  
-          case '$': 
-          case '+': 
-          case '!': 
-          case '_':
-              return true;
-    	}
-        return false; 
+
+        if (Character.isLetterOrDigit(c)) {
+            return true;
+        }
+
+        switch (c) {
+            case '@':
+            case '-':
+            case '.':
+            case '$':
+            case '+':
+            case '!':
+            case '_':
+                return true;
+            default:
+                return false;
+        }
     }
 }

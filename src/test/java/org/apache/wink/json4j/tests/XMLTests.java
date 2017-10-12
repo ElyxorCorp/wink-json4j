@@ -25,9 +25,7 @@ package org.apache.wink.json4j.tests;
 
 import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONObject;
-import org.apache.wink.json4j.tests.utils.ComplexXMLConstants;
-import org.apache.wink.json4j.tests.utils.LongTextXMLConstants;
-import org.apache.wink.json4j.tests.utils.SimpleXMLConstants;
+import org.apache.wink.json4j.tests.utils.*;
 import org.apache.wink.json4j.utils.XML;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -35,11 +33,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.xml.sax.SAXException;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for all the basic XML Transform functions.
@@ -364,58 +362,5 @@ public class XMLTests {
             ex = ex1;
         }
         assertTrue(ex == null);
-    }
-
-    /* ********************************* */
-    /* Performance tests.                */
-    /* ********************************* */
-
-    /**
-     * Test a complex transform of an XML file to a JSON string with compact emit.
-     */
-    @Ignore("Performance Tests Ignored - simple.xml to JSON")
-    @Test
-    public void testSimpleXMLDocument_AsInputStreamToStringCompactTiming() throws Exception {
-        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("simple.xml")) {
-            executeAndTimeXmlToJSON(stringFromInputStream(is), "simple.xml");
-        }
-    }
-
-    @Ignore("Performance Tests Ignored - complex.xml to JSON")
-    @Test
-    public void testComplexXMLDocument_AsInputStreamToStringCompactTiming() throws Exception {
-        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("complex.xml")) {
-            executeAndTimeXmlToJSON(stringFromInputStream(is), "complex.xml");
-        }
-    }
-
-    private void executeAndTimeXmlToJSON(String strXML, String description) throws Exception {
-        long endTime = 0;
-        long startTime = 0;
-
-        startTime = System.currentTimeMillis();
-        for (int i = 0; i < 10000; i++) {
-
-            try (InputStream strIS = new ByteArrayInputStream(strXML.getBytes(StandardCharsets.UTF_8.name()))) {
-                XML.toJson(strIS);
-            } finally {
-                    /* */
-            }
-        }
-        endTime = System.currentTimeMillis();
-        System.out.println(description + " timing.  Total time for 10000 transforms: [" + (endTime - startTime) + "ms].  Time per execution: [" + ((endTime - startTime) / 10000) + "ms]");
-    }
-
-    private String stringFromInputStream(InputStream is) throws Exception {
-        try (ByteArrayOutputStream result = new ByteArrayOutputStream()) {
-            byte[] buffer = new byte[2048];
-            int length;
-            while ((length = is.read(buffer)) != -1) {
-                result.write(buffer, 0, length);
-            }
-            return result.toString(StandardCharsets.UTF_8.name());
-        } finally {
-/* */
-        }
     }
 }

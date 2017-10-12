@@ -21,10 +21,7 @@ package org.apache.wink.json4j.utils.internal;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Properties;
-import java.util.Vector;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,30 +30,32 @@ import java.util.logging.Logger;
  * This class is lightweight representation of an XML tag as a JSON object.
  * TODO:  Look at using HashMap and collections to store the data instead of sync'ed objects.
  * TODO:  See if the indent/newline handling could be cleaned up.  the repeated checks for compact is rather ugly.
- * TODO:  Look at maybe using the Java representation object as store for the XML data intsead of this customized object.
+ * TODO:  Look at maybe using the Java representation object as store for the XML data instead of this customized object.
  */
 public class JSONObject {
     /**
      * Logger.
      */
-    private static String  className              = "org.apache.commons.json.uils.xml.internal.JSONObject";
-    private static Logger logger                  = Logger.getLogger(className,null);
-    private static final String indent            = "   ";
+    private static final String CLASS_NAME      = "org.apache.commons.json.uils.xml.internal.JSONObject";
+    private static Logger logger                = Logger.getLogger(CLASS_NAME,null);
+    private static final String DEFAULT_INDENT  = "   ";
+
+    private static final String ERROR_OCCURRED_ON_SERIALIZATION_OF_JSON_TEXT = "Error occurred on serialization of JSON text.";
 
     /**
      * The JSON object name.  Effectively, the XML tag name.
      */
-    private String objectName     = null;
+    private final String objectName;
 
     /**
      * All basic JSON object properties.  Effectively same as XML tag attributes.
      */
-    private Properties attrs      = null;
+    private final Properties attrs;
 
     /**
      * All children JSON objects referenced.  Effectively the child tags of an XML tag.
      */
-    private Hashtable jsonObjects = null;
+    private final Hashtable jsonObjects;
 
     /**
      * Any XML freeform text to associate with the JSON object,
@@ -66,7 +65,7 @@ public class JSONObject {
     /**
      * Constructor.
      * @param objectName The object (tag) name being constructed.
-     * @param attrs A proprerties object of all the attributes present for the tag.
+     * @param attrs A properties object of all the attributes present for the tag.
      */
     public JSONObject(String objectName, Properties attrs) {
         this.objectName  = objectName;
@@ -79,7 +78,7 @@ public class JSONObject {
      * @param obj The child JSON object to add to this JSON object.
      */
     public void addJSONObject(JSONObject obj) {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "addJSONObject(JSONObject)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "addJSONObject(JSONObject)");
 
         Vector vect = (Vector) this.jsonObjects.get(obj.objectName);
         if (vect != null) {
@@ -90,7 +89,7 @@ public class JSONObject {
             this.jsonObjects.put(obj.objectName, vect);
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "addJSONObject(JSONObject)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "addJSONObject(JSONObject)");
     }
 
     /**
@@ -117,9 +116,9 @@ public class JSONObject {
      * @throws IOException Trhown if an error occurs on write.
      */
     public void writeObject(Writer writer, int indentDepth, boolean contentOnly) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "writeObject(Writer, int, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeObject(Writer, int, boolean)");
         writeObject(writer,indentDepth,contentOnly, false);
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "writeObject(Writer, int, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeObject(Writer, int, boolean)");
     }
 
 
@@ -132,7 +131,7 @@ public class JSONObject {
      * @throws IOException Trhown if an error occurs on write.
      */
     public void writeObject(Writer writer, int indentDepth, boolean contentOnly, boolean compact) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "writeObject(Writer, int, boolean, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeObject(Writer, int, boolean, boolean)");
 
         if (writer != null) {
             try {
@@ -145,7 +144,7 @@ public class JSONObject {
                 }
 
             } catch (Exception ex) {
-                IOException iox = new IOException("Error occurred on serialization of JSON text.");
+                IOException iox = new IOException(ERROR_OCCURRED_ON_SERIALIZATION_OF_JSON_TEXT);
                 iox.initCause(ex);
                 throw iox;
             }
@@ -153,7 +152,7 @@ public class JSONObject {
             throw new IOException("The writer cannot be null.");
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "writeObject(Writer, int, boolean, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeObject(Writer, int, boolean, boolean)");
     }
 
     /**
@@ -166,7 +165,7 @@ public class JSONObject {
      * @throws IOException Trhown if an error occurs on write.
      */
     private void writeAttribute(Writer writer, String name, String value, int depth, boolean compact) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "writeAttribute(Writer, String, String, int)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeAttribute(Writer, String, String, int)");
 
         if (!compact) {
             writeIndention(writer, depth);
@@ -179,12 +178,12 @@ public class JSONObject {
                 writer.write("\"" + name + "\"" + ":" + "\"" + escapeStringSpecialCharacters(value) + "\"");
             }
         } catch (Exception ex) {
-            IOException iox = new IOException("Error occurred on serialization of JSON text.");
+            IOException iox = new IOException(ERROR_OCCURRED_ON_SERIALIZATION_OF_JSON_TEXT);
             iox.initCause(ex);
             throw iox;
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "writeAttribute(Writer, String, String, int)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "writeAttribute(Writer, String, String, int)");
     }
 
     /**
@@ -194,19 +193,19 @@ public class JSONObject {
      * @throws IOException Trhown if an error occurs on write.
      */
     private void writeIndention(Writer writer, int indentDepth) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "writeIndention(Writer, int)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeIndention(Writer, int)");
 
         try {
             for (int i = 0; i < indentDepth; i++) {
-                writer.write(indent);
+                writer.write(DEFAULT_INDENT);
             }
         } catch (Exception ex) {
-            IOException iox = new IOException("Error occurred on serialization of JSON text.");
+            IOException iox = new IOException(ERROR_OCCURRED_ON_SERIALIZATION_OF_JSON_TEXT);
             iox.initCause(ex);
             throw iox;
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "writeIndention(Writer, int)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "writeIndention(Writer, int)");
     }
 
     /**
@@ -218,7 +217,7 @@ public class JSONObject {
      * @throws IOException Trhown if an error occurs on write.
      */
     private void writeAttributes(Writer writer, Properties attrs, int depth, boolean compact) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "writeAttributes(Writer, Properties, int, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeAttributes(Writer, Properties, int, boolean)");
 
         if (attrs != null) {
             Enumeration props = attrs.propertyNames();
@@ -235,7 +234,7 @@ public class JSONObject {
                                 writer.write(",");
                             }
                         } catch (Exception ex) {
-                            IOException iox = new IOException("Error occurred on serialization of JSON text.");
+                            IOException iox = new IOException(ERROR_OCCURRED_ON_SERIALIZATION_OF_JSON_TEXT);
                             iox.initCause(ex);
                             throw iox;
                         }
@@ -244,7 +243,7 @@ public class JSONObject {
             }
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "writeAttributes(Writer, Properties, int, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "writeAttributes(Writer, Properties, int, boolean)");
     }
 
     /**
@@ -282,7 +281,7 @@ public class JSONObject {
      * @param str The string to escape the characters in.
      */
     private String escapeStringSpecialCharacters(String str) {
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "escapeStringSpecialCharacters(String)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "escapeStringSpecialCharacters(String)");
 
         if (str != null) {
             StringBuffer strBuf = new StringBuffer("");
@@ -345,7 +344,7 @@ public class JSONObject {
             }
             str = strBuf.toString();
         }
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "escapeStringSpecialCharacters(String)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "escapeStringSpecialCharacters(String)");
         return str;
     }
 
@@ -357,7 +356,7 @@ public class JSONObject {
      * @throws IOException Trhown if an error occurs on write.
      */
     private void writeChildren(Writer writer, int depth, boolean compact) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "writeChildren(Writer, int, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeChildren(Writer, int, boolean)");
 
         if (!jsonObjects.isEmpty()) {
             Enumeration keys = jsonObjects.keys();
@@ -369,7 +368,7 @@ public class JSONObject {
                      * Non-array versus array elements.
                      */
                     if (vect.size() == 1) {
-                        if (logger.isLoggable(Level.FINEST)) logger.logp(Level.FINEST, className, "writeChildren(Writer, int, boolean)", "Writing child object: [" + objName + "]");
+                        if (logger.isLoggable(Level.FINEST)) logger.logp(Level.FINEST, CLASS_NAME, "writeChildren(Writer, int, boolean)", "Writing child object: [" + objName + "]");
 
                         JSONObject obj = (JSONObject)vect.elementAt(0);
                         obj.writeObject(writer,depth + 1, false, compact);
@@ -384,7 +383,7 @@ public class JSONObject {
                                     writer.write(",");
                                 }
                             } catch (Exception ex) {
-                                IOException iox = new IOException("Error occurred on serialization of JSON text.");
+                                IOException iox = new IOException(ERROR_OCCURRED_ON_SERIALIZATION_OF_JSON_TEXT);
                                 iox.initCause(ex);
                                 throw iox;
                             }
@@ -394,7 +393,7 @@ public class JSONObject {
                             }
                         }
                     } else {
-                        if (logger.isLoggable(Level.FINEST)) logger.logp(Level.FINEST, className, "writeChildren(Writer, int, boolean)", "Writing array of JSON objects with attribute name: [" + objName + "]");
+                        if (logger.isLoggable(Level.FINEST)) logger.logp(Level.FINEST, CLASS_NAME, "writeChildren(Writer, int, boolean)", "Writing array of JSON objects with attribute name: [" + objName + "]");
 
                         try {
                             if (!compact) {
@@ -438,7 +437,7 @@ public class JSONObject {
                                 writer.write("\n");
                             }
                         } catch (Exception ex) {
-                            IOException iox = new IOException("Error occurred on serialization of JSON text.");
+                            IOException iox = new IOException(ERROR_OCCURRED_ON_SERIALIZATION_OF_JSON_TEXT);
                             iox.initCause(ex);
                             throw iox;
                         }
@@ -447,7 +446,7 @@ public class JSONObject {
             }
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "writeChildren(Writer, int, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "writeChildren(Writer, int, boolean)");
     }
 
     /**
@@ -459,7 +458,7 @@ public class JSONObject {
      * @throws IOException Trhown if an error occurs on write.
      */
     private void writeEmptyObject(Writer writer, int indentDepth, boolean contentOnly, boolean compact) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "writeEmptyObject(Writer, int, boolean, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeEmptyObject(Writer, int, boolean, boolean)");
 
         if (!contentOnly) {
             if (!compact) {
@@ -480,7 +479,7 @@ public class JSONObject {
             }
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "writeEmptyObject(Writer, int, boolean, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "writeEmptyObject(Writer, int, boolean, boolean)");
     }
 
     /**
@@ -492,7 +491,7 @@ public class JSONObject {
      * @throws IOException Trhown if an error occurs on write.
      */
     private void writeTextOnlyObject(Writer writer, int indentDepth, boolean contentOnly, boolean compact) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "writeTextOnlyObject(Writer, int, boolean, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeTextOnlyObject(Writer, int, boolean, boolean)");
 
         if (!contentOnly) {
             writeAttribute(writer,this.objectName,this.tagText.trim(),indentDepth, compact);
@@ -505,7 +504,7 @@ public class JSONObject {
             }
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "writeTextOnlyObject(Writer, int, boolean, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "writeTextOnlyObject(Writer, int, boolean, boolean)");
     }
 
     /**
@@ -517,12 +516,12 @@ public class JSONObject {
      * @throws IOException Trhown if an error occurs on write.
      */
     private void writeComplexObject(Writer writer, int indentDepth, boolean contentOnly, boolean compact) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(className, "writeComplexObject(Writer, int, boolean, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeComplexObject(Writer, int, boolean, boolean)");
 
         boolean wroteTagText = false;
 
         if (!contentOnly) {
-            if (logger.isLoggable(Level.FINEST)) logger.logp(Level.FINEST, className, "writeComplexObject(Writer, int, boolean, boolean)", "Writing object: [" + this.objectName + "]");
+            if (logger.isLoggable(Level.FINEST)) logger.logp(Level.FINEST, CLASS_NAME, "writeComplexObject(Writer, int, boolean, boolean)", "Writing object: [" + this.objectName + "]");
 
             if (!compact) {
                 writeIndention(writer, indentDepth);
@@ -536,7 +535,7 @@ public class JSONObject {
                 writer.write(":{");
             }
         } else {
-            if (logger.isLoggable(Level.FINEST)) logger.logp(Level.FINEST, className, "writeObject(Writer, int, boolean, boolean)", "Writing object contents as an anonymous object (usually an array entry)");
+            if (logger.isLoggable(Level.FINEST)) logger.logp(Level.FINEST, CLASS_NAME, "writeObject(Writer, int, boolean, boolean)", "Writing object contents as an anonymous object (usually an array entry)");
 
             if (!compact) {
                 writeIndention(writer, indentDepth);
@@ -588,7 +587,7 @@ public class JSONObject {
             writer.write("}");
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(className, "writeComplexObject(Writer, int, boolean, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "writeComplexObject(Writer, int, boolean, boolean)");
     }
 
 
