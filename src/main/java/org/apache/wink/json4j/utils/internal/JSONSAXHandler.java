@@ -23,7 +23,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.Properties;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -108,7 +109,7 @@ public class JSONSAXHandler extends DefaultHandler {
     public void startElement(String namespaceURI, String localName, String qName, Attributes attrs) throws SAXException {
         if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "startElement(String,String,String,org.xml.sax.Attributes)");
 
-        Properties props = new Properties();
+        Map<String, String> props = new LinkedHashMap<String, String>();
         int attrLength = attrs.getLength();
         for (int i = 0; i < attrLength; i++) {
             props.put(attrs.getQName(i), attrs.getValue(i));
