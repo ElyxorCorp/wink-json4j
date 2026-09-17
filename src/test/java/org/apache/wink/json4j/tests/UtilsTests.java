@@ -19,24 +19,12 @@
 
 package org.apache.wink.json4j.tests;
 
-/**
- * Basic junit imports.
- */
-
 import org.apache.wink.json4j.*;
 import org.apache.wink.json4j.tests.utils.ComplexXMLConstants;
 import org.apache.wink.json4j.tests.utils.LongTextXMLConstants;
-import org.apache.wink.json4j.tests.utils.SimpleXMLConstants;
-import org.apache.wink.json4j.utils.XML;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.xml.sax.SAXException;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
