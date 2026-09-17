@@ -24,53 +24,34 @@ public class SimpleXMLConstants {
     /**
      * This is a single line to use for verification, its broken out to make it easier to read.
      */
-    public final static String strCompactSimpleJSON = "{" +
-            "\"getValuesReturn\":{" +
-                "\"return\":\"true\"," +
-                "\"TextTag\":\"Text!\"," +
-                "\"String\":[\"First item\",\"Second item\",\"Third item\"]," +
-                "\"TagWithAttrsAndText\":{" +
-                    "\"content\":\"Text!\"," +
-                    "\"attr3\":\"value3\"," +
-                    "\"attr2\":\"value2\"," +
-                    "\"attr1\":\"value1\"" +
-                "}," +
-                "\"EmptyTag\":true," +
-                "\"attribute\":{" +
-                    "\"attrValue\":\"value\"" +
-                "}," +
-                "\"TagWithAttrs\":{" +
-                    "\"attr3\":\"value3\"," +
-                    "\"attr2\":\"value2\"," + "" +
-                    "\"attr1\":\"value1\"" +
-            "}}}";
+    public final static String strCompactSimpleJSON = "{\"getValuesReturn\":{\"return\":\"true\",\"attribute\":{\"attrValue\":\"value\"},\"String\":[\"First item\",\"Second item\",\"Third item\"],\"TextTag\":\"Text!\",\"EmptyTag\":true,\"TagWithAttrs\":{\"attr1\":\"value1\",\"attr2\":\"value2\",\"attr3\":\"value3\"},\"TagWithAttrsAndText\":{\"content\":\"Text!\",\"attr1\":\"value1\",\"attr2\":\"value2\",\"attr3\":\"value3\"}}}";
 
     public final static String strVerboseSimpleJSON = "{\n" +
             "\n" +
             "   \"getValuesReturn\" : {\n" +
             "      \"return\" : \"true\",\n" +
-            "      \"TextTag\" : \"Text!\",\n" +
+            "      \"attribute\" : {\n" +
+            "         \"attrValue\" : \"value\"\n" +
+            "      }\n" +
+            "      ,\n" +
             "      \"String\" : [\n" +
             "         \"First item\",\n" +
             "         \"Second item\",\n" +
             "         \"Third item\"\n" +
             "      ],\n" +
+            "      \"TextTag\" : \"Text!\",\n" +
+            "      \"EmptyTag\" : true,\n" +
+            "      \"TagWithAttrs\" : {\n" +
+            "         \"attr1\" : \"value1\",\n" +
+            "         \"attr2\" : \"value2\",\n" +
+            "         \"attr3\" : \"value3\"\n" +
+            "      }\n" +
+            "      ,\n" +
             "      \"TagWithAttrsAndText\" : {\n" +
             "         \"content\" : \"Text!\",\n" +
-            "         \"attr3\" : \"value3\",\n" +
+            "         \"attr1\" : \"value1\",\n" +
             "         \"attr2\" : \"value2\",\n" +
-            "         \"attr1\" : \"value1\"\n" +
-            "      }\n" +
-            "      ,\n" +
-            "      \"EmptyTag\" : true,\n" +
-            "      \"attribute\" : {\n" +
-            "         \"attrValue\" : \"value\"\n" +
-            "      }\n" +
-            "      ,\n" +
-            "      \"TagWithAttrs\" : {\n" +
-            "         \"attr3\" : \"value3\",\n" +
-            "         \"attr2\" : \"value2\",\n" +
-            "         \"attr1\" : \"value1\"\n" +
+            "         \"attr3\" : \"value3\"\n" +
             "      }\n" +
             "   }\n" +
             "}\n";

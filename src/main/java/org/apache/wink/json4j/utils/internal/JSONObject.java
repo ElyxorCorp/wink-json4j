@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 
 /**
  * This class is lightweight representation of an XML tag as a JSON object.
- * TODO:  Look at using HashMap and collections to store the data instead of sync'ed objects.
  * TODO:  See if the indent/newline handling could be cleaned up.  the repeated checks for compact is rather ugly.
  * TODO:  Look at maybe using the Java representation object as store for the XML data instead of this customized object.
  */
@@ -49,13 +48,15 @@ public class JSONObject {
 
     /**
      * All basic JSON object properties.  Effectively same as XML tag attributes.
+     * Ordered so that JSON attribute output reflects the source document order.
      */
-    private final Properties attrs;
+    private final Map<String, String> attrs;
 
     /**
      * All children JSON objects referenced.  Effectively the child tags of an XML tag.
+     * Ordered so that JSON child output reflects the order child tag names first appear.
      */
-    private final Hashtable jsonObjects;
+    private final Map<String, Vector<JSONObject>> jsonObjects;
 
     /**
      * Any XML freeform text to associate with the JSON object,
@@ -67,10 +68,10 @@ public class JSONObject {
      * @param objectName The object (tag) name being constructed.
      * @param attrs A properties object of all the attributes present for the tag.
      */
-    public JSONObject(String objectName, Properties attrs) {
+    public JSONObject(String objectName, Map<String, String> attrs) {
         this.objectName  = objectName;
         this.attrs       = attrs;
-        this.jsonObjects = new Hashtable();
+        this.jsonObjects = new LinkedHashMap<String, Vector<JSONObject>>();
     }
 
     /**
@@ -80,11 +81,11 @@ public class JSONObject {
     public void addJSONObject(JSONObject obj) {
         if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "addJSONObject(JSONObject)");
 
-        Vector vect = (Vector) this.jsonObjects.get(obj.objectName);
+        Vector<JSONObject> vect = this.jsonObjects.get(obj.objectName);
         if (vect != null) {
             vect.add(obj);
         } else {
-            vect = new Vector();
+            vect = new Vector<JSONObject>();
             vect.add(obj);
             this.jsonObjects.put(obj.objectName, vect);
         }
@@ -216,34 +217,32 @@ public class JSONObject {
      * @param compact Whether or not to use pretty indention output, or compact output, format
      * @throws IOException Trhown if an error occurs on write.
      */
-    private void writeAttributes(Writer writer, Properties attrs, int depth, boolean compact) throws IOException {
-        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeAttributes(Writer, Properties, int, boolean)");
+    private void writeAttributes(Writer writer, Map<String, String> attrs, int depth, boolean compact) throws IOException {
+        if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeAttributes(Writer, Map, int, boolean)");
 
-        if (attrs != null) {
-            Enumeration props = attrs.propertyNames();
+        if (attrs != null && !attrs.isEmpty()) {
+            Iterator<Map.Entry<String, String>> props = attrs.entrySet().iterator();
 
-            if (props != null && props.hasMoreElements()) {
-                while (props.hasMoreElements()) {
-                    String prop = (String)props.nextElement();
-                    writeAttribute(writer, escapeAttributeNameSpecialCharacters(prop), (String)attrs.get(prop), depth + 1, compact);
-                    if (props.hasMoreElements()) {
-                        try {
-                            if (!compact) {
-                                writer.write(",\n");
-                            } else {
-                                writer.write(",");
-                            }
-                        } catch (Exception ex) {
-                            IOException iox = new IOException(ERROR_OCCURRED_ON_SERIALIZATION_OF_JSON_TEXT);
-                            iox.initCause(ex);
-                            throw iox;
+            while (props.hasNext()) {
+                Map.Entry<String, String> prop = props.next();
+                writeAttribute(writer, escapeAttributeNameSpecialCharacters(prop.getKey()), prop.getValue(), depth + 1, compact);
+                if (props.hasNext()) {
+                    try {
+                        if (!compact) {
+                            writer.write(",\n");
+                        } else {
+                            writer.write(",");
                         }
+                    } catch (Exception ex) {
+                        IOException iox = new IOException(ERROR_OCCURRED_ON_SERIALIZATION_OF_JSON_TEXT);
+                        iox.initCause(ex);
+                        throw iox;
                     }
                 }
             }
         }
 
-        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "writeAttributes(Writer, Properties, int, boolean)");
+        if (logger.isLoggable(Level.FINER)) logger.exiting(CLASS_NAME, "writeAttributes(Writer, Map, int, boolean)");
     }
 
     /**
@@ -359,10 +358,11 @@ public class JSONObject {
         if (logger.isLoggable(Level.FINER)) logger.entering(CLASS_NAME, "writeChildren(Writer, int, boolean)");
 
         if (!jsonObjects.isEmpty()) {
-            Enumeration keys = jsonObjects.keys();
-            while (keys.hasMoreElements()) {
-                String objName = (String)keys.nextElement();
-                Vector vect = (Vector)jsonObjects.get(objName);
+            Iterator<Map.Entry<String, Vector<JSONObject>>> entries = jsonObjects.entrySet().iterator();
+            while (entries.hasNext()) {
+                Map.Entry<String, Vector<JSONObject>> entry = entries.next();
+                String objName = entry.getKey();
+                Vector<JSONObject> vect = entry.getValue();
                 if (vect != null && !vect.isEmpty()) {
                     /**
                      * Non-array versus array elements.
@@ -370,9 +370,9 @@ public class JSONObject {
                     if (vect.size() == 1) {
                         if (logger.isLoggable(Level.FINEST)) logger.logp(Level.FINEST, CLASS_NAME, "writeChildren(Writer, int, boolean)", "Writing child object: [" + objName + "]");
 
-                        JSONObject obj = (JSONObject)vect.elementAt(0);
+                        JSONObject obj = vect.elementAt(0);
                         obj.writeObject(writer,depth + 1, false, compact);
-                        if (keys.hasMoreElements()) {
+                        if (entries.hasNext()) {
                             try {
                                 if (!compact) {
                                     if (!obj.isTextOnlyObject() && !obj.isEmptyObject()) {
@@ -405,7 +405,7 @@ public class JSONObject {
                                 writer.write(":[");
                             }
                             for (int i = 0; i < vect.size(); i++) {
-                                JSONObject obj = (JSONObject)vect.elementAt(i);
+                                JSONObject obj = vect.elementAt(i);
                                 obj.writeObject(writer,depth + 2, true, compact);
 
                                 /**
@@ -429,7 +429,7 @@ public class JSONObject {
                             }
 
                             writer.write("]");
-                            if (keys.hasMoreElements()) {
+                            if (entries.hasNext()) {
                                 writer.write(",");
                             }
 

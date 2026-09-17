@@ -1,18 +1,19 @@
 plugins {
     id 'idea'
     id 'java'
-    id 'maven'
     id 'maven-publish'
     id 'signing'
-    id 'org.ajoberstar.grgit' version '2.0.1'
+    id 'org.ajoberstar.grgit' version '5.3.0'
 }
 
 import org.ajoberstar.grgit.Grgit
 
 apply from: 'versioning.gradle'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
 
 group = applicationGroupId
 project.version = getVersionCode()
@@ -32,12 +33,11 @@ configurations {
 repositories {
     mavenLocal()
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
 
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 
 }
 
@@ -46,8 +46,8 @@ compileJava {
     options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.2'
+wrapper {
+    gradleVersion = '9.7.1'
 }
 
 sourceSets {
@@ -68,7 +68,7 @@ ext {
 
     // init local mavenUser/pwd
 
-    def gitRepo = Grgit.open(dir: '.')
+    def gitRepo = Grgit.open(currentDir: project.rootDir)
     gitHash = gitRepo.head().id
     gitBranch = gitRepo.branch.current.name
     gitRepo.close()
@@ -77,7 +77,7 @@ ext {
 }
 
 jar {
-    baseName = project.name
+    archiveBaseName.set(project.name)
     manifest {
         attributes(
                 "Manifest-Version": "1.0",
@@ -92,37 +92,37 @@ jar {
                 "Build-Hash": project.gitHash,
                 "Build-Branch": project.gitBranch,
                 "Build-Time": project.startTime,
-                "Class-Path": configurations.runtime.collect { it.getName() }.join(' ')
+                "Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' ')
         )
     }
 }
 
 task sourceJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    baseName = project.name
+    archiveClassifier.set('sources')
+    archiveBaseName.set(project.name)
     from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    baseName = project.name
+    archiveClassifier.set('javadoc')
+    archiveBaseName.set(project.name)
     from javadoc.destinationDir
 }
 
 task testsJar(type: Jar, dependsOn: classes ) {
-    classifier = 'tests'
-    baseName = project.name
+    archiveClassifier.set('tests')
+    archiveBaseName.set(project.name)
     from sourceSets.test.output
 }
 
 publishing {
     publications {
         json4j(MavenPublication) {
-            version project.version
+            version = project.version
             artifact jar
-            artifact sourceJar { classifier 'sources' }
-            artifact javadocJar { classifier 'javadoc' }
-            artifact testsJar { classifier 'tests' }
+            artifact sourceJar
+            artifact javadocJar
+            artifact testsJar
             pom.withXml {
                 asNode().children().last() + {
                     resolveStrategy = Closure.DELEGATE_FIRST
@@ -151,7 +151,7 @@ test {
         println('RunningTests on ' + maxParallelForks + ' Cores')
     }
 
-    maxParallelForks Runtime.runtime.availableProcessors()
+    maxParallelForks = Runtime.runtime.availableProcessors()
 
     jvmArgs '-da', '-Xmx4g'
 
