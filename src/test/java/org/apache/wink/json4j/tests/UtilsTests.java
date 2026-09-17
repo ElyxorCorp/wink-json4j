@@ -66,6 +66,20 @@ public class UtilsTests {
     }
 
     /**
+     * The compact and verbose forms of the complex fixture are just different renderings
+     * of the same data, so parsing them back should produce equal JSONObjects, and the two
+     * should also preserve the identical attribute/child ordering as each other.
+     */
+    @Test
+    public void testComplexConstants_CompactAndVerboseParseToEqualObjects() throws JSONException {
+        OrderedJSONObject compact = new OrderedJSONObject(ComplexXMLConstants.strCompactComplexJSON);
+        OrderedJSONObject verbose = new OrderedJSONObject(ComplexXMLConstants.strVerboseComplexJSON);
+
+        assertEquals(compact, verbose);
+        assertSameOrder(compact, verbose);
+    }
+
+    /**
      * Recursively verifies that two parsed JSON values contain the same data in the same
      * key/element order at every level, not just the same data (which HashMap-based equals()
      * would already confirm regardless of order).
