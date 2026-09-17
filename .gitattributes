@@ -25,6 +25,10 @@
 *.xml           text
 *.yml           text
 
+# Gradle wrapper scripts must keep consistent line endings regardless of platform
+gradlew         text eol=lf
+gradlew.bat     text eol=crlf
+
 # These files are binary and should be left untouched
 # (binary is a macro for -text -diff)
 *.class         binary
