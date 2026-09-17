@@ -23,17 +23,11 @@ import org.apache.wink.json4j.JSON;
 import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONArtifact;
 import org.apache.wink.json4j.JSONObject;
-import org.apache.wink.json4j.tests.utils.PerformanceUtils;
-import org.apache.wink.json4j.tests.utils.StringUtils;
 import org.apache.wink.json4j.tests.utils.VerifyUtils;
 import org.apache.wink.json4j.utils.XML;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.*;
 

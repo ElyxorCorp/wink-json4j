@@ -27,7 +27,6 @@ import org.apache.wink.json4j.JSONArray;
 import org.apache.wink.json4j.JSONObject;
 import org.apache.wink.json4j.tests.utils.*;
 import org.apache.wink.json4j.utils.XML;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
