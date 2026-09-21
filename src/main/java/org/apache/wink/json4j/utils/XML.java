@@ -29,6 +29,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParser;
@@ -196,6 +197,12 @@ public class XML {
                  */
                 SAXParserFactory factory = SAXParserFactory.newInstance();
                 factory.setNamespaceAware(true);
+                // Prevent XXE: reject any DOCTYPE outright, which also rules out external
+                // entity/DTD resolution and internal-entity expansion (billion laughs) DoS.
+                factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
                 SAXParser sParser = factory.newSAXParser();
                 XMLReader parser = sParser.getXMLReader();
                 JSONSAXHandler jsonHandler = new JSONSAXHandler(JSONStream, verbose);
@@ -365,6 +372,11 @@ public class XML {
                 //Create a new document
 
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                // Hardened against XXE for defense-in-depth, even though this builder only
+                // ever constructs a fresh empty document and never parses external input.
+                dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                dbf.setXIncludeAware(false);
+                dbf.setExpandEntityReferences(false);
                 DocumentBuilder dBuilder = dbf.newDocumentBuilder();
                 Document doc = dBuilder.newDocument();
 
@@ -376,6 +388,10 @@ public class XML {
 
                 //Serialize it.
                 TransformerFactory tfactory = TransformerFactory.newInstance();
+                // Prevent the transformer from resolving external DTDs/stylesheets, even though
+                // the stylesheet used below is a fixed internal constant, not caller-controlled.
+                tfactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                tfactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
                 Transformer serializer = null;
                 if (verbose) {
                     serializer = tfactory.newTransformer(new StreamSource(new StringReader(styleSheet)));
