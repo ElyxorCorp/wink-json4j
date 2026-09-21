@@ -32,9 +32,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.xml.sax.SAXException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
 
@@ -235,6 +237,22 @@ public class XMLTests {
             XML.toJson(is, true);
         } finally {
             /* */
+        }
+    }
+
+    /**
+     * Test that an XML document attempting an XXE (XML External Entity) attack is rejected
+     * outright rather than having the external entity resolved. See CVE-style DOCTYPE/entity
+     * injection: the parser must reject any DOCTYPE declaration, not just fail to resolve it.
+     */
+    @Test
+    public void testXxeDoctypeIsRejected() throws Exception {
+        thrown.expect(SAXException.class);
+        String xxePayload = "<?xml version=\"1.0\"?>\n" +
+                "<!DOCTYPE root [<!ENTITY xxe SYSTEM \"file:///nonexistent-xxe-marker\">]>\n" +
+                "<root>&xxe;</root>";
+        try (InputStream is = new ByteArrayInputStream(xxePayload.getBytes(StandardCharsets.UTF_8))) {
+            XML.toJson(is, true);
         }
     }
 
